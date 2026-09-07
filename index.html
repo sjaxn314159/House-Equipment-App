@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f4e78">
+
+  <title>House Equipment</title>
+
+  <style>
+    :root {
+      --blue: #1f4e78;
+      --blue2: #2f75b5;
+      --light: #f3f6f9;
+      --border: #d6dde5;
+      --text: #1f2933;
+      --muted: #66737f;
+      --danger: #b42318;
+      --warning: #b26a00;
+      --success: #18794e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--light);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: var(--blue);
+      color: white;
+      padding: 18px 16px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+
+    .header h1 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .search {
+      width: 100%;
+      font-size: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .filters select {
+      width: 100%;
+      font-size: 15px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    .summary {
+      padding: 12px 16px 4px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .cards {
+      padding: 8px 12px 30px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      padding: 14px;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+
+    .card:hover {
+      border-color: #9fb5c9;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .card-location {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .card-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .tag {
+      background: #e9eef3;
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    .tier1 {
+      background: #fde7e4;
+      color: #912018;
+    }
+
+    .tier2 {
+      background: #fff1d6;
+      color: #895400;
+    }
+
+    .tier3 {
+      background: #e4f3ea;
+      color: #11663d;
+    }
+
+    .future {
+      background: #eee7f6;
+      color: #62428d;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+    }
+
+    .error {
+      background: #fde7e4;
+      color: var(--danger);
+      margin: 16px;
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 35px;
+      color: var(--muted);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.52);
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .modal.show {
+      display: block;
+    }
+
+    .modal-panel {
+      background: white;
+      max-width: 720px;
+      margin: 20px auto;
+      min-height: calc(100vh - 40px);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: var(--blue);
+      color: white;
+      padding: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 21px;
+      flex: 1;
+    }
+
+    .close {
+      border: none;
+      background: rgba(255,255,255,.16);
+      color: white;
+      height: 40px;
+      width: 40px;
+      border-radius: 50%;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .detail-body {
+      padding: 16px;
+    }
+
+    .section {
+      margin-bottom: 22px;
+    }
+
+    .section h3 {
+      font-size: 15px;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin: 0 0 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px;
+      padding: 6px 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .value {
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 14px;
+      border-radius: 8px;
+      background: var(--blue2);
+      color: white;
+      text-decoration: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-panel {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+      }
+
+      .detail-row {
+        grid-template-columns: 110px 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <h1>House Equipment</h1>
+
+    <input
+      id="search"
+      class="search"
+      type="search"
+      placeholder="Search equipment, make, model, serial #..."
+    >
+
+    <div class="filters">
+      <select id="floorFilter">
+        <option value="">All Floors</option>
+      </select>
+
+      <select id="areaFilter">
+        <option value="">All Areas</option>
+      </select>
+
+      <select id="criticalFilter">
+        <option value="">All Criticality</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="summary" class="summary"></div>
+
+  <div id="loading" class="loading">
+    Loading equipment...
+  </div>
+
+  <div id="error"></div>
+
+  <div id="cards" class="cards"></div>
+
+</div>
+
+
+<div id="modal" class="modal">
+
+  <div class="modal-panel">
+
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+
+      <button id="closeModal" class="close" type="button">
+        ×
+      </button>
+    </div>
+
+    <div id="detailBody" class="detail-body"></div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbyyQl3j0suJjNE0GoqPAyZwzqH7dUHO3xMXYRXwfEn2NUd6RIGPIW8CI2UV33nBbcg1Vg/exec";
+
+
+let allEquipment = [];
+
+
+const cards = document.getElementById("cards");
+const summary = document.getElementById("summary");
+const loading = document.getElementById("loading");
+const errorBox = document.getElementById("error");
+
+const search = document.getElementById("search");
+const floorFilter = document.getElementById("floorFilter");
+const areaFilter = document.getElementById("areaFilter");
+const criticalFilter = document.getElementById("criticalFilter");
+
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modalTitle");
+const detailBody = document.getElementById("detailBody");
+const closeModal = document.getElementById("closeModal");
+
+
+async function loadEquipment() {
+
+  try {
+
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      throw new Error("Could not load equipment data.");
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "The equipment API returned an error.");
+    }
+
+    allEquipment = data.equipment || [];
+
+    loading.style.display = "none";
+
+    buildFilters();
+
+    renderEquipment();
+
+  } catch (err) {
+
+    loading.style.display = "none";
+
+    errorBox.innerHTML =
+      `<div class="error">${escapeHtml(err.message)}</div>`;
+
+  }
+
+}
+
+
+function buildFilters() {
+
+  const floors = uniqueValues(allEquipment, "floor");
+  const areas = uniqueValues(allEquipment, "area");
+  const critical = uniqueValues(allEquipment, "critical");
+
+  fillSelect(floorFilter, floors);
+  fillSelect(areaFilter, areas);
+  fillSelect(criticalFilter, critical);
+
+}
+
+
+function uniqueValues(data, field) {
+
+  return [...new Set(
+    data
+      .map(item => item[field])
+      .filter(Boolean)
+  )].sort();
+
+}
+
+
+function fillSelect(select, values) {
+
+  values.forEach(value => {
+
+    const option = document.createElement("option");
+
+    option.value = value;
+    option.textContent = value;
+
+    select.appendChild(option);
+
+  });
+
+}
+
+
+function renderEquipment() {
+
+  const searchText = search.value.trim().toLowerCase();
+  const floor = floorFilter.value;
+  const area = areaFilter.value;
+  const critical = criticalFilter.value;
+
+  let filtered = allEquipment.filter(item => {
+
+    if (floor && item.floor !== floor) return false;
+
+    if (area && item.area !== area) return false;
+
+    if (critical && item.critical !== critical) return false;
+
+
+    if (searchText) {
+
+      const text = [
+        item.equipment,
+        item.id,
+        item.floor,
+        item.area,
+        item.make,
+        item.model,
+        item.serialNumber,
+        item.details,
+        item.powers
+      ]
+      .join(" ")
+      .toLowerCase();
+
+      if (!text.includes(searchText)) {
+        return false;
+      }
+
+    }
+
+    return true;
+
+  });
+
+
+  filtered.sort((a,b) => {
+
+    return (
+      compareText(a.floor, b.floor) ||
+      compareText(a.area, b.area) ||
+      compareItem(a.itemNumber, b.itemNumber)
+    );
+
+  });
+
+
+  summary.textContent =
+    `${filtered.length} of ${allEquipment.length} items`;
+
+
+  cards.innerHTML = "";
+
+
+  if (!filtered.length) {
+
+    cards.innerHTML =
+      `<div class="empty">No equipment matches those filters.</div>`;
+
+    return;
+
+  }
+
+
+  filtered.forEach(item => {
+
+    const card = document.createElement("div");
+
+    card.className = "card";
+
+    const manufacturer =
+      [item.make, item.model]
+      .filter(Boolean)
+      .join(" • ");
+
+
+    card.innerHTML = `
+
+      <div class="card-title">
+        ${escapeHtml(item.equipment)}
+      </div>
+
+      <div class="card-location">
+        ${escapeHtml(
+          [item.floor, item.area]
+          .filter(Boolean)
+          .join(" • ")
+        )}
+      </div>
+
+      <div class="card-info">
+
+        ${item.id
+          ? `<span class="tag">${escapeHtml(item.id)}</span>`
+          : ""
+        }
+
+        ${manufacturer
+          ? `<span class="tag">${escapeHtml(manufacturer)}</span>`
+          : ""
+        }
+
+        ${criticalTag(item.critical)}
+
+        ${unitTag(item.unit)}
+
+      </div>
+
+    `;
+
+
+    card.addEventListener("click", () => openDetail(item));
+
+    cards.appendChild(card);
+
+  });
+
+}
+
+
+function criticalTag(value) {
+
+  if (!value) return "";
+
+  const v = value.toLowerCase();
+
+  let cls = "";
+
+  if (v.includes("tier 1")) cls = "tier1";
+
+  if (v.includes("tier 2")) cls = "tier2";
+
+  if (v.includes("tier 3")) cls = "tier3";
+
+
+  return `
+    <span class="tag ${cls}">
+      ${escapeHtml(value)}
+    </span>
+  `;
+
+}
+
+
+function unitTag(value) {
+
+  if (!value) return "";
+
+  let cls = "";
+
+  if (value.toLowerCase() === "future") {
+    cls = "future";
+  }
+
+  return `
+    <span class="tag ${cls}">
+      ${escapeHtml(value)}
+    </span>
+  `;
+
+}
+
+
+function openDetail(item) {
+
+  modalTitle.textContent =
+    item.equipment || "Equipment";
+
+
+  detailBody.innerHTML = `
+
+    ${section("Location", [
+      ["Floor", item.floor],
+      ["Area", item.area],
+      ["Item #", item.itemNumber],
+      ["Jin", item.jin],
+      ["ID", item.id]
+    ])}
+
+    ${section("Equipment", [
+      ["Criticality", item.critical],
+      ["Labeled", item.labeled],
+      ["Unit", item.unit],
+      ["Make", item.make],
+      ["Model", item.model],
+      ["Serial Number", item.serialNumber],
+      ["Install Date", item.installDate]
+    ])}
+
+    ${section("Electrical", [
+      ["Panel", item.panel],
+      ["Breaker", item.breaker],
+      ["Powers", item.powers]
+    ])}
+
+    ${section("Maintenance / Reference", [
+      ["Batteries", item.batteries],
+      ["Manual", item.manual],
+      ["Key ID", item.keyId],
+      ["Details", item.details]
+    ])}
+
+  `;
+
+
+  modal.classList.add("show");
+
+  document.body.style.overflow = "hidden";
+
+}
+
+
+function section(title, rows) {
+
+  const validRows =
+    rows.filter(row =>
+      row[1] !== undefined &&
+      row[1] !== null &&
+      row[1] !== ""
+    );
+
+
+  if (!validRows.length) {
+    return "";
+  }
+
+
+  return `
+
+    <div class="section">
+
+      <h3>${escapeHtml(title)}</h3>
+
+      ${validRows.map(row => `
+
+        <div class="detail-row">
+
+          <div class="label">
+            ${escapeHtml(row[0])}
+          </div>
+
+          <div class="value">
+            ${escapeHtml(row[1])}
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+  `;
+
+}
+
+
+function closeDetail() {
+
+  modal.classList.remove("show");
+
+  document.body.style.overflow = "";
+
+}
+
+
+function compareText(a,b) {
+
+  return String(a || "")
+    .localeCompare(String(b || ""), undefined, {
+      numeric: true,
+      sensitivity: "base"
+    });
+
+}
+
+
+function compareItem(a,b) {
+
+  const aa = parseFloat(a);
+  const bb = parseFloat(b);
+
+  if (!isNaN(aa) && !isNaN(bb)) {
+    return aa - bb;
+  }
+
+  return compareText(a,b);
+
+}
+
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+search.addEventListener("input", renderEquipment);
+
+floorFilter.addEventListener("change", renderEquipment);
+
+areaFilter.addEventListener("change", renderEquipment);
+
+criticalFilter.addEventListener("change", renderEquipment);
+
+closeModal.addEventListener("click", closeDetail);
+
+
+modal.addEventListener("click", event => {
+
+  if (event.target === modal) {
+    closeDetail();
+  }
+
+});
+
+
+document.addEventListener("keydown", event => {
+
+  if (event.key === "Escape") {
+    closeDetail();
+  }
+
+});
+
+
+loadEquipment();
+
+</script>
+
+</body>
+</html>
