@@ -68,7 +68,7 @@
 
     .nav {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
@@ -215,6 +215,50 @@
     .doc-opl {
       background: #fff1d6;
       color: #895400;
+    }
+
+
+    .pm-overdue {
+      background: #fde7e4;
+      color: #912018;
+    }
+
+    .pm-due-soon {
+      background: #fff1d6;
+      color: #895400;
+    }
+
+    .pm-open {
+      background: #e7f0fb;
+      color: #174f82;
+    }
+
+    .pm-inactive {
+      background: #e9eef3;
+      color: #66737f;
+    }
+
+    .parts-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .part-box {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px;
+      background: #f8fafc;
+    }
+
+    .part-box strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
     }
 
     .empty {
@@ -458,6 +502,10 @@
       <button id="documentsTab" class="nav-btn" type="button">
         Documents
       </button>
+
+      <button id="pmTab" class="nav-btn" type="button">
+        PM
+      </button>
     </div>
 
     <div id="equipmentHeader">
@@ -527,6 +575,27 @@
         </select>
       </div>
     </div>
+
+    <div id="pmHeader" style="display:none;">
+      <input
+        id="pmSearch"
+        class="search"
+        type="search"
+        placeholder="Search PM task, equipment, JIN, spare part..."
+      >
+
+      <div class="filters two">
+        <select id="pmEquipmentFilter">
+          <option value="">All Equipment</option>
+        </select>
+
+        <select id="pmStatusFilter">
+          <option value="open">Open PMs</option>
+          <option value="all">All PMs</option>
+          <option value="overdue">Overdue Only</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <div id="equipmentView" class="view active">
@@ -556,6 +625,17 @@
   <div id="documentsView" class="view">
     <div id="documentsSummary" class="summary"></div>
     <div id="documentsCards" class="cards"></div>
+  </div>
+
+  <div id="pmView" class="view">
+    <div class="toolbar">
+      <button id="newPMButton" class="btn success-btn" type="button">
+        ＋ Add New PM
+      </button>
+    </div>
+
+    <div id="pmSummary" class="summary"></div>
+    <div id="pmCards" class="cards"></div>
   </div>
 
 </div>
@@ -680,6 +760,123 @@
 </div>
 
 
+<div id="pmFormModal" class="modal">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h2>Add New PM</h2>
+      <button id="closePMFormModal" class="close" type="button">×</button>
+    </div>
+
+    <div class="detail-body">
+      <form id="pmForm">
+        <div class="form-grid">
+          <div class="field full">
+            <label for="pmFormJin">Equipment / JIN *</label>
+            <select id="pmFormJin" required>
+              <option value="">Select equipment...</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="pmFormTask">PM Task *</label>
+            <input id="pmFormTask" type="text" placeholder="Replace Furnace Filter" required>
+          </div>
+
+          <div class="field">
+            <label for="pmFormStartDate">Start / First Due Date *</label>
+            <input id="pmFormStartDate" type="date" required>
+          </div>
+
+          <div class="field">
+            <label for="pmFormFrequency">Frequency *</label>
+            <select id="pmFormFrequency" required>
+              <option value="Monthly">Monthly</option>
+              <option value="3 Months">Every 3 Months</option>
+              <option value="6 Months">Every 6 Months</option>
+              <option value="Annual">Annual</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Biweekly">Biweekly</option>
+              <option value="One Time">One Time</option>
+              <option value="Custom Months">Custom Months</option>
+            </select>
+          </div>
+
+          <div id="pmCustomMonthsField" class="field" style="display:none;">
+            <label for="pmFormFrequencyMonths">Frequency Months</label>
+            <input id="pmFormFrequencyMonths" type="number" min="1" step="1" placeholder="e.g. 18">
+          </div>
+
+          <div class="field full">
+            <label for="pmFormSpareJins">Spare JIN(s)</label>
+            <input id="pmFormSpareJins" type="text" placeholder="Example: 0.2.2-C, 0.2.2-G">
+            <div id="pmSpareSuggestions" class="small-note"></div>
+          </div>
+
+          <div class="field full">
+            <label for="pmFormWI">Related Work Instruction</label>
+            <select id="pmFormWI">
+              <option value="">None</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="pmFormNotes">Notes</label>
+            <textarea id="pmFormNotes"></textarea>
+          </div>
+        </div>
+
+        <div id="pmFormMessage"></div>
+
+        <div class="buttons">
+          <button id="savePMButton" class="btn success-btn" type="submit">Save PM</button>
+          <button id="cancelPMButton" class="btn secondary" type="button">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div id="completePMModal" class="modal">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h2 id="completePMTitle">Complete PM</h2>
+      <button id="closeCompletePMModal" class="close" type="button">×</button>
+    </div>
+
+    <div class="detail-body">
+      <form id="completePMForm">
+        <input id="completePMId" type="hidden">
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="completePMDate">Completion Date *</label>
+            <input id="completePMDate" type="date" required>
+          </div>
+
+          <div class="field">
+            <label for="completePMBy">Performed By</label>
+            <input id="completePMBy" type="text">
+          </div>
+
+          <div class="field full">
+            <label for="completePMNotes">Completion Notes</label>
+            <textarea id="completePMNotes" placeholder="Optional notes about the work performed"></textarea>
+          </div>
+        </div>
+
+        <div id="completePMMessage"></div>
+
+        <div class="buttons">
+          <button id="completePMButton" class="btn success-btn" type="submit">✓ Complete Task</button>
+          <button id="cancelCompletePMButton" class="btn secondary" type="button">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 <script>
 
 const API_URL =
@@ -689,19 +886,24 @@ const API_URL =
 let allEquipment = [];
 let allMaintenance = [];
 let allDocuments = [];
+let allPM = [];
+let allSpareParts = [];
 
 
 const equipmentTab = document.getElementById("equipmentTab");
 const maintenanceTab = document.getElementById("maintenanceTab");
 const documentsTab = document.getElementById("documentsTab");
+const pmTab = document.getElementById("pmTab");
 
 const equipmentHeader = document.getElementById("equipmentHeader");
 const maintenanceHeader = document.getElementById("maintenanceHeader");
 const documentsHeader = document.getElementById("documentsHeader");
+const pmHeader = document.getElementById("pmHeader");
 
 const equipmentView = document.getElementById("equipmentView");
 const maintenanceView = document.getElementById("maintenanceView");
 const documentsView = document.getElementById("documentsView");
+const pmView = document.getElementById("pmView");
 
 const cards = document.getElementById("cards");
 const equipmentSummary = document.getElementById("equipmentSummary");
@@ -735,6 +937,13 @@ const documentsSummary =
 const documentsCards =
   document.getElementById("documentsCards");
 
+const pmSearch = document.getElementById("pmSearch");
+const pmEquipmentFilter = document.getElementById("pmEquipmentFilter");
+const pmStatusFilter = document.getElementById("pmStatusFilter");
+const pmSummary = document.getElementById("pmSummary");
+const pmCards = document.getElementById("pmCards");
+const newPMButton = document.getElementById("newPMButton");
+
 const newLogButton = document.getElementById("newLogButton");
 
 const modal = document.getElementById("modal");
@@ -762,6 +971,35 @@ const formSpareDescription =
 const formNextStep = document.getElementById("formNextStep");
 const formLink = document.getElementById("formLink");
 
+const pmFormModal = document.getElementById("pmFormModal");
+const closePMFormModal = document.getElementById("closePMFormModal");
+const pmForm = document.getElementById("pmForm");
+const cancelPMButton = document.getElementById("cancelPMButton");
+const savePMButton = document.getElementById("savePMButton");
+const pmFormMessage = document.getElementById("pmFormMessage");
+const pmFormJin = document.getElementById("pmFormJin");
+const pmFormTask = document.getElementById("pmFormTask");
+const pmFormStartDate = document.getElementById("pmFormStartDate");
+const pmFormFrequency = document.getElementById("pmFormFrequency");
+const pmCustomMonthsField = document.getElementById("pmCustomMonthsField");
+const pmFormFrequencyMonths = document.getElementById("pmFormFrequencyMonths");
+const pmFormSpareJins = document.getElementById("pmFormSpareJins");
+const pmSpareSuggestions = document.getElementById("pmSpareSuggestions");
+const pmFormWI = document.getElementById("pmFormWI");
+const pmFormNotes = document.getElementById("pmFormNotes");
+
+const completePMModal = document.getElementById("completePMModal");
+const closeCompletePMModal = document.getElementById("closeCompletePMModal");
+const completePMForm = document.getElementById("completePMForm");
+const completePMTitle = document.getElementById("completePMTitle");
+const completePMId = document.getElementById("completePMId");
+const completePMDate = document.getElementById("completePMDate");
+const completePMBy = document.getElementById("completePMBy");
+const completePMNotes = document.getElementById("completePMNotes");
+const completePMMessage = document.getElementById("completePMMessage");
+const completePMButton = document.getElementById("completePMButton");
+const cancelCompletePMButton = document.getElementById("cancelCompletePMButton");
+
 
 async function loadData() {
 
@@ -782,15 +1020,19 @@ async function loadData() {
     allEquipment = data.equipment || [];
     allMaintenance = data.maintenance || [];
     allDocuments = data.documents || [];
+    allPM = data.pm || [];
+    allSpareParts = data.spareParts || [];
 
     loading.style.display = "none";
 
     buildFilters();
     buildMaintenanceEquipmentLists();
+    buildPMLists();
 
     renderEquipment();
     renderMaintenance();
     renderDocuments();
+    renderPM();
 
   } catch (err) {
 
@@ -809,10 +1051,12 @@ function switchView(viewName) {
   const equipmentActive = viewName === "equipment";
   const maintenanceActive = viewName === "maintenance";
   const documentsActive = viewName === "documents";
+  const pmActive = viewName === "pm";
 
   equipmentTab.classList.toggle("active", equipmentActive);
   maintenanceTab.classList.toggle("active", maintenanceActive);
   documentsTab.classList.toggle("active", documentsActive);
+  pmTab.classList.toggle("active", pmActive);
 
   equipmentHeader.style.display =
     equipmentActive ? "block" : "none";
@@ -823,9 +1067,13 @@ function switchView(viewName) {
   documentsHeader.style.display =
     documentsActive ? "block" : "none";
 
+  pmHeader.style.display =
+    pmActive ? "block" : "none";
+
   equipmentView.classList.toggle("active", equipmentActive);
   maintenanceView.classList.toggle("active", maintenanceActive);
   documentsView.classList.toggle("active", documentsActive);
+  pmView.classList.toggle("active", pmActive);
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -878,6 +1126,41 @@ function buildMaintenanceEquipmentLists() {
 
   });
 
+}
+
+
+function buildPMLists() {
+
+  pmEquipmentFilter.innerHTML = '<option value="">All Equipment</option>';
+  pmFormJin.innerHTML = '<option value="">Select equipment...</option>';
+  pmFormWI.innerHTML = '<option value="">None</option>';
+
+  [...allEquipment]
+    .filter(item => item.jin)
+    .sort((a,b) => compareText(a.jin, b.jin))
+    .forEach(item => {
+      const label = `${item.equipment || "Equipment"} — JIN ${item.jin}`;
+
+      const filterOption = document.createElement("option");
+      filterOption.value = item.jin;
+      filterOption.textContent = label;
+      pmEquipmentFilter.appendChild(filterOption);
+
+      const formOption = document.createElement("option");
+      formOption.value = item.jin;
+      formOption.textContent = label;
+      pmFormJin.appendChild(formOption);
+    });
+
+  allDocuments
+    .filter(doc => doc.shortType === "WI")
+    .sort((a,b) => compareText(a.id, b.id))
+    .forEach(doc => {
+      const option = document.createElement("option");
+      option.value = doc.id;
+      option.textContent = [doc.id, doc.title].filter(Boolean).join(" — ");
+      pmFormWI.appendChild(option);
+    });
 }
 
 
@@ -1301,6 +1584,363 @@ function renderDocuments() {
 
   });
 
+}
+
+
+function renderPM() {
+
+  const searchText = pmSearch.value.trim().toLowerCase();
+  const equipmentJin = pmEquipmentFilter.value;
+  const statusFilter = pmStatusFilter.value;
+  const now = startOfLocalDay(new Date()).getTime();
+
+  let filtered = allPM.filter(pm => {
+    const open = isPMOpen(pm);
+    const dueTime = pmDueTime(pm);
+    const overdue = open && dueTime > 0 && dueTime < now;
+
+    if (statusFilter === "open" && !open) return false;
+    if (statusFilter === "overdue" && !overdue) return false;
+    if (equipmentJin && pm.jin !== equipmentJin) return false;
+
+    if (searchText) {
+      const eq = equipmentForJin(pm.jin);
+      const parts = sparePartsForPM(pm);
+      const text = [
+        pm.id, pm.task, pm.jin, pm.status, pm.frequency,
+        pm.relatedWI, pm.notes, eq?.equipment, eq?.floor, eq?.area,
+        ...parts.flatMap(p => [p.spareJin, p.item, p.manufacturer, p.partNumber])
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      if (!text.includes(searchText)) return false;
+    }
+
+    return true;
+  });
+
+  filtered.sort((a,b) => {
+    const da = pmDueTime(a) || Number.MAX_SAFE_INTEGER;
+    const db = pmDueTime(b) || Number.MAX_SAFE_INTEGER;
+    return da - db || compareText(a.id, b.id);
+  });
+
+  const openCount = allPM.filter(isPMOpen).length;
+  const overdueCount = allPM.filter(pm => isPMOpen(pm) && pmDueTime(pm) > 0 && pmDueTime(pm) < now).length;
+  pmSummary.textContent = `${filtered.length} shown • ${openCount} open • ${overdueCount} overdue`;
+  pmCards.innerHTML = "";
+
+  if (!filtered.length) {
+    pmCards.innerHTML = '<div class="empty">No PM tasks match those filters.</div>';
+    return;
+  }
+
+  filtered.forEach(pm => {
+    const eq = equipmentForJin(pm.jin);
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-title">${escapeHtml(`${pm.id}: ${pm.task}`)}</div>
+      <div class="card-location">
+        ${escapeHtml([
+          eq?.equipment,
+          eq ? [eq.floor, eq.area].filter(Boolean).join(" / ") : "",
+          pm.jin ? `JIN ${pm.jin}` : ""
+        ].filter(Boolean).join(" • "))}
+      </div>
+      <div class="card-info">
+        ${pmStatusTag(pm)}
+        ${pm.nextDue ? `<span class="tag">Due ${escapeHtml(pm.nextDue)}</span>` : ""}
+        ${pm.frequency ? `<span class="tag">${escapeHtml(pm.frequency)}</span>` : ""}
+      </div>
+    `;
+
+    card.addEventListener("click", () => openPMDetail(pm));
+    pmCards.appendChild(card);
+  });
+}
+
+
+function openPMDetail(pm) {
+
+  const eq = equipmentForJin(pm.jin);
+  const parts = sparePartsForPM(pm);
+  const wi = relatedDocument(pm.relatedWI);
+
+  modalTitle.textContent = `${pm.id}: ${pm.task}`;
+
+  const partsHtml = parts.length
+    ? `<div class="section"><h3>Required Spare Parts</h3><div class="parts-list">${parts.map(part => `
+        <div class="part-box">
+          <strong>${escapeHtml(part.item || part.description || part.spareJin)}</strong>
+          <div class="small-note">${escapeHtml([
+            part.spareJin ? `Spare JIN ${part.spareJin}` : "",
+            part.manufacturer,
+            part.partNumber ? `PN ${part.partNumber}` : "",
+            part.storageLocation ? `Stored: ${part.storageLocation}` : "",
+            part.onHand ? `On hand: ${part.onHand}` : ""
+          ].filter(Boolean).join(" • "))}</div>
+          ${part.link ? `<div class="buttons"><a class="btn secondary" href="${escapeHtml(part.link)}" target="_blank" rel="noopener noreferrer">🔗 View / Buy Part</a></div>` : ""}
+        </div>
+      `).join("")}</div></div>`
+    : (pm.spareJins
+      ? `<div class="section"><h3>Required Spare Parts</h3><div class="small-note">Spare JIN(s): ${escapeHtml(pm.spareJins)} — no matching rows were found in Spare Parts.</div></div>`
+      : "");
+
+  const wiButton = wi?.link
+    ? `<a class="btn" href="${escapeHtml(wi.link)}" target="_blank" rel="noopener noreferrer">📄 Open ${escapeHtml(wi.id || "Work Instruction")}</a>`
+    : "";
+
+  detailBody.innerHTML = `
+    ${section("PM Task", [
+      ["PM ID", pm.id],
+      ["Status", pm.status],
+      ["Task", pm.task],
+      ["Start Date", pm.startDate],
+      ["Frequency", pm.frequency],
+      ["Last Completed", pm.lastCompleted],
+      ["Next Due", pm.nextDue],
+      ["Related WI", pm.relatedWI],
+      ["Notes", pm.notes]
+    ])}
+
+    ${section("Equipment / Location", [
+      ["Equipment", eq?.equipment],
+      ["JIN", pm.jin],
+      ["Equipment ID", eq?.id],
+      ["Floor", eq?.floor],
+      ["Area", eq?.area],
+      ["Make", eq?.make],
+      ["Model", eq?.model]
+    ])}
+
+    ${partsHtml}
+
+    <div class="buttons">
+      ${wiButton}
+      ${isPMOpen(pm) ? `<button class="btn success-btn" type="button" onclick="openCompletePM(${jsString(pm.id)})">✓ Complete Task</button>` : ""}
+      ${eq?.id ? `<button class="btn secondary" type="button" onclick="showMaintenanceForEquipment(${jsString(eq.id)})">🧰 Maintenance History</button>` : ""}
+    </div>
+  `;
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+
+function openNewPM() {
+  pmForm.reset();
+  pmFormStartDate.value = todayLocal();
+  pmFormFrequency.value = "3 Months";
+  pmFormFrequencyMonths.value = "";
+  pmCustomMonthsField.style.display = "none";
+  pmFormMessage.innerHTML = "";
+  pmSpareSuggestions.textContent = "Select equipment to see matching spare parts.";
+  pmFormModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+
+function closeNewPM() {
+  pmFormModal.classList.remove("show");
+  if (!modal.classList.contains("show") && !completePMModal.classList.contains("show")) {
+    document.body.style.overflow = "";
+  }
+}
+
+
+function updatePMSpareSuggestions() {
+  const jin = pmFormJin.value;
+  const matches = allSpareParts.filter(p => p.jin === jin || (p.spareJin || "").startsWith(jin + "-"));
+
+  if (!jin) {
+    pmSpareSuggestions.textContent = "Select equipment to see matching spare parts.";
+    return;
+  }
+
+  if (!matches.length) {
+    pmSpareSuggestions.textContent = "No spare parts are currently linked to this JIN.";
+    return;
+  }
+
+  pmSpareSuggestions.innerHTML = "Available: " + matches.map(p =>
+    `<button type="button" class="btn secondary" style="padding:5px 8px;margin:3px 3px 0 0;" onclick="addSpareJinToPM(${jsString(p.spareJin)})">${escapeHtml(p.spareJin)} — ${escapeHtml(p.item || p.partNumber || "Part")}</button>`
+  ).join("");
+}
+
+
+function addSpareJinToPM(spareJin) {
+  const current = pmFormSpareJins.value.split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
+  if (!current.includes(spareJin)) current.push(spareJin);
+  pmFormSpareJins.value = current.join(", ");
+}
+
+
+async function submitPMForm(event) {
+  event.preventDefault();
+  pmFormMessage.innerHTML = "";
+  savePMButton.disabled = true;
+  savePMButton.textContent = "Saving...";
+
+  const frequency = pmFormFrequency.value;
+  const monthMap = { "Monthly": "1", "3 Months": "3", "6 Months": "6", "Annual": "12" };
+  const months = frequency === "Custom Months" ? pmFormFrequencyMonths.value.trim() : (monthMap[frequency] || "");
+
+  const params = new URLSearchParams();
+  params.set("action", "addPM");
+  params.set("jin", pmFormJin.value);
+  params.set("task", pmFormTask.value.trim());
+  params.set("startDate", pmFormStartDate.value);
+  params.set("frequency", frequency === "Custom Months" ? `${months} Months` : frequency);
+  params.set("frequencyMonths", months);
+  params.set("spareJins", pmFormSpareJins.value.trim());
+  params.set("relatedWI", pmFormWI.value);
+  params.set("notes", pmFormNotes.value.trim());
+
+  try {
+    const response = await fetch(API_URL, { method: "POST", body: params });
+    if (!response.ok) throw new Error("Could not save PM task.");
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || "Could not save PM task.");
+
+    allPM.push(data.pm);
+    renderPM();
+    pmFormMessage.innerHTML = `<div class="success">Saved ${escapeHtml(data.pm.id)}.</div>`;
+
+    setTimeout(() => {
+      closeNewPM();
+      switchView("pm");
+    }, 650);
+  } catch (err) {
+    pmFormMessage.innerHTML = `<div class="error" style="margin:12px 0 0;">${escapeHtml(err.message)}</div>`;
+  } finally {
+    savePMButton.disabled = false;
+    savePMButton.textContent = "Save PM";
+  }
+}
+
+
+function openCompletePM(pmId) {
+  const pm = allPM.find(x => x.id === pmId);
+  if (!pm) return;
+
+  closeDetail();
+  completePMForm.reset();
+  completePMId.value = pm.id;
+  completePMDate.value = todayLocal();
+  completePMBy.value = localStorage.getItem("maintenancePerformedBy") || "";
+  completePMTitle.textContent = `Complete ${pm.id}: ${pm.task}`;
+  completePMMessage.innerHTML = "";
+  completePMModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+
+function closeCompletePM() {
+  completePMModal.classList.remove("show");
+  if (!modal.classList.contains("show") && !pmFormModal.classList.contains("show")) {
+    document.body.style.overflow = "";
+  }
+}
+
+
+async function submitCompletePM(event) {
+  event.preventDefault();
+  completePMMessage.innerHTML = "";
+  completePMButton.disabled = true;
+  completePMButton.textContent = "Completing...";
+
+  const params = new URLSearchParams();
+  params.set("action", "completePM");
+  params.set("pmId", completePMId.value);
+  params.set("date", completePMDate.value);
+  params.set("performedBy", completePMBy.value.trim());
+  params.set("notes", completePMNotes.value.trim());
+
+  try {
+    const response = await fetch(API_URL, { method: "POST", body: params });
+    if (!response.ok) throw new Error("Could not complete PM task.");
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || "Could not complete PM task.");
+
+    if (completePMBy.value.trim()) {
+      localStorage.setItem("maintenancePerformedBy", completePMBy.value.trim());
+    }
+
+    const pmIndex = allPM.findIndex(x => x.id === data.pm.id);
+    if (pmIndex >= 0) allPM[pmIndex] = data.pm;
+    else allPM.push(data.pm);
+
+    if (data.log) allMaintenance.push(data.log);
+    renderPM();
+    renderMaintenance();
+
+    completePMMessage.innerHTML = `<div class="success">Completed ${escapeHtml(data.pm.id)} and created maintenance log ${escapeHtml(data.log?.id || "")}.</div>`;
+    setTimeout(() => {
+      closeCompletePM();
+      switchView("pm");
+    }, 900);
+  } catch (err) {
+    completePMMessage.innerHTML = `<div class="error" style="margin:12px 0 0;">${escapeHtml(err.message)}</div>`;
+  } finally {
+    completePMButton.disabled = false;
+    completePMButton.textContent = "✓ Complete Task";
+  }
+}
+
+
+function equipmentForJin(jin) {
+  return allEquipment.find(item => item.jin === jin || item.id === jin) || null;
+}
+
+
+function sparePartsForPM(pm) {
+  const ids = String(pm.spareJins || "").split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
+  return ids.map(id => allSpareParts.find(part => part.spareJin === id)).filter(Boolean);
+}
+
+
+function relatedDocument(id) {
+  const target = String(id || "").trim();
+  if (!target) return null;
+  return allDocuments.find(doc => doc.id === target) || null;
+}
+
+
+function isPMOpen(pm) {
+  const status = String(pm.status || "Open").trim().toLowerCase();
+  return !["inactive", "complete", "completed", "closed", "cancelled", "canceled"].includes(status);
+}
+
+
+function pmDueTime(pm) {
+  const value = pm.nextDueIso || pm.nextDue || pm.startDateIso || pm.startDate;
+  if (!value) return 0;
+  const isoTime = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(value + "T12:00:00").getTime()
+    : new Date(value).getTime();
+  return isNaN(isoTime) ? 0 : isoTime;
+}
+
+
+function pmStatusTag(pm) {
+  if (!isPMOpen(pm)) return '<span class="tag pm-inactive">Inactive / Complete</span>';
+
+  const due = pmDueTime(pm);
+  if (!due) return '<span class="tag pm-open">Open</span>';
+
+  const today = startOfLocalDay(new Date()).getTime();
+  const days = Math.ceil((due - today) / 86400000);
+
+  if (days < 0) return `<span class="tag pm-overdue">Overdue ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}</span>`;
+  if (days === 0) return '<span class="tag pm-due-soon">Due Today</span>';
+  if (days <= 30) return `<span class="tag pm-due-soon">Due in ${days} days</span>`;
+  return '<span class="tag pm-open">Open</span>';
+}
+
+
+function startOfLocalDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 
@@ -1880,6 +2520,7 @@ function escapeHtml(value) {
 equipmentTab.addEventListener("click", () => switchView("equipment"));
 maintenanceTab.addEventListener("click", () => switchView("maintenance"));
 documentsTab.addEventListener("click", () => switchView("documents"));
+pmTab.addEventListener("click", () => switchView("pm"));
 
 search.addEventListener("input", renderEquipment);
 floorFilter.addEventListener("change", renderEquipment);
@@ -1894,7 +2535,16 @@ documentsSearch.addEventListener("input", renderDocuments);
 documentsTypeFilter.addEventListener("change", renderDocuments);
 documentsReleaseFilter.addEventListener("change", renderDocuments);
 
+pmSearch.addEventListener("input", renderPM);
+pmEquipmentFilter.addEventListener("change", renderPM);
+pmStatusFilter.addEventListener("change", renderPM);
+
 newLogButton.addEventListener("click", () => openNewLog());
+newPMButton.addEventListener("click", openNewPM);
+pmFormJin.addEventListener("change", updatePMSpareSuggestions);
+pmFormFrequency.addEventListener("change", () => {
+  pmCustomMonthsField.style.display = pmFormFrequency.value === "Custom Months" ? "block" : "none";
+});
 
 closeModal.addEventListener("click", closeDetail);
 
@@ -1915,11 +2565,29 @@ formModal.addEventListener("click", event => {
 
 maintenanceForm.addEventListener("submit", submitMaintenanceForm);
 
+pmForm.addEventListener("submit", submitPMForm);
+closePMFormModal.addEventListener("click", closeNewPM);
+cancelPMButton.addEventListener("click", closeNewPM);
+pmFormModal.addEventListener("click", event => {
+  if (event.target === pmFormModal) closeNewPM();
+});
+
+completePMForm.addEventListener("submit", submitCompletePM);
+closeCompletePMModal.addEventListener("click", closeCompletePM);
+cancelCompletePMButton.addEventListener("click", closeCompletePM);
+completePMModal.addEventListener("click", event => {
+  if (event.target === completePMModal) closeCompletePM();
+});
+
 document.addEventListener("keydown", event => {
 
   if (event.key === "Escape") {
 
-    if (formModal.classList.contains("show")) {
+    if (completePMModal.classList.contains("show")) {
+      closeCompletePM();
+    } else if (pmFormModal.classList.contains("show")) {
+      closeNewPM();
+    } else if (formModal.classList.contains("show")) {
       closeNewLog();
     } else if (modal.classList.contains("show")) {
       closeDetail();
