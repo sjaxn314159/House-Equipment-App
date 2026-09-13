@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-   <meta name="theme-color" content="#1f4e78">
-  
+  <meta name="theme-color" content="#1f4e78">
+
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Equipment">
-  
+
   <title>House Equipment</title>
 
   <style>
@@ -38,6 +38,13 @@
       color: var(--text);
     }
 
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
     .app {
       max-width: 900px;
       margin: 0 auto;
@@ -47,7 +54,7 @@
     .header {
       background: var(--blue);
       color: white;
-      padding: 18px 16px 14px;
+      padding: 16px;
       position: sticky;
       top: 0;
       z-index: 20;
@@ -57,6 +64,28 @@
     .header h1 {
       margin: 0 0 12px;
       font-size: 24px;
+    }
+
+    .nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .nav-btn {
+      border: 1px solid rgba(255,255,255,.45);
+      background: rgba(255,255,255,.12);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .nav-btn.active {
+      background: white;
+      color: var(--blue);
     }
 
     .search {
@@ -75,12 +104,22 @@
       margin-top: 10px;
     }
 
+    .filters.two {
+      grid-template-columns: 2fr 1fr;
+    }
+
     .filters select {
       width: 100%;
       font-size: 15px;
       padding: 10px;
       border: none;
       border-radius: 8px;
+    }
+
+    .toolbar {
+      padding: 12px 12px 0;
+      display: flex;
+      justify-content: flex-end;
     }
 
     .summary {
@@ -153,6 +192,16 @@
       color: #62428d;
     }
 
+    .complete-yes {
+      background: #e4f3ea;
+      color: #11663d;
+    }
+
+    .complete-no {
+      background: #fde7e4;
+      color: #912018;
+    }
+
     .empty {
       text-align: center;
       color: var(--muted);
@@ -167,10 +216,26 @@
       border-radius: 8px;
     }
 
+    .success {
+      background: #e4f3ea;
+      color: var(--success);
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+    }
+
     .loading {
       text-align: center;
       padding: 35px;
       color: var(--muted);
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
     }
 
     .modal {
@@ -274,9 +339,71 @@
       cursor: pointer;
     }
 
+    .btn.secondary {
+      background: #e9eef3;
+      color: var(--text);
+    }
+
+    .btn.success-btn {
+      background: var(--success);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      color: var(--text);
+    }
+
+    .field textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .maintenance-card .card-title {
+      font-size: 16px;
+    }
+
+    .maintenance-description {
+      margin: 8px 0;
+      line-height: 1.35;
+    }
+
     @media (max-width: 600px) {
-      .filters {
+      .filters,
+      .filters.two,
+      .form-grid {
         grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: auto;
       }
 
       .modal-panel {
@@ -299,43 +426,89 @@
   <div class="header">
     <h1>House Equipment</h1>
 
-    <input
-      id="search"
-      class="search"
-      type="search"
-      placeholder="Search equipment, make, model, serial #..."
-    >
+    <div class="nav">
+      <button id="equipmentTab" class="nav-btn active" type="button">
+        Equipment
+      </button>
 
-    <div class="filters">
-      <select id="floorFilter">
-        <option value="">All Floors</option>
-      </select>
+      <button id="maintenanceTab" class="nav-btn" type="button">
+        Maintenance Log
+      </button>
+    </div>
 
-      <select id="areaFilter">
-        <option value="">All Areas</option>
-      </select>
+    <div id="equipmentHeader">
+      <input
+        id="search"
+        class="search"
+        type="search"
+        placeholder="Search equipment, make, model, serial #..."
+      >
 
-      <select id="criticalFilter">
-        <option value="">All Criticality</option>
-      </select>
+      <div class="filters">
+        <select id="floorFilter">
+          <option value="">All Floors</option>
+        </select>
+
+        <select id="areaFilter">
+          <option value="">All Areas</option>
+        </select>
+
+        <select id="criticalFilter">
+          <option value="">All Criticality</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="maintenanceHeader" style="display:none;">
+      <input
+        id="maintenanceSearch"
+        class="search"
+        type="search"
+        placeholder="Search maintenance logs..."
+      >
+
+      <div class="filters two">
+        <select id="maintenanceEquipmentFilter">
+          <option value="">All Equipment</option>
+        </select>
+
+        <select id="maintenanceCompleteFilter">
+          <option value="">All Status</option>
+          <option value="Yes">Complete</option>
+          <option value="No">Incomplete</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <div id="summary" class="summary"></div>
+  <div id="equipmentView" class="view active">
+    <div id="equipmentSummary" class="summary"></div>
 
-  <div id="loading" class="loading">
-    Loading equipment...
+    <div id="loading" class="loading">
+      Loading equipment...
+    </div>
+
+    <div id="error"></div>
+
+    <div id="cards" class="cards"></div>
   </div>
 
-  <div id="error"></div>
+  <div id="maintenanceView" class="view">
+    <div class="toolbar">
+      <button id="newLogButton" class="btn success-btn" type="button">
+        ＋ New Maintenance Log
+      </button>
+    </div>
 
-  <div id="cards" class="cards"></div>
+    <div id="maintenanceSummary" class="summary"></div>
+
+    <div id="maintenanceCards" class="cards"></div>
+  </div>
 
 </div>
 
 
 <div id="modal" class="modal">
-
   <div class="modal-panel">
 
     <div class="modal-header">
@@ -349,7 +522,108 @@
     <div id="detailBody" class="detail-body"></div>
 
   </div>
+</div>
 
+
+<div id="formModal" class="modal">
+  <div class="modal-panel">
+
+    <div class="modal-header">
+      <h2>New Maintenance Log</h2>
+
+      <button id="closeFormModal" class="close" type="button">
+        ×
+      </button>
+    </div>
+
+    <div class="detail-body">
+
+      <form id="maintenanceForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+            <label for="formEquipment">Equipment *</label>
+            <select id="formEquipment" required>
+              <option value="">Select equipment...</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="formDate">Date *</label>
+            <input id="formDate" type="date" required>
+          </div>
+
+          <div class="field">
+            <label for="formPerformedBy">Performed By</label>
+            <input id="formPerformedBy" type="text">
+          </div>
+
+          <div class="field full">
+            <label for="formDescription">Description *</label>
+            <textarea id="formDescription" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="formComplete">Complete?</label>
+            <select id="formComplete">
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="formWI">WI</label>
+            <input id="formWI" type="text">
+          </div>
+
+          <div class="field">
+            <label for="formSpareQty">Spares Qty</label>
+            <input id="formSpareQty" type="number" min="0" step="1">
+          </div>
+
+          <div class="field">
+            <label for="formSpareId">Spare ID</label>
+            <input id="formSpareId" type="text">
+          </div>
+
+          <div class="field full">
+            <label for="formSpareDescription">Spare Description</label>
+            <input id="formSpareDescription" type="text">
+          </div>
+
+          <div class="field full">
+            <label for="formNextStep">Next Step</label>
+            <textarea id="formNextStep"></textarea>
+          </div>
+
+          <div class="field full">
+            <label for="formLink">Link (optional URL)</label>
+            <input
+              id="formLink"
+              type="url"
+              placeholder="https://..."
+            >
+          </div>
+
+        </div>
+
+        <div id="formMessage"></div>
+
+        <div class="buttons">
+          <button id="saveLogButton" class="btn success-btn" type="submit">
+            Save Log
+          </button>
+
+          <button id="cancelLogButton" class="btn secondary" type="button">
+            Cancel
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
 </div>
 
 
@@ -360,10 +634,20 @@ const API_URL =
 
 
 let allEquipment = [];
+let allMaintenance = [];
 
+
+const equipmentTab = document.getElementById("equipmentTab");
+const maintenanceTab = document.getElementById("maintenanceTab");
+
+const equipmentHeader = document.getElementById("equipmentHeader");
+const maintenanceHeader = document.getElementById("maintenanceHeader");
+
+const equipmentView = document.getElementById("equipmentView");
+const maintenanceView = document.getElementById("maintenanceView");
 
 const cards = document.getElementById("cards");
-const summary = document.getElementById("summary");
+const equipmentSummary = document.getElementById("equipmentSummary");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("error");
 
@@ -372,20 +656,53 @@ const floorFilter = document.getElementById("floorFilter");
 const areaFilter = document.getElementById("areaFilter");
 const criticalFilter = document.getElementById("criticalFilter");
 
+const maintenanceSearch = document.getElementById("maintenanceSearch");
+const maintenanceEquipmentFilter =
+  document.getElementById("maintenanceEquipmentFilter");
+const maintenanceCompleteFilter =
+  document.getElementById("maintenanceCompleteFilter");
+
+const maintenanceSummary =
+  document.getElementById("maintenanceSummary");
+const maintenanceCards =
+  document.getElementById("maintenanceCards");
+
+const newLogButton = document.getElementById("newLogButton");
+
 const modal = document.getElementById("modal");
 const modalTitle = document.getElementById("modalTitle");
 const detailBody = document.getElementById("detailBody");
 const closeModal = document.getElementById("closeModal");
 
+const formModal = document.getElementById("formModal");
+const closeFormModal = document.getElementById("closeFormModal");
+const maintenanceForm = document.getElementById("maintenanceForm");
+const cancelLogButton = document.getElementById("cancelLogButton");
+const saveLogButton = document.getElementById("saveLogButton");
+const formMessage = document.getElementById("formMessage");
 
-async function loadEquipment() {
+const formEquipment = document.getElementById("formEquipment");
+const formDate = document.getElementById("formDate");
+const formPerformedBy = document.getElementById("formPerformedBy");
+const formDescription = document.getElementById("formDescription");
+const formComplete = document.getElementById("formComplete");
+const formWI = document.getElementById("formWI");
+const formSpareQty = document.getElementById("formSpareQty");
+const formSpareId = document.getElementById("formSpareId");
+const formSpareDescription =
+  document.getElementById("formSpareDescription");
+const formNextStep = document.getElementById("formNextStep");
+const formLink = document.getElementById("formLink");
+
+
+async function loadData() {
 
   try {
 
     const response = await fetch(API_URL);
 
     if (!response.ok) {
-      throw new Error("Could not load equipment data.");
+      throw new Error("Could not load app data.");
     }
 
     const data = await response.json();
@@ -395,12 +712,15 @@ async function loadEquipment() {
     }
 
     allEquipment = data.equipment || [];
+    allMaintenance = data.maintenance || [];
 
     loading.style.display = "none";
 
     buildFilters();
+    buildMaintenanceEquipmentLists();
 
     renderEquipment();
+    renderMaintenance();
 
   } catch (err) {
 
@@ -414,6 +734,27 @@ async function loadEquipment() {
 }
 
 
+function switchView(viewName) {
+
+  const equipmentActive = viewName === "equipment";
+
+  equipmentTab.classList.toggle("active", equipmentActive);
+  maintenanceTab.classList.toggle("active", !equipmentActive);
+
+  equipmentHeader.style.display =
+    equipmentActive ? "block" : "none";
+
+  maintenanceHeader.style.display =
+    equipmentActive ? "none" : "block";
+
+  equipmentView.classList.toggle("active", equipmentActive);
+  maintenanceView.classList.toggle("active", !equipmentActive);
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+}
+
+
 function buildFilters() {
 
   const floors = uniqueValues(allEquipment, "floor");
@@ -423,6 +764,43 @@ function buildFilters() {
   fillSelect(floorFilter, floors);
   fillSelect(areaFilter, areas);
   fillSelect(criticalFilter, critical);
+
+}
+
+
+function buildMaintenanceEquipmentLists() {
+
+  const items = [...allEquipment]
+    .filter(item => item.id)
+    .sort((a,b) =>
+      compareText(a.id, b.id)
+    );
+
+  items.forEach(item => {
+
+    const label =
+      item.equipment
+        ? `${item.equipment} — ${item.id}`
+        : item.id;
+
+    const filterOption =
+      document.createElement("option");
+
+    filterOption.value = item.id;
+    filterOption.textContent = label;
+
+    maintenanceEquipmentFilter.appendChild(filterOption);
+
+
+    const formOption =
+      document.createElement("option");
+
+    formOption.value = item.id;
+    formOption.textContent = label;
+
+    formEquipment.appendChild(formOption);
+
+  });
 
 }
 
@@ -508,7 +886,7 @@ function renderEquipment() {
   });
 
 
-  summary.textContent =
+  equipmentSummary.textContent =
     `${filtered.length} of ${allEquipment.length} items`;
 
 
@@ -572,7 +950,7 @@ function renderEquipment() {
     `;
 
 
-    card.addEventListener("click", () => openDetail(item));
+    card.addEventListener("click", () => openEquipmentDetail(item));
 
     cards.appendChild(card);
 
@@ -581,50 +959,146 @@ function renderEquipment() {
 }
 
 
-function criticalTag(value) {
+function renderMaintenance() {
 
-  if (!value) return "";
+  const searchText =
+    maintenanceSearch.value.trim().toLowerCase();
 
-  const v = value.toLowerCase();
+  const equipment =
+    maintenanceEquipmentFilter.value;
 
-  let cls = "";
-
-  if (v.includes("tier 1")) cls = "tier1";
-
-  if (v.includes("tier 2")) cls = "tier2";
-
-  if (v.includes("tier 3")) cls = "tier3";
+  const complete =
+    maintenanceCompleteFilter.value;
 
 
-  return `
-    <span class="tag ${cls}">
-      ${escapeHtml(value)}
-    </span>
-  `;
+  let filtered = allMaintenance.filter(log => {
 
-}
+    if (equipment && log.equipment !== equipment) {
+      return false;
+    }
+
+    if (complete && normalizeYesNo(log.complete) !== complete) {
+      return false;
+    }
+
+    if (searchText) {
+
+      const text = [
+        log.id,
+        log.equipment,
+        log.date,
+        log.performedBy,
+        log.description,
+        log.wi,
+        log.complete,
+        log.spareQty,
+        log.spareId,
+        log.spareDescription,
+        log.nextStep
+      ]
+      .join(" ")
+      .toLowerCase();
+
+      if (!text.includes(searchText)) {
+        return false;
+      }
+
+    }
+
+    return true;
+
+  });
 
 
-function unitTag(value) {
+  filtered.sort((a,b) => {
 
-  if (!value) return "";
+    const dateA = parseSortableDate(a);
+    const dateB = parseSortableDate(b);
 
-  let cls = "";
+    if (dateA !== dateB) {
+      return dateB - dateA;
+    }
 
-  if (value.toLowerCase() === "future") {
-    cls = "future";
+    return compareText(b.id, a.id);
+
+  });
+
+
+  maintenanceSummary.textContent =
+    `${filtered.length} of ${allMaintenance.length} maintenance logs`;
+
+
+  maintenanceCards.innerHTML = "";
+
+
+  if (!filtered.length) {
+
+    maintenanceCards.innerHTML =
+      `<div class="empty">No maintenance logs match those filters.</div>`;
+
+    return;
+
   }
 
-  return `
-    <span class="tag ${cls}">
-      ${escapeHtml(value)}
-    </span>
-  `;
+
+  filtered.forEach(log => {
+
+    const equipmentItem =
+      allEquipment.find(item => item.id === log.equipment);
+
+    const equipmentLabel =
+      equipmentItem?.equipment || log.equipment || "Maintenance Log";
+
+    const card = document.createElement("div");
+
+    card.className = "card maintenance-card";
+
+    card.innerHTML = `
+
+      <div class="card-title">
+        ${escapeHtml(equipmentLabel)}
+      </div>
+
+      <div class="card-location">
+        ${escapeHtml(
+          [log.date, log.performedBy]
+          .filter(Boolean)
+          .join(" • ")
+        )}
+      </div>
+
+      <div class="maintenance-description">
+        ${escapeHtml(log.description)}
+      </div>
+
+      <div class="card-info">
+
+        ${log.id
+          ? `<span class="tag">${escapeHtml(log.id)}</span>`
+          : ""
+        }
+
+        ${completeTag(log.complete)}
+
+        ${log.spareDescription
+          ? `<span class="tag">${escapeHtml(log.spareDescription)}</span>`
+          : ""
+        }
+
+      </div>
+
+    `;
+
+    card.addEventListener("click", () => openMaintenanceDetail(log));
+
+    maintenanceCards.appendChild(card);
+
+  });
 
 }
 
 
-function openDetail(item) {
+function openEquipmentDetail(item) {
 
   modalTitle.textContent =
     item.equipment || "Equipment";
@@ -632,16 +1106,14 @@ function openDetail(item) {
 
   const folderButton = item.folder
     ? `
-      <div class="buttons">
-        <a
-          class="btn"
-          href="${escapeHtml(item.folder)}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          📁 Open Equipment Folder
-        </a>
-      </div>
+      <a
+        class="btn"
+        href="${escapeHtml(item.folder)}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        📁 Open Equipment Folder
+      </a>
     `
     : "";
 
@@ -679,14 +1151,246 @@ function openDetail(item) {
       ["Details", item.details]
     ])}
 
-    ${folderButton}
+    <div class="buttons">
+
+      <button
+        class="btn"
+        type="button"
+        onclick="showMaintenanceForEquipment(${jsString(item.id)})"
+      >
+        🧰 View Maintenance History
+      </button>
+
+      <button
+        class="btn success-btn"
+        type="button"
+        onclick="openNewLogForEquipment(${jsString(item.id)})"
+      >
+        ＋ Add Maintenance Log
+      </button>
+
+      ${folderButton}
+
+    </div>
 
   `;
 
 
   modal.classList.add("show");
-
   document.body.style.overflow = "hidden";
+
+}
+
+
+function openMaintenanceDetail(log) {
+
+  const equipmentItem =
+    allEquipment.find(item => item.id === log.equipment);
+
+  modalTitle.textContent =
+    equipmentItem?.equipment ||
+    log.equipment ||
+    "Maintenance Log";
+
+
+  const linkButton = log.link
+    ? `
+      <a
+        class="btn"
+        href="${escapeHtml(log.link)}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        🔗 Open Link
+      </a>
+    `
+    : "";
+
+
+  detailBody.innerHTML = `
+
+    ${section("Maintenance Log", [
+      ["Log ID", log.id],
+      ["Equipment", log.equipment],
+      ["Date", log.date],
+      ["Performed By", log.performedBy],
+      ["Complete?", log.complete],
+      ["WI", log.wi]
+    ])}
+
+    ${section("Work Performed", [
+      ["Description", log.description],
+      ["Next Step", log.nextStep]
+    ])}
+
+    ${section("Spares Consumed", [
+      ["Quantity", log.spareQty],
+      ["Spare ID", log.spareId],
+      ["Description", log.spareDescription]
+    ])}
+
+    <div class="buttons">
+      ${linkButton}
+
+      ${log.equipment
+        ? `
+          <button
+            class="btn success-btn"
+            type="button"
+            onclick="openNewLogForEquipment(${jsString(log.equipment)})"
+          >
+            ＋ Add Another Log
+          </button>
+        `
+        : ""
+      }
+    </div>
+
+  `;
+
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+
+}
+
+
+function showMaintenanceForEquipment(equipmentId) {
+
+  closeDetail();
+
+  maintenanceEquipmentFilter.value = equipmentId || "";
+  maintenanceSearch.value = "";
+
+  switchView("maintenance");
+  renderMaintenance();
+
+}
+
+
+function openNewLogForEquipment(equipmentId) {
+
+  closeDetail();
+  openNewLog(equipmentId);
+
+}
+
+
+function openNewLog(equipmentId = "") {
+
+  maintenanceForm.reset();
+
+  formEquipment.value = equipmentId || "";
+  formDate.value = todayLocal();
+  formComplete.value = "Yes";
+
+  const rememberedName =
+    localStorage.getItem("maintenancePerformedBy") || "";
+
+  formPerformedBy.value = rememberedName;
+
+  formMessage.innerHTML = "";
+
+  formModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+
+}
+
+
+async function submitMaintenanceForm(event) {
+
+  event.preventDefault();
+
+  formMessage.innerHTML = "";
+  saveLogButton.disabled = true;
+  saveLogButton.textContent = "Saving...";
+
+
+  const params = new URLSearchParams();
+
+  params.set("action", "addMaintenance");
+  params.set("equipment", formEquipment.value);
+  params.set("date", formDate.value);
+  params.set("performedBy", formPerformedBy.value.trim());
+  params.set("description", formDescription.value.trim());
+  params.set("complete", formComplete.value);
+  params.set("wi", formWI.value.trim());
+  params.set("spareQty", formSpareQty.value.trim());
+  params.set("spareId", formSpareId.value.trim());
+  params.set("spareDescription", formSpareDescription.value.trim());
+  params.set("nextStep", formNextStep.value.trim());
+  params.set("link", formLink.value.trim());
+
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: params
+    });
+
+    if (!response.ok) {
+      throw new Error("Could not save maintenance log.");
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "Could not save maintenance log.");
+    }
+
+    if (formPerformedBy.value.trim()) {
+      localStorage.setItem(
+        "maintenancePerformedBy",
+        formPerformedBy.value.trim()
+      );
+    }
+
+    allMaintenance.push(data.log);
+
+    renderMaintenance();
+
+    formMessage.innerHTML =
+      `<div class="success">Saved ${escapeHtml(data.log.id)}.</div>`;
+
+    setTimeout(() => {
+      closeNewLog();
+      switchView("maintenance");
+    }, 650);
+
+  } catch (err) {
+
+    formMessage.innerHTML =
+      `<div class="error" style="margin:12px 0 0;">${escapeHtml(err.message)}</div>`;
+
+  } finally {
+
+    saveLogButton.disabled = false;
+    saveLogButton.textContent = "Save Log";
+
+  }
+
+}
+
+
+function closeDetail() {
+
+  modal.classList.remove("show");
+
+  if (!formModal.classList.contains("show")) {
+    document.body.style.overflow = "";
+  }
+
+}
+
+
+function closeNewLog() {
+
+  formModal.classList.remove("show");
+
+  if (!modal.classList.contains("show")) {
+    document.body.style.overflow = "";
+  }
 
 }
 
@@ -735,11 +1439,112 @@ function section(title, rows) {
 }
 
 
-function closeDetail() {
+function criticalTag(value) {
 
-  modal.classList.remove("show");
+  if (!value) return "";
 
-  document.body.style.overflow = "";
+  const v = value.toLowerCase();
+
+  let cls = "";
+
+  if (v.includes("tier 1")) cls = "tier1";
+  if (v.includes("tier 2")) cls = "tier2";
+  if (v.includes("tier 3")) cls = "tier3";
+
+  return `
+    <span class="tag ${cls}">
+      ${escapeHtml(value)}
+    </span>
+  `;
+
+}
+
+
+function unitTag(value) {
+
+  if (!value) return "";
+
+  let cls = "";
+
+  if (value.toLowerCase() === "future") {
+    cls = "future";
+  }
+
+  return `
+    <span class="tag ${cls}">
+      ${escapeHtml(value)}
+    </span>
+  `;
+
+}
+
+
+function completeTag(value) {
+
+  const normalized = normalizeYesNo(value);
+
+  if (!normalized) return "";
+
+  const cls =
+    normalized === "Yes"
+      ? "complete-yes"
+      : "complete-no";
+
+  const label =
+    normalized === "Yes"
+      ? "Complete"
+      : "Incomplete";
+
+  return `
+    <span class="tag ${cls}">
+      ${label}
+    </span>
+  `;
+
+}
+
+
+function normalizeYesNo(value) {
+
+  const v = String(value || "").trim().toLowerCase();
+
+  if (["yes", "y", "true", "complete", "completed"].includes(v)) {
+    return "Yes";
+  }
+
+  if (["no", "n", "false", "incomplete", "open"].includes(v)) {
+    return "No";
+  }
+
+  return String(value || "").trim();
+
+}
+
+
+function parseSortableDate(log) {
+
+  if (log.dateIso) {
+    const time = new Date(log.dateIso + "T12:00:00").getTime();
+
+    if (!isNaN(time)) return time;
+  }
+
+  const time = new Date(log.date).getTime();
+
+  return isNaN(time) ? 0 : time;
+
+}
+
+
+function todayLocal() {
+
+  const now = new Date();
+
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+
+  return `${y}-${m}-${d}`;
 
 }
 
@@ -769,6 +1574,11 @@ function compareItem(a,b) {
 }
 
 
+function jsString(value) {
+  return JSON.stringify(String(value ?? ""));
+}
+
+
 function escapeHtml(value) {
 
   return String(value ?? "")
@@ -781,38 +1591,58 @@ function escapeHtml(value) {
 }
 
 
+equipmentTab.addEventListener("click", () => switchView("equipment"));
+maintenanceTab.addEventListener("click", () => switchView("maintenance"));
+
 search.addEventListener("input", renderEquipment);
-
 floorFilter.addEventListener("change", renderEquipment);
-
 areaFilter.addEventListener("change", renderEquipment);
-
 criticalFilter.addEventListener("change", renderEquipment);
+
+maintenanceSearch.addEventListener("input", renderMaintenance);
+maintenanceEquipmentFilter.addEventListener("change", renderMaintenance);
+maintenanceCompleteFilter.addEventListener("change", renderMaintenance);
+
+newLogButton.addEventListener("click", () => openNewLog());
 
 closeModal.addEventListener("click", closeDetail);
 
-
 modal.addEventListener("click", event => {
-
   if (event.target === modal) {
     closeDetail();
   }
-
 });
 
+closeFormModal.addEventListener("click", closeNewLog);
+cancelLogButton.addEventListener("click", closeNewLog);
+
+formModal.addEventListener("click", event => {
+  if (event.target === formModal) {
+    closeNewLog();
+  }
+});
+
+maintenanceForm.addEventListener("submit", submitMaintenanceForm);
 
 document.addEventListener("keydown", event => {
 
   if (event.key === "Escape") {
-    closeDetail();
+
+    if (formModal.classList.contains("show")) {
+      closeNewLog();
+    } else if (modal.classList.contains("show")) {
+      closeDetail();
+    }
+
   }
 
 });
 
 
-loadEquipment();
+loadData();
 
 </script>
+
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -823,5 +1653,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+
 </body>
 </html>
