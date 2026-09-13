@@ -68,7 +68,7 @@
 
     .nav {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
@@ -200,6 +200,21 @@
     .complete-no {
       background: #fde7e4;
       color: #912018;
+    }
+
+    .doc-wi {
+      background: #e7f0fb;
+      color: #174f82;
+    }
+
+    .doc-qg {
+      background: #e4f3ea;
+      color: #11663d;
+    }
+
+    .doc-opl {
+      background: #fff1d6;
+      color: #895400;
     }
 
     .empty {
@@ -396,6 +411,11 @@
     }
 
     @media (max-width: 600px) {
+      .nav-btn {
+        padding: 9px 5px;
+        font-size: 13px;
+      }
+
       .filters,
       .filters.two,
       .form-grid {
@@ -432,7 +452,11 @@
       </button>
 
       <button id="maintenanceTab" class="nav-btn" type="button">
-        Maintenance Log
+        Maintenance
+      </button>
+
+      <button id="documentsTab" class="nav-btn" type="button">
+        Documents
       </button>
     </div>
 
@@ -479,6 +503,30 @@
         </select>
       </div>
     </div>
+
+    <div id="documentsHeader" style="display:none;">
+      <input
+        id="documentsSearch"
+        class="search"
+        type="search"
+        placeholder="Search document #, title, or type..."
+      >
+
+      <div class="filters two">
+        <select id="documentsTypeFilter">
+          <option value="">All Document Types</option>
+          <option value="Work Instruction">Work Instructions</option>
+          <option value="Quick Guide">Quick Guides</option>
+          <option value="One Point Lesson">One Point Lessons</option>
+        </select>
+
+        <select id="documentsReleaseFilter">
+          <option value="">All Documents</option>
+          <option value="released">Released</option>
+          <option value="draft">No Release Date</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <div id="equipmentView" class="view active">
@@ -503,6 +551,11 @@
     <div id="maintenanceSummary" class="summary"></div>
 
     <div id="maintenanceCards" class="cards"></div>
+  </div>
+
+  <div id="documentsView" class="view">
+    <div id="documentsSummary" class="summary"></div>
+    <div id="documentsCards" class="cards"></div>
   </div>
 
 </div>
@@ -635,16 +688,20 @@ const API_URL =
 
 let allEquipment = [];
 let allMaintenance = [];
+let allDocuments = [];
 
 
 const equipmentTab = document.getElementById("equipmentTab");
 const maintenanceTab = document.getElementById("maintenanceTab");
+const documentsTab = document.getElementById("documentsTab");
 
 const equipmentHeader = document.getElementById("equipmentHeader");
 const maintenanceHeader = document.getElementById("maintenanceHeader");
+const documentsHeader = document.getElementById("documentsHeader");
 
 const equipmentView = document.getElementById("equipmentView");
 const maintenanceView = document.getElementById("maintenanceView");
+const documentsView = document.getElementById("documentsView");
 
 const cards = document.getElementById("cards");
 const equipmentSummary = document.getElementById("equipmentSummary");
@@ -666,6 +723,17 @@ const maintenanceSummary =
   document.getElementById("maintenanceSummary");
 const maintenanceCards =
   document.getElementById("maintenanceCards");
+
+const documentsSearch =
+  document.getElementById("documentsSearch");
+const documentsTypeFilter =
+  document.getElementById("documentsTypeFilter");
+const documentsReleaseFilter =
+  document.getElementById("documentsReleaseFilter");
+const documentsSummary =
+  document.getElementById("documentsSummary");
+const documentsCards =
+  document.getElementById("documentsCards");
 
 const newLogButton = document.getElementById("newLogButton");
 
@@ -713,6 +781,7 @@ async function loadData() {
 
     allEquipment = data.equipment || [];
     allMaintenance = data.maintenance || [];
+    allDocuments = data.documents || [];
 
     loading.style.display = "none";
 
@@ -721,6 +790,7 @@ async function loadData() {
 
     renderEquipment();
     renderMaintenance();
+    renderDocuments();
 
   } catch (err) {
 
@@ -737,23 +807,29 @@ async function loadData() {
 function switchView(viewName) {
 
   const equipmentActive = viewName === "equipment";
+  const maintenanceActive = viewName === "maintenance";
+  const documentsActive = viewName === "documents";
 
   equipmentTab.classList.toggle("active", equipmentActive);
-  maintenanceTab.classList.toggle("active", !equipmentActive);
+  maintenanceTab.classList.toggle("active", maintenanceActive);
+  documentsTab.classList.toggle("active", documentsActive);
 
   equipmentHeader.style.display =
     equipmentActive ? "block" : "none";
 
   maintenanceHeader.style.display =
-    equipmentActive ? "none" : "block";
+    maintenanceActive ? "block" : "none";
+
+  documentsHeader.style.display =
+    documentsActive ? "block" : "none";
 
   equipmentView.classList.toggle("active", equipmentActive);
-  maintenanceView.classList.toggle("active", !equipmentActive);
+  maintenanceView.classList.toggle("active", maintenanceActive);
+  documentsView.classList.toggle("active", documentsActive);
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
 }
-
 
 function buildFilters() {
 
@@ -1098,6 +1174,208 @@ function renderMaintenance() {
 }
 
 
+function renderDocuments() {
+
+  const searchText =
+    documentsSearch.value.trim().toLowerCase();
+
+  const type =
+    documentsTypeFilter.value;
+
+  const releaseFilter =
+    documentsReleaseFilter.value;
+
+  let filtered = allDocuments.filter(doc => {
+
+    if (type && doc.type !== type) {
+      return false;
+    }
+
+    if (releaseFilter === "released" && !doc.releaseDate) {
+      return false;
+    }
+
+    if (releaseFilter === "draft" && doc.releaseDate) {
+      return false;
+    }
+
+    if (searchText) {
+
+      const text = [
+        doc.id,
+        doc.title,
+        doc.type,
+        doc.shortType,
+        doc.revision,
+        doc.releaseDate
+      ]
+      .join(" ")
+      .toLowerCase();
+
+      if (!text.includes(searchText)) {
+        return false;
+      }
+
+    }
+
+    return true;
+
+  });
+
+
+  const typeOrder = {
+    "Work Instruction": 1,
+    "Quick Guide": 2,
+    "One Point Lesson": 3
+  };
+
+  filtered.sort((a,b) =>
+    (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99) ||
+    compareText(a.id, b.id) ||
+    compareText(a.title, b.title)
+  );
+
+
+  documentsSummary.textContent =
+    `${filtered.length} of ${allDocuments.length} documents`;
+
+  documentsCards.innerHTML = "";
+
+
+  if (!filtered.length) {
+
+    documentsCards.innerHTML =
+      `<div class="empty">No documents match those filters.</div>`;
+
+    return;
+
+  }
+
+
+  filtered.forEach(doc => {
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+
+      <div class="card-title">
+        ${escapeHtml(doc.title || doc.id || "Document")}
+      </div>
+
+      <div class="card-location">
+        ${escapeHtml(
+          [
+            doc.id,
+            doc.releaseDate ? `Released ${doc.releaseDate}` : ""
+          ]
+          .filter(Boolean)
+          .join(" • ")
+        )}
+      </div>
+
+      <div class="card-info">
+
+        ${documentTypeTag(doc)}
+
+        ${doc.revision
+          ? `<span class="tag">Rev ${escapeHtml(doc.revision)}</span>`
+          : ""
+        }
+
+        ${doc.link
+          ? `<span class="tag">Linked</span>`
+          : `<span class="tag">No Link</span>`
+        }
+
+      </div>
+
+    `;
+
+    card.addEventListener(
+      "click",
+      () => openDocumentDetail(doc)
+    );
+
+    documentsCards.appendChild(card);
+
+  });
+
+}
+
+
+function openDocumentDetail(doc) {
+
+  modalTitle.textContent =
+    doc.title || doc.id || "Document";
+
+  const openButton = doc.link
+    ? `
+      <a
+        class="btn"
+        href="${escapeHtml(doc.link)}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        📄 Open Document
+      </a>
+    `
+    : `<span class="tag">No document link has been added yet.</span>`;
+
+
+  detailBody.innerHTML = `
+
+    ${section("Document", [
+      ["Document #", doc.id],
+      ["Type", doc.type],
+      ["Title", doc.title],
+      ["Revision", doc.revision],
+      ["Release Date", doc.releaseDate]
+    ])}
+
+    <div class="buttons">
+      ${openButton}
+    </div>
+
+  `;
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+
+}
+
+
+function documentTypeTag(doc) {
+
+  let cls = "";
+
+  if (doc.shortType === "WI") cls = "doc-wi";
+  if (doc.shortType === "QG") cls = "doc-qg";
+  if (doc.shortType === "OPL") cls = "doc-opl";
+
+  return `
+    <span class="tag ${cls}">
+      ${escapeHtml(doc.type)}
+    </span>
+  `;
+
+}
+
+
+function showDocumentsForEquipmentName(equipmentName) {
+
+  closeDetail();
+
+  documentsTypeFilter.value = "";
+  documentsReleaseFilter.value = "";
+  documentsSearch.value = equipmentName || "";
+
+  switchView("documents");
+  renderDocuments();
+
+}
+
+
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
@@ -1167,6 +1445,14 @@ function openEquipmentDetail(item) {
         onclick="openNewLogForEquipment(${jsString(item.id)})"
       >
         ＋ Add Maintenance Log
+      </button>
+
+      <button
+        class="btn"
+        type="button"
+        onclick="showDocumentsForEquipmentName(${jsString(item.equipment)})"
+      >
+        📚 Related Documents
       </button>
 
       ${folderButton}
@@ -1593,6 +1879,7 @@ function escapeHtml(value) {
 
 equipmentTab.addEventListener("click", () => switchView("equipment"));
 maintenanceTab.addEventListener("click", () => switchView("maintenance"));
+documentsTab.addEventListener("click", () => switchView("documents"));
 
 search.addEventListener("input", renderEquipment);
 floorFilter.addEventListener("change", renderEquipment);
@@ -1602,6 +1889,10 @@ criticalFilter.addEventListener("change", renderEquipment);
 maintenanceSearch.addEventListener("input", renderMaintenance);
 maintenanceEquipmentFilter.addEventListener("change", renderMaintenance);
 maintenanceCompleteFilter.addEventListener("change", renderMaintenance);
+
+documentsSearch.addEventListener("input", renderDocuments);
+documentsTypeFilter.addEventListener("change", renderDocuments);
+documentsReleaseFilter.addEventListener("change", renderDocuments);
 
 newLogButton.addEventListener("click", () => openNewLog());
 
