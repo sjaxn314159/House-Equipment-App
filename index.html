@@ -630,6 +630,22 @@ function openDetail(item) {
     item.equipment || "Equipment";
 
 
+  const folderButton = item.folder
+    ? `
+      <div class="buttons">
+        <a
+          class="btn"
+          href="${escapeHtml(item.folder)}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          📁 Open Equipment Folder
+        </a>
+      </div>
+    `
+    : "";
+
+
   detailBody.innerHTML = `
 
     ${section("Location", [
@@ -662,6 +678,8 @@ function openDetail(item) {
       ["Key ID", item.keyId],
       ["Details", item.details]
     ])}
+
+    ${folderButton}
 
   `;
 
