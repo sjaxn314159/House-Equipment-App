@@ -1,10 +1,11 @@
-<!-- ======================================================================== -->
-<!-- HOUSE EQUIPMENT APP — INDEX V5 — DOCUMENTED SAFE COPY                  -->
-<!-- Comments are added only outside executable/template-generated content. -->
-<!-- No rendered HTML strings or JavaScript templates have been modified.   -->
-<!-- ======================================================================== -->
-
 <!doctype html>
+<!--
+  HOUSE EQUIPMENT APP — INDEX V6
+  V6 adds:
+    1) A House Guide-style home screen with five section cards.
+    2) A Troubleshooting Guide fed from the workbook's TCC tab.
+    3) Category filtering and clickable Trouble / Cause / Correction details.
+-->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -20,8 +21,6 @@
 
   <title>House Equipment</title>
 
-
-<!-- CSS: visual styling, responsive behavior, cards, forms, and modals. -->
   <style>
     :root {
       --blue: #1f4e78;
@@ -462,6 +461,127 @@
       line-height: 1.35;
     }
 
+
+    /* -----------------------------------------------------------------------
+       V6 HOME SCREEN
+       Mirrors the card-based navigation used by the House Guide app.
+       ----------------------------------------------------------------------- */
+
+    .home-view {
+      padding: 20px 16px 34px;
+    }
+
+    .home-intro {
+      margin-bottom: 16px;
+    }
+
+    .home-intro h2 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      color: var(--blue);
+    }
+
+    .home-intro p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .home-card {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: white;
+      padding: 18px;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      transition: transform .12s, border-color .12s;
+      color: var(--text);
+    }
+
+    .home-card:hover {
+      border-color: #9fb5c9;
+    }
+
+    .home-card:active {
+      transform: scale(.985);
+    }
+
+    .home-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .home-card-icon {
+      font-size: 25px;
+      width: 34px;
+      text-align: center;
+      flex: none;
+    }
+
+    .home-card-description {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+      padding-left: 44px;
+    }
+
+    .header-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-title-row h1 {
+      flex: 1;
+      margin: 0;
+    }
+
+    .home-button {
+      display: none;
+      border: 1px solid rgba(255,255,255,.5);
+      background: rgba(255,255,255,.12);
+      color: white;
+      border-radius: 9px;
+      padding: 9px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* The old top tab bar remains in the DOM for backwards compatibility,
+       but V6 uses the new home cards for primary navigation. */
+    .nav {
+      display: none;
+    }
+
+    .tcc-card .card-title {
+      margin-bottom: 0;
+    }
+
+    .tcc-category {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (min-width: 650px) {
+      .home-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
     @media (max-width: 600px) {
       .nav-btn {
         padding: 9px 5px;
@@ -491,14 +611,15 @@
   </style>
 </head>
 
-
-<!-- HTML UI: navigation, filters, lists, detail modals, and data-entry forms. -->
 <body>
 
 <div class="app">
 
   <div class="header">
-    <h1>House Equipment</h1>
+    <div class="header-title-row">
+      <h1 id="appTitle">House Equipment</h1>
+      <button id="homeButton" class="home-button" type="button">← Home</button>
+    </div>
 
     <div class="nav">
       <button id="equipmentTab" class="nav-btn active" type="button">
@@ -518,7 +639,7 @@
       </button>
     </div>
 
-    <div id="equipmentHeader">
+    <div id="equipmentHeader" style="display:none;">
       <input
         id="search"
         class="search"
@@ -606,9 +727,75 @@
         </select>
       </div>
     </div>
+
+    <div id="troubleshootingHeader" style="display:none;">
+      <select id="tccCategoryFilter" class="search">
+        <option value="">All Categories</option>
+      </select>
+    </div>
   </div>
 
-  <div id="equipmentView" class="view active">
+  <!-- V6 HOME SCREEN -->
+  <div id="homeView" class="view active home-view">
+    <div class="home-intro">
+      <h2>House Equipment</h2>
+      <p>Select a section to view equipment, records, documents, maintenance tasks, or troubleshooting information.</p>
+    </div>
+
+    <div class="home-grid">
+      <button class="home-card" type="button" data-home-view="equipment">
+        <div class="home-card-title">
+          <span class="home-card-icon">🔧</span>
+          <span>Equipment</span>
+        </div>
+        <div class="home-card-description">
+          Equipment inventory, locations, model information, manuals, and equipment folders.
+        </div>
+      </button>
+
+      <button class="home-card" type="button" data-home-view="maintenance">
+        <div class="home-card-title">
+          <span class="home-card-icon">🛠️</span>
+          <span>Maintenance</span>
+        </div>
+        <div class="home-card-description">
+          Review maintenance history or create a new maintenance log.
+        </div>
+      </button>
+
+      <button class="home-card" type="button" data-home-view="documents">
+        <div class="home-card-title">
+          <span class="home-card-icon">📄</span>
+          <span>Documents</span>
+        </div>
+        <div class="home-card-description">
+          Work Instructions, Quick Guides, and One Point Lessons.
+        </div>
+      </button>
+
+      <button class="home-card" type="button" data-home-view="pm">
+        <div class="home-card-title">
+          <span class="home-card-icon">📅</span>
+          <span>Preventive Maintenance</span>
+        </div>
+        <div class="home-card-description">
+          Open PM tasks, due dates, spare parts, and PM completion.
+        </div>
+      </button>
+
+      <button class="home-card" type="button" data-home-view="troubleshooting">
+        <div class="home-card-title">
+          <span class="home-card-icon">🔎</span>
+          <span>Troubleshooting Guide</span>
+        </div>
+        <div class="home-card-description">
+          Find common troubles by category and view the likely cause and correction.
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <div id="equipmentView" class="view">
     <div id="equipmentSummary" class="summary"></div>
 
     <div id="loading" class="loading">
@@ -646,6 +833,12 @@
 
     <div id="pmSummary" class="summary"></div>
     <div id="pmCards" class="cards"></div>
+  </div>
+
+  <!-- TCC / TROUBLESHOOTING VIEW -->
+  <div id="troubleshootingView" class="view">
+    <div id="tccSummary" class="summary"></div>
+    <div id="tccCards" class="cards"></div>
   </div>
 
 </div>
@@ -887,8 +1080,6 @@
 </div>
 
 
-
-<!-- JavaScript: API calls, rendering, filtering, forms, modals, and app behavior. -->
 <script>
 
 const API_URL =
@@ -900,6 +1091,7 @@ let allMaintenance = [];
 let allDocuments = [];
 let allPM = [];
 let allSpareParts = [];
+let allTroubleshooting = [];
 
 
 const equipmentTab = document.getElementById("equipmentTab");
@@ -907,15 +1099,21 @@ const maintenanceTab = document.getElementById("maintenanceTab");
 const documentsTab = document.getElementById("documentsTab");
 const pmTab = document.getElementById("pmTab");
 
+const homeView = document.getElementById("homeView");
+const homeButton = document.getElementById("homeButton");
+const appTitle = document.getElementById("appTitle");
+
 const equipmentHeader = document.getElementById("equipmentHeader");
 const maintenanceHeader = document.getElementById("maintenanceHeader");
 const documentsHeader = document.getElementById("documentsHeader");
 const pmHeader = document.getElementById("pmHeader");
+const troubleshootingHeader = document.getElementById("troubleshootingHeader");
 
 const equipmentView = document.getElementById("equipmentView");
 const maintenanceView = document.getElementById("maintenanceView");
 const documentsView = document.getElementById("documentsView");
 const pmView = document.getElementById("pmView");
+const troubleshootingView = document.getElementById("troubleshootingView");
 
 const cards = document.getElementById("cards");
 const equipmentSummary = document.getElementById("equipmentSummary");
@@ -955,6 +1153,10 @@ const pmStatusFilter = document.getElementById("pmStatusFilter");
 const pmSummary = document.getElementById("pmSummary");
 const pmCards = document.getElementById("pmCards");
 const newPMButton = document.getElementById("newPMButton");
+
+const tccCategoryFilter = document.getElementById("tccCategoryFilter");
+const tccSummary = document.getElementById("tccSummary");
+const tccCards = document.getElementById("tccCards");
 
 const newLogButton = document.getElementById("newLogButton");
 
@@ -1013,11 +1215,6 @@ const completePMButton = document.getElementById("completePMButton");
 const cancelCompletePMButton = document.getElementById("cancelCompletePMButton");
 
 
-
-// ---------------------------------------------------------------------------
-// loadData
-// Loads all app data from the Apps Script API and then renders each view.
-// ---------------------------------------------------------------------------
 async function loadData() {
 
   try {
@@ -1039,17 +1236,20 @@ async function loadData() {
     allDocuments = data.documents || [];
     allPM = data.pm || [];
     allSpareParts = data.spareParts || [];
+    allTroubleshooting = data.troubleshooting || [];
 
     loading.style.display = "none";
 
     buildFilters();
     buildMaintenanceEquipmentLists();
     buildPMLists();
+    buildTroubleshootingCategories();
 
     renderEquipment();
     renderMaintenance();
     renderDocuments();
     renderPM();
+    renderTroubleshooting();
 
   } catch (err) {
 
@@ -1063,49 +1263,54 @@ async function loadData() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// switchView
-// Switches between Equipment, Maintenance, Documents, and PM screens.
-// ---------------------------------------------------------------------------
 function switchView(viewName) {
 
+  // V6 uses a House Guide-style home page instead of opening directly
+  // into the Equipment list.
+  const homeActive = viewName === "home";
   const equipmentActive = viewName === "equipment";
   const maintenanceActive = viewName === "maintenance";
   const documentsActive = viewName === "documents";
   const pmActive = viewName === "pm";
+  const troubleshootingActive = viewName === "troubleshooting";
 
+  // Keep the original nav button state logic for compatibility even though
+  // the tab bar is hidden in V6.
   equipmentTab.classList.toggle("active", equipmentActive);
   maintenanceTab.classList.toggle("active", maintenanceActive);
   documentsTab.classList.toggle("active", documentsActive);
   pmTab.classList.toggle("active", pmActive);
 
-  equipmentHeader.style.display =
-    equipmentActive ? "block" : "none";
+  equipmentHeader.style.display = equipmentActive ? "block" : "none";
+  maintenanceHeader.style.display = maintenanceActive ? "block" : "none";
+  documentsHeader.style.display = documentsActive ? "block" : "none";
+  pmHeader.style.display = pmActive ? "block" : "none";
+  troubleshootingHeader.style.display = troubleshootingActive ? "block" : "none";
 
-  maintenanceHeader.style.display =
-    maintenanceActive ? "block" : "none";
-
-  documentsHeader.style.display =
-    documentsActive ? "block" : "none";
-
-  pmHeader.style.display =
-    pmActive ? "block" : "none";
-
+  homeView.classList.toggle("active", homeActive);
   equipmentView.classList.toggle("active", equipmentActive);
   maintenanceView.classList.toggle("active", maintenanceActive);
   documentsView.classList.toggle("active", documentsActive);
   pmView.classList.toggle("active", pmActive);
+  troubleshootingView.classList.toggle("active", troubleshootingActive);
+
+  const titles = {
+    home: "House Equipment",
+    equipment: "Equipment",
+    maintenance: "Maintenance",
+    documents: "Documents",
+    pm: "Preventive Maintenance",
+    troubleshooting: "Troubleshooting Guide"
+  };
+
+  appTitle.textContent = titles[viewName] || "House Equipment";
+  homeButton.style.display = homeActive ? "none" : "inline-block";
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
 }
 
 
-// ---------------------------------------------------------------------------
-// buildFilters
-// Builds equipment filter dropdown values.
-// ---------------------------------------------------------------------------
 function buildFilters() {
 
   const floors = uniqueValues(allEquipment, "floor");
@@ -1119,11 +1324,6 @@ function buildFilters() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// buildMaintenanceEquipmentLists
-// Populates equipment choices used by maintenance forms and filters.
-// ---------------------------------------------------------------------------
 function buildMaintenanceEquipmentLists() {
 
   const items = [...allEquipment]
@@ -1161,11 +1361,6 @@ function buildMaintenanceEquipmentLists() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// buildPMLists
-// Front-end helper function: buildPMLists.
-// ---------------------------------------------------------------------------
 function buildPMLists() {
 
   pmEquipmentFilter.innerHTML = '<option value="">All Equipment</option>';
@@ -1209,11 +1404,6 @@ function buildPMLists() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// uniqueValues
-// Returns sorted unique values for a selected object field.
-// ---------------------------------------------------------------------------
 function uniqueValues(data, field) {
 
   return [...new Set(
@@ -1225,11 +1415,6 @@ function uniqueValues(data, field) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// fillSelect
-// Adds option elements to a dropdown.
-// ---------------------------------------------------------------------------
 function fillSelect(select, values) {
 
   values.forEach(value => {
@@ -1246,11 +1431,6 @@ function fillSelect(select, values) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// renderEquipment
-// Filters, sorts, and renders the equipment-card list.
-// ---------------------------------------------------------------------------
 function renderEquipment() {
 
   const searchText = search.value.trim().toLowerCase();
@@ -1378,11 +1558,6 @@ function renderEquipment() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// renderMaintenance
-// Filters, sorts, and renders maintenance-log cards.
-// ---------------------------------------------------------------------------
 function renderMaintenance() {
 
   const searchText =
@@ -1522,11 +1697,6 @@ function renderMaintenance() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// renderDocuments
-// Filters, sorts, and renders document cards.
-// ---------------------------------------------------------------------------
 function renderDocuments() {
 
   const searchText =
@@ -1659,9 +1829,94 @@ function renderDocuments() {
 
 
 // ---------------------------------------------------------------------------
-// renderPM
-// Filters, sorts, and renders preventive-maintenance cards.
+// TROUBLESHOOTING GUIDE (TCC)
 // ---------------------------------------------------------------------------
+
+// Builds the category dropdown from unique values in TCC Column B.
+function buildTroubleshootingCategories() {
+
+  const categories = [...new Set(
+    allTroubleshooting
+      .map(item => item.category)
+      .filter(Boolean)
+  )].sort(compareText);
+
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    tccCategoryFilter.appendChild(option);
+  });
+
+}
+
+
+// Renders the trouble list. Category comes from Column B and Trouble from C.
+function renderTroubleshooting() {
+
+  const category = tccCategoryFilter.value;
+
+  let filtered = allTroubleshooting.filter(item => {
+    if (category && item.category !== category) return false;
+    return Boolean(item.trouble);
+  });
+
+  filtered.sort((a, b) =>
+    compareText(a.category, b.category) ||
+    compareText(a.trouble, b.trouble)
+  );
+
+  const categoryText = category ? ` in ${category}` : "";
+  tccSummary.textContent =
+    `${filtered.length} trouble${filtered.length === 1 ? "" : "s"}${categoryText}`;
+
+  tccCards.innerHTML = "";
+
+  if (!filtered.length) {
+    tccCards.innerHTML =
+      '<div class="empty">No troubleshooting items match that category.</div>';
+    return;
+  }
+
+  filtered.forEach(item => {
+
+    const card = document.createElement("div");
+    card.className = "card tcc-card";
+
+    card.innerHTML = `
+      <div class="card-title">${escapeHtml(item.trouble)}</div>
+      <div class="tcc-category">${escapeHtml(item.category || "Uncategorized")}</div>
+    `;
+
+    // Clicking a trouble shows the full Trouble / Cause / Correction record.
+    card.addEventListener("click", () => openTroubleshootingDetail(item));
+
+    tccCards.appendChild(card);
+  });
+
+}
+
+
+// Shows the selected TCC record using the app's existing detail modal.
+function openTroubleshootingDetail(item) {
+
+  modalTitle.textContent = item.trouble || "Troubleshooting";
+
+  detailBody.innerHTML = `
+    ${section("Troubleshooting", [
+      ["Category", item.category],
+      ["Trouble", item.trouble],
+      ["Likely Cause", item.cause],
+      ["Correction", item.correction]
+    ])}
+  `;
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+
+
 function renderPM() {
 
   const searchText = pmSearch.value.trim().toLowerCase();
@@ -1736,11 +1991,6 @@ function renderPM() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openPMDetail
-// Front-end helper function: openPMDetail.
-// ---------------------------------------------------------------------------
 function openPMDetail(pm) {
 
   const eq = equipmentForJin(pm.jin);
@@ -1808,11 +2058,6 @@ function openPMDetail(pm) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openNewPM
-// Opens and initializes the new PM form.
-// ---------------------------------------------------------------------------
 function openNewPM() {
   pmForm.reset();
   pmFormStartDate.value = todayLocal();
@@ -1826,11 +2071,6 @@ function openNewPM() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// closeNewPM
-// Front-end helper function: closeNewPM.
-// ---------------------------------------------------------------------------
 function closeNewPM() {
   pmFormModal.classList.remove("show");
   if (!modal.classList.contains("show") && !completePMModal.classList.contains("show")) {
@@ -1839,11 +2079,6 @@ function closeNewPM() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// updatePMSpareSuggestions
-// Front-end helper function: updatePMSpareSuggestions.
-// ---------------------------------------------------------------------------
 function updatePMSpareSuggestions() {
   const jin = pmFormJin.value;
   const matches = allSpareParts.filter(p => p.jin === jin || (p.spareJin || "").startsWith(jin + "-"));
@@ -1864,11 +2099,6 @@ function updatePMSpareSuggestions() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// addSpareJinToPM
-// Front-end helper function: addSpareJinToPM.
-// ---------------------------------------------------------------------------
 function addSpareJinToPM(spareJin) {
   const current = pmFormSpareJins.value.split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
   if (!current.includes(spareJin)) current.push(spareJin);
@@ -1876,11 +2106,6 @@ function addSpareJinToPM(spareJin) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// submitPMForm
-// Sends a new PM record to Apps Script.
-// ---------------------------------------------------------------------------
 async function submitPMForm(event) {
   event.preventDefault();
   pmFormMessage.innerHTML = "";
@@ -1925,11 +2150,6 @@ async function submitPMForm(event) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openCompletePM
-// Opens and initializes the PM-completion form.
-// ---------------------------------------------------------------------------
 function openCompletePM(pmId) {
   const pm = allPM.find(x => x.id === pmId);
   if (!pm) return;
@@ -1946,11 +2166,6 @@ function openCompletePM(pmId) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// closeCompletePM
-// Front-end helper function: closeCompletePM.
-// ---------------------------------------------------------------------------
 function closeCompletePM() {
   completePMModal.classList.remove("show");
   if (!modal.classList.contains("show") && !pmFormModal.classList.contains("show")) {
@@ -1959,11 +2174,6 @@ function closeCompletePM() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// submitCompletePM
-// Front-end helper function: submitCompletePM.
-// ---------------------------------------------------------------------------
 async function submitCompletePM(event) {
   event.preventDefault();
   completePMMessage.innerHTML = "";
@@ -2009,32 +2219,17 @@ async function submitCompletePM(event) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// equipmentForJin
-// Front-end helper function: equipmentForJin.
-// ---------------------------------------------------------------------------
 function equipmentForJin(jin) {
   return allEquipment.find(item => item.jin === jin || item.id === jin) || null;
 }
 
 
-
-// ---------------------------------------------------------------------------
-// sparePartsForPM
-// Front-end helper function: sparePartsForPM.
-// ---------------------------------------------------------------------------
 function sparePartsForPM(pm) {
   const ids = String(pm.spareJins || "").split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
   return ids.map(id => allSpareParts.find(part => part.spareJin === id)).filter(Boolean);
 }
 
 
-
-// ---------------------------------------------------------------------------
-// relatedDocument
-// Front-end helper function: relatedDocument.
-// ---------------------------------------------------------------------------
 function relatedDocument(id) {
   const target = String(id || "").trim();
   if (!target) return null;
@@ -2042,22 +2237,12 @@ function relatedDocument(id) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// isPMOpen
-// Front-end helper function: isPMOpen.
-// ---------------------------------------------------------------------------
 function isPMOpen(pm) {
   const status = String(pm.status || "Open").trim().toLowerCase();
   return !["inactive", "complete", "completed", "closed", "cancelled", "canceled"].includes(status);
 }
 
 
-
-// ---------------------------------------------------------------------------
-// pmDueTime
-// Front-end helper function: pmDueTime.
-// ---------------------------------------------------------------------------
 function pmDueTime(pm) {
   const value = pm.nextDueIso || pm.nextDue || pm.startDateIso || pm.startDate;
   if (!value) return 0;
@@ -2068,11 +2253,6 @@ function pmDueTime(pm) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// pmStatusTag
-// Front-end helper function: pmStatusTag.
-// ---------------------------------------------------------------------------
 function pmStatusTag(pm) {
   if (!isPMOpen(pm)) return '<span class="tag pm-inactive">Inactive / Complete</span>';
 
@@ -2089,21 +2269,11 @@ function pmStatusTag(pm) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// startOfLocalDay
-// Front-end helper function: startOfLocalDay.
-// ---------------------------------------------------------------------------
 function startOfLocalDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openDocumentDetail
-// Front-end helper function: openDocumentDetail.
-// ---------------------------------------------------------------------------
 function openDocumentDetail(doc) {
 
   modalTitle.textContent =
@@ -2145,11 +2315,6 @@ function openDocumentDetail(doc) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// documentTypeTag
-// Front-end helper function: documentTypeTag.
-// ---------------------------------------------------------------------------
 function documentTypeTag(doc) {
 
   let cls = "";
@@ -2167,11 +2332,6 @@ function documentTypeTag(doc) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// showDocumentsForEquipmentName
-// Front-end helper function: showDocumentsForEquipmentName.
-// ---------------------------------------------------------------------------
 function showDocumentsForEquipmentName(equipmentName) {
 
   closeDetail();
@@ -2186,11 +2346,6 @@ function showDocumentsForEquipmentName(equipmentName) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openEquipmentDetail
-// Front-end helper function: openEquipmentDetail.
-// ---------------------------------------------------------------------------
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
@@ -2283,11 +2438,6 @@ function openEquipmentDetail(item) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openMaintenanceDetail
-// Front-end helper function: openMaintenanceDetail.
-// ---------------------------------------------------------------------------
 function openMaintenanceDetail(log) {
 
   const equipmentItem =
@@ -2361,11 +2511,6 @@ function openMaintenanceDetail(log) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// showMaintenanceForEquipment
-// Front-end helper function: showMaintenanceForEquipment.
-// ---------------------------------------------------------------------------
 function showMaintenanceForEquipment(equipmentId) {
 
   closeDetail();
@@ -2379,11 +2524,6 @@ function showMaintenanceForEquipment(equipmentId) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openNewLogForEquipment
-// Front-end helper function: openNewLogForEquipment.
-// ---------------------------------------------------------------------------
 function openNewLogForEquipment(equipmentId) {
 
   closeDetail();
@@ -2392,11 +2532,6 @@ function openNewLogForEquipment(equipmentId) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// openNewLog
-// Front-end helper function: openNewLog.
-// ---------------------------------------------------------------------------
 function openNewLog(equipmentId = "") {
 
   maintenanceForm.reset();
@@ -2418,11 +2553,6 @@ function openNewLog(equipmentId = "") {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// submitMaintenanceForm
-// Sends a new maintenance-log entry to Apps Script.
-// ---------------------------------------------------------------------------
 async function submitMaintenanceForm(event) {
 
   event.preventDefault();
@@ -2499,11 +2629,6 @@ async function submitMaintenanceForm(event) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// closeDetail
-// Front-end helper function: closeDetail.
-// ---------------------------------------------------------------------------
 function closeDetail() {
 
   modal.classList.remove("show");
@@ -2515,11 +2640,6 @@ function closeDetail() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// closeNewLog
-// Front-end helper function: closeNewLog.
-// ---------------------------------------------------------------------------
 function closeNewLog() {
 
   formModal.classList.remove("show");
@@ -2531,11 +2651,6 @@ function closeNewLog() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// section
-// Front-end helper function: section.
-// ---------------------------------------------------------------------------
 function section(title, rows) {
 
   const validRows =
@@ -2580,11 +2695,6 @@ function section(title, rows) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// criticalTag
-// Front-end helper function: criticalTag.
-// ---------------------------------------------------------------------------
 function criticalTag(value) {
 
   if (!value) return "";
@@ -2606,11 +2716,6 @@ function criticalTag(value) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// unitTag
-// Front-end helper function: unitTag.
-// ---------------------------------------------------------------------------
 function unitTag(value) {
 
   if (!value) return "";
@@ -2630,11 +2735,6 @@ function unitTag(value) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// completeTag
-// Front-end helper function: completeTag.
-// ---------------------------------------------------------------------------
 function completeTag(value) {
 
   const normalized = normalizeYesNo(value);
@@ -2660,11 +2760,6 @@ function completeTag(value) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// normalizeYesNo
-// Front-end helper function: normalizeYesNo.
-// ---------------------------------------------------------------------------
 function normalizeYesNo(value) {
 
   const v = String(value || "").trim().toLowerCase();
@@ -2682,11 +2777,6 @@ function normalizeYesNo(value) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// parseSortableDate
-// Front-end helper function: parseSortableDate.
-// ---------------------------------------------------------------------------
 function parseSortableDate(log) {
 
   if (log.dateIso) {
@@ -2702,11 +2792,6 @@ function parseSortableDate(log) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// todayLocal
-// Front-end helper function: todayLocal.
-// ---------------------------------------------------------------------------
 function todayLocal() {
 
   const now = new Date();
@@ -2720,11 +2805,6 @@ function todayLocal() {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// compareText
-// Provides case-insensitive text sorting.
-// ---------------------------------------------------------------------------
 function compareText(a,b) {
 
   return String(a || "")
@@ -2736,11 +2816,6 @@ function compareText(a,b) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// compareItem
-// Front-end helper function: compareItem.
-// ---------------------------------------------------------------------------
 function compareItem(a,b) {
 
   const aa = parseFloat(a);
@@ -2755,21 +2830,11 @@ function compareItem(a,b) {
 }
 
 
-
-// ---------------------------------------------------------------------------
-// jsString
-// Front-end helper function: jsString.
-// ---------------------------------------------------------------------------
 function jsString(value) {
   return JSON.stringify(String(value ?? ""));
 }
 
 
-
-// ---------------------------------------------------------------------------
-// escapeHtml
-// Escapes unsafe characters before inserting user/data text into HTML.
-// ---------------------------------------------------------------------------
 function escapeHtml(value) {
 
   return String(value ?? "")
@@ -2781,6 +2846,13 @@ function escapeHtml(value) {
 
 }
 
+
+// Home-screen cards are the primary V6 navigation.
+document.querySelectorAll("[data-home-view]").forEach(card => {
+  card.addEventListener("click", () => switchView(card.dataset.homeView));
+});
+
+homeButton.addEventListener("click", () => switchView("home"));
 
 equipmentTab.addEventListener("click", () => switchView("equipment"));
 maintenanceTab.addEventListener("click", () => switchView("maintenance"));
@@ -2803,6 +2875,8 @@ documentsReleaseFilter.addEventListener("change", renderDocuments);
 pmSearch.addEventListener("input", renderPM);
 pmEquipmentFilter.addEventListener("change", renderPM);
 pmStatusFilter.addEventListener("change", renderPM);
+
+tccCategoryFilter.addEventListener("change", renderTroubleshooting);
 
 newLogButton.addEventListener("click", () => openNewLog());
 newPMButton.addEventListener("click", openNewPM);
@@ -2867,8 +2941,6 @@ loadData();
 
 </script>
 
-
-<!-- JavaScript: API calls, rendering, filtering, forms, modals, and app behavior. -->
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
