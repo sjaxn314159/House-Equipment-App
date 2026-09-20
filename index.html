@@ -1,6 +1,7 @@
 <!-- ======================================================================== -->
-<!-- HOUSE EQUIPMENT APP — INDEX V5 — SAFE COMMENTED COPY                  -->
-<!-- Comments are excluded from JavaScript template literals and tag bodies. -->
+<!-- HOUSE EQUIPMENT APP — INDEX V5 — DOCUMENTED SAFE COPY                  -->
+<!-- Comments are added only outside executable/template-generated content. -->
+<!-- No rendered HTML strings or JavaScript templates have been modified.   -->
 <!-- ======================================================================== -->
 
 <!doctype html>
@@ -19,9 +20,9 @@
 
   <title>House Equipment</title>
 
-<!-- DEBUG NOTE: Embedded CSS begins here. -->
+
+<!-- CSS: visual styling, responsive behavior, cards, forms, and modals. -->
   <style>
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     :root {
       --blue: #1f4e78;
       --blue2: #2f75b5;
@@ -34,12 +35,10 @@
       --success: #18794e;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     * {
       box-sizing: border-box;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
@@ -50,19 +49,16 @@
     button,
     input,
     select,
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     textarea {
       font: inherit;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .app {
       max-width: 900px;
       margin: 0 auto;
       min-height: 100vh;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .header {
       background: var(--blue);
       color: white;
@@ -73,13 +69,11 @@
       box-shadow: 0 2px 8px rgba(0,0,0,.15);
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .header h1 {
       margin: 0 0 12px;
       font-size: 24px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .nav {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -87,7 +81,6 @@
       margin-bottom: 12px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .nav-btn {
       border: 1px solid rgba(255,255,255,.45);
       background: rgba(255,255,255,.12);
@@ -98,13 +91,11 @@
       font-weight: 700;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .nav-btn.active {
       background: white;
       color: var(--blue);
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .search {
       width: 100%;
       font-size: 16px;
@@ -114,7 +105,6 @@
       outline: none;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .filters {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -122,12 +112,10 @@
       margin-top: 10px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .filters.two {
       grid-template-columns: 2fr 1fr;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .filters select {
       width: 100%;
       font-size: 15px;
@@ -136,26 +124,22 @@
       border-radius: 8px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .toolbar {
       padding: 12px 12px 0;
       display: flex;
       justify-content: flex-end;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .summary {
       padding: 12px 16px 4px;
       color: var(--muted);
       font-size: 14px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .cards {
       padding: 8px 12px 30px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .card {
       background: white;
       border: 1px solid var(--border);
@@ -166,26 +150,22 @@
       box-shadow: 0 1px 4px rgba(0,0,0,.05);
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .card:hover {
       border-color: #9fb5c9;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .card-title {
       font-size: 18px;
       font-weight: 700;
       margin-bottom: 5px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .card-location {
       font-size: 14px;
       color: var(--muted);
       margin-bottom: 8px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .card-info {
       display: flex;
       flex-wrap: wrap;
@@ -194,99 +174,83 @@
       font-size: 13px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .tag {
       background: #e9eef3;
       padding: 4px 8px;
       border-radius: 999px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .tier1 {
       background: #fde7e4;
       color: #912018;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .tier2 {
       background: #fff1d6;
       color: #895400;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .tier3 {
       background: #e4f3ea;
       color: #11663d;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .future {
       background: #eee7f6;
       color: #62428d;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .complete-yes {
       background: #e4f3ea;
       color: #11663d;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .complete-no {
       background: #fde7e4;
       color: #912018;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .doc-wi {
       background: #e7f0fb;
       color: #174f82;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .doc-qg {
       background: #e4f3ea;
       color: #11663d;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .doc-opl {
       background: #fff1d6;
       color: #895400;
     }
 
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .pm-overdue {
       background: #fde7e4;
       color: #912018;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .pm-due-soon {
       background: #fff1d6;
       color: #895400;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .pm-open {
       background: #e7f0fb;
       color: #174f82;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .pm-inactive {
       background: #e9eef3;
       color: #66737f;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .parts-list {
       display: grid;
       gap: 8px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .part-box {
       border: 1px solid var(--border);
       border-radius: 9px;
@@ -294,27 +258,23 @@
       background: #f8fafc;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .part-box strong {
       display: block;
       margin-bottom: 4px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .small-note {
       color: var(--muted);
       font-size: 12px;
       line-height: 1.35;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .empty {
       text-align: center;
       color: var(--muted);
       padding: 40px 20px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .error {
       background: #fde7e4;
       color: var(--danger);
@@ -323,7 +283,6 @@
       border-radius: 8px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .success {
       background: #e4f3ea;
       color: var(--success);
@@ -332,24 +291,20 @@
       border-radius: 8px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .loading {
       text-align: center;
       padding: 35px;
       color: var(--muted);
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .view {
       display: none;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .view.active {
       display: block;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .modal {
       display: none;
       position: fixed;
@@ -359,12 +314,10 @@
       overflow-y: auto;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .modal.show {
       display: block;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .modal-panel {
       background: white;
       max-width: 720px;
@@ -374,7 +327,6 @@
       overflow: hidden;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .modal-header {
       background: var(--blue);
       color: white;
@@ -384,14 +336,12 @@
       align-items: center;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .modal-header h2 {
       margin: 0;
       font-size: 21px;
       flex: 1;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .close {
       border: none;
       background: rgba(255,255,255,.16);
@@ -403,17 +353,14 @@
       cursor: pointer;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .detail-body {
       padding: 16px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .section {
       margin-bottom: 22px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .section h3 {
       font-size: 15px;
       text-transform: uppercase;
@@ -423,7 +370,6 @@
       padding-bottom: 6px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .detail-row {
       display: grid;
       grid-template-columns: 140px 1fr;
@@ -431,19 +377,16 @@
       padding: 6px 0;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .label {
       color: var(--muted);
       font-size: 14px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .value {
       font-size: 14px;
       overflow-wrap: anywhere;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .buttons {
       display: flex;
       gap: 8px;
@@ -451,7 +394,6 @@
       margin-top: 16px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .btn {
       display: inline-block;
       padding: 11px 14px;
@@ -464,35 +406,29 @@
       cursor: pointer;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .btn.secondary {
       background: #e9eef3;
       color: var(--text);
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .btn.success-btn {
       background: var(--success);
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .field {
       margin-bottom: 12px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .field.full {
       grid-column: 1 / -1;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .field label {
       display: block;
       margin-bottom: 5px;
@@ -503,7 +439,6 @@
 
     .field input,
     .field select,
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .field textarea {
       width: 100%;
       padding: 11px 12px;
@@ -513,26 +448,21 @@
       color: var(--text);
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .field textarea {
       min-height: 90px;
       resize: vertical;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .maintenance-card .card-title {
       font-size: 16px;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     .maintenance-description {
       margin: 8px 0;
       line-height: 1.35;
     }
 
-    /* DEBUG NOTE: Styling rule or responsive section begins here. */
     @media (max-width: 600px) {
-      /* DEBUG NOTE: Styling rule or responsive section begins here. */
       .nav-btn {
         padding: 9px 5px;
         font-size: 13px;
@@ -540,67 +470,55 @@
 
       .filters,
       .filters.two,
-      /* DEBUG NOTE: Styling rule or responsive section begins here. */
       .form-grid {
         grid-template-columns: 1fr;
       }
 
-      /* DEBUG NOTE: Styling rule or responsive section begins here. */
       .field.full {
         grid-column: auto;
       }
 
-      /* DEBUG NOTE: Styling rule or responsive section begins here. */
       .modal-panel {
         margin: 0;
         border-radius: 0;
         min-height: 100vh;
       }
 
-      /* DEBUG NOTE: Styling rule or responsive section begins here. */
       .detail-row {
         grid-template-columns: 110px 1fr;
       }
     }
   </style>
-<!-- DEBUG NOTE: Embedded CSS ends here. -->
 </head>
 
+
+<!-- HTML UI: navigation, filters, lists, detail modals, and data-entry forms. -->
 <body>
 
-<!-- DEBUG NOTE: Starts an interface element used by the app. -->
 <div class="app">
 
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div class="header">
     <h1>House Equipment</h1>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="nav">
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="equipmentTab" class="nav-btn active" type="button">
         Equipment
       </button>
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="maintenanceTab" class="nav-btn" type="button">
         Maintenance
       </button>
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="documentsTab" class="nav-btn" type="button">
         Documents
       </button>
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="pmTab" class="nav-btn" type="button">
         PM
       </button>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="equipmentHeader">
-      <!-- DEBUG NOTE: Starts a multi-line interface element. -->
       <input
         id="search"
         class="search"
@@ -608,7 +526,6 @@
         placeholder="Search equipment, make, model, serial #..."
       >
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <div class="filters">
         <select id="floorFilter">
           <option value="">All Floors</option>
@@ -624,9 +541,7 @@
       </div>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="maintenanceHeader" style="display:none;">
-      <!-- DEBUG NOTE: Starts a multi-line interface element. -->
       <input
         id="maintenanceSearch"
         class="search"
@@ -634,7 +549,6 @@
         placeholder="Search maintenance logs..."
       >
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <div class="filters two">
         <select id="maintenanceEquipmentFilter">
           <option value="">All Equipment</option>
@@ -648,9 +562,7 @@
       </div>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="documentsHeader" style="display:none;">
-      <!-- DEBUG NOTE: Starts a multi-line interface element. -->
       <input
         id="documentsSearch"
         class="search"
@@ -658,7 +570,6 @@
         placeholder="Search document #, title, or type..."
       >
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <div class="filters two">
         <select id="documentsTypeFilter">
           <option value="">All Document Types</option>
@@ -675,9 +586,7 @@
       </div>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="pmHeader" style="display:none;">
-      <!-- DEBUG NOTE: Starts a multi-line interface element. -->
       <input
         id="pmSearch"
         class="search"
@@ -685,7 +594,6 @@
         placeholder="Search PM task, equipment, JIN, spare part..."
       >
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <div class="filters two">
         <select id="pmEquipmentFilter">
           <option value="">All Equipment</option>
@@ -700,114 +608,83 @@
     </div>
   </div>
 
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div id="equipmentView" class="view active">
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="equipmentSummary" class="summary"></div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="loading" class="loading">
       Loading equipment...
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="error"></div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="cards" class="cards"></div>
   </div>
 
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div id="maintenanceView" class="view">
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="toolbar">
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="newLogButton" class="btn success-btn" type="button">
         ＋ New Maintenance Log
       </button>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="maintenanceSummary" class="summary"></div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="maintenanceCards" class="cards"></div>
   </div>
 
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div id="documentsView" class="view">
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="documentsSummary" class="summary"></div>
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="documentsCards" class="cards"></div>
   </div>
 
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div id="pmView" class="view">
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="toolbar">
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="newPMButton" class="btn success-btn" type="button">
         ＋ Add New PM
       </button>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="pmSummary" class="summary"></div>
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="pmCards" class="cards"></div>
   </div>
 
 </div>
 
 
-<!-- DEBUG NOTE: Starts an interface element used by the app. -->
 <div id="modal" class="modal">
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div class="modal-panel">
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="modal-header">
       <h2 id="modalTitle"></h2>
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="closeModal" class="close" type="button">
         ×
       </button>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div id="detailBody" class="detail-body"></div>
 
   </div>
 </div>
 
 
-<!-- DEBUG NOTE: Starts an interface element used by the app. -->
 <div id="formModal" class="modal">
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div class="modal-panel">
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="modal-header">
       <h2>New Maintenance Log</h2>
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="closeFormModal" class="close" type="button">
         ×
       </button>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="detail-body">
 
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <form id="maintenanceForm">
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div class="form-grid">
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="formEquipment">Equipment *</label>
             <select id="formEquipment" required>
@@ -815,25 +692,21 @@
             </select>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="formDate">Date *</label>
             <input id="formDate" type="date" required>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="formPerformedBy">Performed By</label>
             <input id="formPerformedBy" type="text">
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="formDescription">Description *</label>
             <textarea id="formDescription" required></textarea>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="formComplete">Complete?</label>
             <select id="formComplete">
@@ -842,40 +715,33 @@
             </select>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="formWI">WI</label>
             <input id="formWI" type="text">
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="formSpareQty">Spares Qty</label>
             <input id="formSpareQty" type="number" min="0" step="1">
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="formSpareId">Spare ID</label>
             <input id="formSpareId" type="text">
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="formSpareDescription">Spare Description</label>
             <input id="formSpareDescription" type="text">
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="formNextStep">Next Step</label>
             <textarea id="formNextStep"></textarea>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="formLink">Link (optional URL)</label>
-            <!-- DEBUG NOTE: Starts a multi-line interface element. -->
             <input
               id="formLink"
               type="url"
@@ -885,17 +751,13 @@
 
         </div>
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div id="formMessage"></div>
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div class="buttons">
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <button id="saveLogButton" class="btn success-btn" type="submit">
             Save Log
           </button>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <button id="cancelLogButton" class="btn secondary" type="button">
             Cancel
           </button>
@@ -908,24 +770,16 @@
 </div>
 
 
-<!-- DEBUG NOTE: Starts an interface element used by the app. -->
 <div id="pmFormModal" class="modal">
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div class="modal-panel">
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="modal-header">
       <h2>Add New PM</h2>
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="closePMFormModal" class="close" type="button">×</button>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="detail-body">
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <form id="pmForm">
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div class="form-grid">
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="pmFormJin">Equipment / JIN *</label>
             <select id="pmFormJin" required>
@@ -933,19 +787,16 @@
             </select>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="pmFormTask">PM Task *</label>
             <input id="pmFormTask" type="text" placeholder="Replace Furnace Filter" required>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="pmFormStartDate">Start / First Due Date *</label>
             <input id="pmFormStartDate" type="date" required>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="pmFormFrequency">Frequency *</label>
             <select id="pmFormFrequency" required>
@@ -960,21 +811,17 @@
             </select>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div id="pmCustomMonthsField" class="field" style="display:none;">
             <label for="pmFormFrequencyMonths">Frequency Months</label>
             <input id="pmFormFrequencyMonths" type="number" min="1" step="1" placeholder="e.g. 18">
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="pmFormSpareJins">Spare JIN(s)</label>
             <input id="pmFormSpareJins" type="text" placeholder="Example: 0.2.2-C, 0.2.2-G">
-            <!-- DEBUG NOTE: Starts an interface element used by the app. -->
             <div id="pmSpareSuggestions" class="small-note"></div>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="pmFormWI">Related Work Instruction</label>
             <select id="pmFormWI">
@@ -982,21 +829,16 @@
             </select>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="pmFormNotes">Notes</label>
             <textarea id="pmFormNotes"></textarea>
           </div>
         </div>
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div id="pmFormMessage"></div>
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div class="buttons">
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <button id="savePMButton" class="btn success-btn" type="submit">Save PM</button>
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <button id="cancelPMButton" class="btn secondary" type="button">Cancel</button>
         </div>
       </form>
@@ -1005,52 +847,38 @@
 </div>
 
 
-<!-- DEBUG NOTE: Starts an interface element used by the app. -->
 <div id="completePMModal" class="modal">
-  <!-- DEBUG NOTE: Starts an interface element used by the app. -->
   <div class="modal-panel">
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="modal-header">
       <h2 id="completePMTitle">Complete PM</h2>
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <button id="closeCompletePMModal" class="close" type="button">×</button>
     </div>
 
-    <!-- DEBUG NOTE: Starts an interface element used by the app. -->
     <div class="detail-body">
-      <!-- DEBUG NOTE: Starts an interface element used by the app. -->
       <form id="completePMForm">
         <input id="completePMId" type="hidden">
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div class="form-grid">
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="completePMDate">Completion Date *</label>
             <input id="completePMDate" type="date" required>
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field">
             <label for="completePMBy">Performed By</label>
             <input id="completePMBy" type="text">
           </div>
 
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <div class="field full">
             <label for="completePMNotes">Completion Notes</label>
             <textarea id="completePMNotes" placeholder="Optional notes about the work performed"></textarea>
           </div>
         </div>
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div id="completePMMessage"></div>
 
-        <!-- DEBUG NOTE: Starts an interface element used by the app. -->
         <div class="buttons">
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <button id="completePMButton" class="btn success-btn" type="submit">✓ Complete Task</button>
-          <!-- DEBUG NOTE: Starts an interface element used by the app. -->
           <button id="cancelCompletePMButton" class="btn secondary" type="button">Cancel</button>
         </div>
       </form>
@@ -1059,698 +887,453 @@
 </div>
 
 
-<!-- DEBUG NOTE: Front-end JavaScript begins here. -->
+
+<!-- JavaScript: API calls, rendering, filtering, forms, modals, and app behavior. -->
 <script>
 
-// DEBUG NOTE: Creates constant API_URL.
 const API_URL =
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   "https://script.google.com/macros/s/AKfycbyyQl3j0suJjNE0GoqPAyZwzqH7dUHO3xMXYRXwfEn2NUd6RIGPIW8CI2UV33nBbcg1Vg/exec";
 
 
-// DEBUG NOTE: Creates mutable variable allEquipment.
 let allEquipment = [];
-// DEBUG NOTE: Creates mutable variable allMaintenance.
 let allMaintenance = [];
-// DEBUG NOTE: Creates mutable variable allDocuments.
 let allDocuments = [];
-// DEBUG NOTE: Creates mutable variable allPM.
 let allPM = [];
-// DEBUG NOTE: Creates mutable variable allSpareParts.
 let allSpareParts = [];
 
 
-// DEBUG NOTE: Creates constant equipmentTab.
 const equipmentTab = document.getElementById("equipmentTab");
-// DEBUG NOTE: Creates constant maintenanceTab.
 const maintenanceTab = document.getElementById("maintenanceTab");
-// DEBUG NOTE: Creates constant documentsTab.
 const documentsTab = document.getElementById("documentsTab");
-// DEBUG NOTE: Creates constant pmTab.
 const pmTab = document.getElementById("pmTab");
 
-// DEBUG NOTE: Creates constant equipmentHeader.
 const equipmentHeader = document.getElementById("equipmentHeader");
-// DEBUG NOTE: Creates constant maintenanceHeader.
 const maintenanceHeader = document.getElementById("maintenanceHeader");
-// DEBUG NOTE: Creates constant documentsHeader.
 const documentsHeader = document.getElementById("documentsHeader");
-// DEBUG NOTE: Creates constant pmHeader.
 const pmHeader = document.getElementById("pmHeader");
 
-// DEBUG NOTE: Creates constant equipmentView.
 const equipmentView = document.getElementById("equipmentView");
-// DEBUG NOTE: Creates constant maintenanceView.
 const maintenanceView = document.getElementById("maintenanceView");
-// DEBUG NOTE: Creates constant documentsView.
 const documentsView = document.getElementById("documentsView");
-// DEBUG NOTE: Creates constant pmView.
 const pmView = document.getElementById("pmView");
 
-// DEBUG NOTE: Creates constant cards.
 const cards = document.getElementById("cards");
-// DEBUG NOTE: Creates constant equipmentSummary.
 const equipmentSummary = document.getElementById("equipmentSummary");
-// DEBUG NOTE: Creates constant loading.
 const loading = document.getElementById("loading");
-// DEBUG NOTE: Creates constant errorBox.
 const errorBox = document.getElementById("error");
 
-// DEBUG NOTE: Creates constant search.
 const search = document.getElementById("search");
-// DEBUG NOTE: Creates constant floorFilter.
 const floorFilter = document.getElementById("floorFilter");
-// DEBUG NOTE: Creates constant areaFilter.
 const areaFilter = document.getElementById("areaFilter");
-// DEBUG NOTE: Creates constant criticalFilter.
 const criticalFilter = document.getElementById("criticalFilter");
 
-// DEBUG NOTE: Creates constant maintenanceSearch.
 const maintenanceSearch = document.getElementById("maintenanceSearch");
-// DEBUG NOTE: Creates constant maintenanceEquipmentFilter.
 const maintenanceEquipmentFilter =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("maintenanceEquipmentFilter");
-// DEBUG NOTE: Creates constant maintenanceCompleteFilter.
 const maintenanceCompleteFilter =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("maintenanceCompleteFilter");
 
-// DEBUG NOTE: Creates constant maintenanceSummary.
 const maintenanceSummary =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("maintenanceSummary");
-// DEBUG NOTE: Creates constant maintenanceCards.
 const maintenanceCards =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("maintenanceCards");
 
-// DEBUG NOTE: Creates constant documentsSearch.
 const documentsSearch =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("documentsSearch");
-// DEBUG NOTE: Creates constant documentsTypeFilter.
 const documentsTypeFilter =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("documentsTypeFilter");
-// DEBUG NOTE: Creates constant documentsReleaseFilter.
 const documentsReleaseFilter =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("documentsReleaseFilter");
-// DEBUG NOTE: Creates constant documentsSummary.
 const documentsSummary =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("documentsSummary");
-// DEBUG NOTE: Creates constant documentsCards.
 const documentsCards =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("documentsCards");
 
-// DEBUG NOTE: Creates constant pmSearch.
 const pmSearch = document.getElementById("pmSearch");
-// DEBUG NOTE: Creates constant pmEquipmentFilter.
 const pmEquipmentFilter = document.getElementById("pmEquipmentFilter");
-// DEBUG NOTE: Creates constant pmStatusFilter.
 const pmStatusFilter = document.getElementById("pmStatusFilter");
-// DEBUG NOTE: Creates constant pmSummary.
 const pmSummary = document.getElementById("pmSummary");
-// DEBUG NOTE: Creates constant pmCards.
 const pmCards = document.getElementById("pmCards");
-// DEBUG NOTE: Creates constant newPMButton.
 const newPMButton = document.getElementById("newPMButton");
 
-// DEBUG NOTE: Creates constant newLogButton.
 const newLogButton = document.getElementById("newLogButton");
 
-// DEBUG NOTE: Creates constant modal.
 const modal = document.getElementById("modal");
-// DEBUG NOTE: Creates constant modalTitle.
 const modalTitle = document.getElementById("modalTitle");
-// DEBUG NOTE: Creates constant detailBody.
 const detailBody = document.getElementById("detailBody");
-// DEBUG NOTE: Creates constant closeModal.
 const closeModal = document.getElementById("closeModal");
 
-// DEBUG NOTE: Creates constant formModal.
 const formModal = document.getElementById("formModal");
-// DEBUG NOTE: Creates constant closeFormModal.
 const closeFormModal = document.getElementById("closeFormModal");
-// DEBUG NOTE: Creates constant maintenanceForm.
 const maintenanceForm = document.getElementById("maintenanceForm");
-// DEBUG NOTE: Creates constant cancelLogButton.
 const cancelLogButton = document.getElementById("cancelLogButton");
-// DEBUG NOTE: Creates constant saveLogButton.
 const saveLogButton = document.getElementById("saveLogButton");
-// DEBUG NOTE: Creates constant formMessage.
 const formMessage = document.getElementById("formMessage");
 
-// DEBUG NOTE: Creates constant formEquipment.
 const formEquipment = document.getElementById("formEquipment");
-// DEBUG NOTE: Creates constant formDate.
 const formDate = document.getElementById("formDate");
-// DEBUG NOTE: Creates constant formPerformedBy.
 const formPerformedBy = document.getElementById("formPerformedBy");
-// DEBUG NOTE: Creates constant formDescription.
 const formDescription = document.getElementById("formDescription");
-// DEBUG NOTE: Creates constant formComplete.
 const formComplete = document.getElementById("formComplete");
-// DEBUG NOTE: Creates constant formWI.
 const formWI = document.getElementById("formWI");
-// DEBUG NOTE: Creates constant formSpareQty.
 const formSpareQty = document.getElementById("formSpareQty");
-// DEBUG NOTE: Creates constant formSpareId.
 const formSpareId = document.getElementById("formSpareId");
-// DEBUG NOTE: Creates constant formSpareDescription.
 const formSpareDescription =
-  // DEBUG NOTE: Gets a reference to an HTML element by its id.
   document.getElementById("formSpareDescription");
-// DEBUG NOTE: Creates constant formNextStep.
 const formNextStep = document.getElementById("formNextStep");
-// DEBUG NOTE: Creates constant formLink.
 const formLink = document.getElementById("formLink");
 
-// DEBUG NOTE: Creates constant pmFormModal.
 const pmFormModal = document.getElementById("pmFormModal");
-// DEBUG NOTE: Creates constant closePMFormModal.
 const closePMFormModal = document.getElementById("closePMFormModal");
-// DEBUG NOTE: Creates constant pmForm.
 const pmForm = document.getElementById("pmForm");
-// DEBUG NOTE: Creates constant cancelPMButton.
 const cancelPMButton = document.getElementById("cancelPMButton");
-// DEBUG NOTE: Creates constant savePMButton.
 const savePMButton = document.getElementById("savePMButton");
-// DEBUG NOTE: Creates constant pmFormMessage.
 const pmFormMessage = document.getElementById("pmFormMessage");
-// DEBUG NOTE: Creates constant pmFormJin.
 const pmFormJin = document.getElementById("pmFormJin");
-// DEBUG NOTE: Creates constant pmFormTask.
 const pmFormTask = document.getElementById("pmFormTask");
-// DEBUG NOTE: Creates constant pmFormStartDate.
 const pmFormStartDate = document.getElementById("pmFormStartDate");
-// DEBUG NOTE: Creates constant pmFormFrequency.
 const pmFormFrequency = document.getElementById("pmFormFrequency");
-// DEBUG NOTE: Creates constant pmCustomMonthsField.
 const pmCustomMonthsField = document.getElementById("pmCustomMonthsField");
-// DEBUG NOTE: Creates constant pmFormFrequencyMonths.
 const pmFormFrequencyMonths = document.getElementById("pmFormFrequencyMonths");
-// DEBUG NOTE: Creates constant pmFormSpareJins.
 const pmFormSpareJins = document.getElementById("pmFormSpareJins");
-// DEBUG NOTE: Creates constant pmSpareSuggestions.
 const pmSpareSuggestions = document.getElementById("pmSpareSuggestions");
-// DEBUG NOTE: Creates constant pmFormWI.
 const pmFormWI = document.getElementById("pmFormWI");
-// DEBUG NOTE: Creates constant pmFormNotes.
 const pmFormNotes = document.getElementById("pmFormNotes");
 
-// DEBUG NOTE: Creates constant completePMModal.
 const completePMModal = document.getElementById("completePMModal");
-// DEBUG NOTE: Creates constant closeCompletePMModal.
 const closeCompletePMModal = document.getElementById("closeCompletePMModal");
-// DEBUG NOTE: Creates constant completePMForm.
 const completePMForm = document.getElementById("completePMForm");
-// DEBUG NOTE: Creates constant completePMTitle.
 const completePMTitle = document.getElementById("completePMTitle");
-// DEBUG NOTE: Creates constant completePMId.
 const completePMId = document.getElementById("completePMId");
-// DEBUG NOTE: Creates constant completePMDate.
 const completePMDate = document.getElementById("completePMDate");
-// DEBUG NOTE: Creates constant completePMBy.
 const completePMBy = document.getElementById("completePMBy");
-// DEBUG NOTE: Creates constant completePMNotes.
 const completePMNotes = document.getElementById("completePMNotes");
-// DEBUG NOTE: Creates constant completePMMessage.
 const completePMMessage = document.getElementById("completePMMessage");
-// DEBUG NOTE: Creates constant completePMButton.
 const completePMButton = document.getElementById("completePMButton");
-// DEBUG NOTE: Creates constant cancelCompletePMButton.
 const cancelCompletePMButton = document.getElementById("cancelCompletePMButton");
 
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
+
+// ---------------------------------------------------------------------------
+// loadData
+// Loads all app data from the Apps Script API and then renders each view.
+// ---------------------------------------------------------------------------
 async function loadData() {
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   try {
 
-    // DEBUG NOTE: Creates constant response.
     const response = await fetch(API_URL);
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!response.ok) {
-      // DEBUG NOTE: Stops this operation and reports an error.
       throw new Error("Could not load app data.");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Creates constant data.
     const data = await response.json();
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!data.success) {
-      // DEBUG NOTE: Stops this operation and reports an error.
       throw new Error(data.error || "The equipment API returned an error.");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     allEquipment = data.equipment || [];
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     allMaintenance = data.maintenance || [];
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     allDocuments = data.documents || [];
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     allPM = data.pm || [];
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     allSpareParts = data.spareParts || [];
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     loading.style.display = "none";
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     buildFilters();
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     buildMaintenanceEquipmentLists();
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     buildPMLists();
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderEquipment();
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderMaintenance();
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderDocuments();
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderPM();
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   } catch (err) {
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     loading.style.display = "none";
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     errorBox.innerHTML =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `<div class="error">${escapeHtml(err.message)}</div>`;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the switchView function.
+
+// ---------------------------------------------------------------------------
+// switchView
+// Switches between Equipment, Maintenance, Documents, and PM screens.
+// ---------------------------------------------------------------------------
 function switchView(viewName) {
 
-  // DEBUG NOTE: Creates constant equipmentActive.
   const equipmentActive = viewName === "equipment";
-  // DEBUG NOTE: Creates constant maintenanceActive.
   const maintenanceActive = viewName === "maintenance";
-  // DEBUG NOTE: Creates constant documentsActive.
   const documentsActive = viewName === "documents";
-  // DEBUG NOTE: Creates constant pmActive.
   const pmActive = viewName === "pm";
 
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   equipmentTab.classList.toggle("active", equipmentActive);
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   maintenanceTab.classList.toggle("active", maintenanceActive);
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   documentsTab.classList.toggle("active", documentsActive);
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   pmTab.classList.toggle("active", pmActive);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   equipmentHeader.style.display =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     equipmentActive ? "block" : "none";
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   maintenanceHeader.style.display =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     maintenanceActive ? "block" : "none";
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   documentsHeader.style.display =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     documentsActive ? "block" : "none";
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmHeader.style.display =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     pmActive ? "block" : "none";
 
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   equipmentView.classList.toggle("active", equipmentActive);
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   maintenanceView.classList.toggle("active", maintenanceActive);
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   documentsView.classList.toggle("active", documentsActive);
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   pmView.classList.toggle("active", pmActive);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
-// DEBUG NOTE: Defines the buildFilters function.
+
+// ---------------------------------------------------------------------------
+// buildFilters
+// Builds equipment filter dropdown values.
+// ---------------------------------------------------------------------------
 function buildFilters() {
 
-  // DEBUG NOTE: Creates constant floors.
   const floors = uniqueValues(allEquipment, "floor");
-  // DEBUG NOTE: Creates constant areas.
   const areas = uniqueValues(allEquipment, "area");
-  // DEBUG NOTE: Creates constant critical.
   const critical = uniqueValues(allEquipment, "critical");
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   fillSelect(floorFilter, floors);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   fillSelect(areaFilter, areas);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   fillSelect(criticalFilter, critical);
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the buildMaintenanceEquipmentLists function.
+
+// ---------------------------------------------------------------------------
+// buildMaintenanceEquipmentLists
+// Populates equipment choices used by maintenance forms and filters.
+// ---------------------------------------------------------------------------
 function buildMaintenanceEquipmentLists() {
 
-  // DEBUG NOTE: Creates constant items.
   const items = [...allEquipment]
-    // DEBUG NOTE: Filters the current array based on the supplied condition.
     .filter(item => item.id)
-    // DEBUG NOTE: Sorts the current array.
     .sort((a,b) =>
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       compareText(a.id, b.id)
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     );
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   items.forEach(item => {
 
-    // DEBUG NOTE: Creates constant label.
     const label =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       item.equipment
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         ? `${item.equipment} — ${item.id}`
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         : item.id;
 
-    // DEBUG NOTE: Creates constant filterOption.
     const filterOption =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       document.createElement("option");
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     filterOption.value = item.id;
-    // DEBUG NOTE: Updates visible text for this interface element.
     filterOption.textContent = label;
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     maintenanceEquipmentFilter.appendChild(filterOption);
 
 
-    // DEBUG NOTE: Creates constant formOption.
     const formOption =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       document.createElement("option");
 
-    // DEBUG NOTE: Loops through the referenced data.
     formOption.value = item.id;
-    // DEBUG NOTE: Loops through the referenced data.
     formOption.textContent = label;
 
-    // DEBUG NOTE: Loops through the referenced data.
     formEquipment.appendChild(formOption);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the buildPMLists function.
+
+// ---------------------------------------------------------------------------
+// buildPMLists
+// Front-end helper function: buildPMLists.
+// ---------------------------------------------------------------------------
 function buildPMLists() {
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   pmEquipmentFilter.innerHTML = '<option value="">All Equipment</option>';
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   pmFormJin.innerHTML = '<option value="">Select equipment...</option>';
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   pmFormWI.innerHTML = '<option value="">None</option>';
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   [...allEquipment]
-    // DEBUG NOTE: Transforms array items into another value.
     .map(item => ({
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       item,
       // Use the JIN field returned by Apps Script. V4 now reads it from the actual column labeled JIN,
       // so values such as 0.1.3 are preserved even if columns move in the sheet.
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       pmJin: item.jin || item.id || item.itemNumber
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }))
-    // DEBUG NOTE: Filters the current array based on the supplied condition.
     .filter(entry => entry.pmJin)
-    // DEBUG NOTE: Sorts the current array.
     .sort((a,b) => compareText(a.pmJin, b.pmJin))
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .forEach(entry => {
-      // DEBUG NOTE: Creates constant item.
       const item = entry.item;
-      // DEBUG NOTE: Creates constant pmJin.
       const pmJin = entry.pmJin;
-      // DEBUG NOTE: Creates constant label.
       const label = `${item.equipment || "Equipment"} — JIN ${pmJin}`;
 
-      // DEBUG NOTE: Creates constant filterOption.
       const filterOption = document.createElement("option");
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       filterOption.value = pmJin;
-      // DEBUG NOTE: Updates visible text for this interface element.
       filterOption.textContent = label;
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       pmEquipmentFilter.appendChild(filterOption);
 
-      // DEBUG NOTE: Creates constant formOption.
       const formOption = document.createElement("option");
-      // DEBUG NOTE: Loops through the referenced data.
       formOption.value = pmJin;
-      // DEBUG NOTE: Loops through the referenced data.
       formOption.textContent = label;
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       pmFormJin.appendChild(formOption);
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     });
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   allDocuments
-    // DEBUG NOTE: Filters the current array based on the supplied condition.
     .filter(doc => doc.shortType === "WI")
-    // DEBUG NOTE: Sorts the current array.
     .sort((a,b) => compareText(a.id, b.id))
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .forEach(doc => {
-      // DEBUG NOTE: Creates constant option.
       const option = document.createElement("option");
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       option.value = doc.id;
-      // DEBUG NOTE: Updates visible text for this interface element.
       option.textContent = [doc.id, doc.title].filter(Boolean).join(" — ");
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       pmFormWI.appendChild(option);
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     });
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the uniqueValues function.
+
+// ---------------------------------------------------------------------------
+// uniqueValues
+// Returns sorted unique values for a selected object field.
+// ---------------------------------------------------------------------------
 function uniqueValues(data, field) {
 
-  // DEBUG NOTE: Returns this value to the caller.
   return [...new Set(
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     data
-      // DEBUG NOTE: Transforms array items into another value.
       .map(item => item[field])
-      // DEBUG NOTE: Filters the current array based on the supplied condition.
       .filter(Boolean)
-  // DEBUG NOTE: Sorts the current array.
   )].sort();
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the fillSelect function.
+
+// ---------------------------------------------------------------------------
+// fillSelect
+// Adds option elements to a dropdown.
+// ---------------------------------------------------------------------------
 function fillSelect(select, values) {
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   values.forEach(value => {
 
-    // DEBUG NOTE: Creates constant option.
     const option = document.createElement("option");
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     option.value = value;
-    // DEBUG NOTE: Updates visible text for this interface element.
     option.textContent = value;
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     select.appendChild(option);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the renderEquipment function.
+
+// ---------------------------------------------------------------------------
+// renderEquipment
+// Filters, sorts, and renders the equipment-card list.
+// ---------------------------------------------------------------------------
 function renderEquipment() {
 
-  // DEBUG NOTE: Creates constant searchText.
   const searchText = search.value.trim().toLowerCase();
-  // DEBUG NOTE: Creates constant floor.
   const floor = floorFilter.value;
-  // DEBUG NOTE: Creates constant area.
   const area = areaFilter.value;
-  // DEBUG NOTE: Creates constant critical.
   const critical = criticalFilter.value;
 
-  // DEBUG NOTE: Creates mutable variable filtered.
   let filtered = allEquipment.filter(item => {
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (floor && item.floor !== floor) return false;
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (area && item.area !== area) return false;
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (critical && item.critical !== critical) return false;
 
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (searchText) {
 
-      // DEBUG NOTE: Creates constant text.
       const text = [
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.equipment,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.id,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.floor,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.area,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.make,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.model,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.serialNumber,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.details,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         item.powers
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       ]
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .join(" ")
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .toLowerCase();
 
-      // DEBUG NOTE: Checks this condition before running the nested logic.
       if (!text.includes(searchText)) {
-        // DEBUG NOTE: Returns this value to the caller.
         return false;
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       }
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Returns this value to the caller.
     return true;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
 
-  // DEBUG NOTE: Sorts the current array.
   filtered.sort((a,b) => {
 
-    // DEBUG NOTE: Returns this value to the caller.
     return (
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       compareText(a.floor, b.floor) ||
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       compareText(a.area, b.area) ||
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       compareItem(a.itemNumber, b.itemNumber)
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     );
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
 
-  // DEBUG NOTE: Updates visible text for this interface element.
   equipmentSummary.textContent =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     `${filtered.length} of ${allEquipment.length} items`;
 
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   cards.innerHTML = "";
 
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!filtered.length) {
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     cards.innerHTML =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `<div class="empty">No equipment matches those filters.</div>`;
 
-    // DEBUG NOTE: Returns this value to the caller.
     return;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   filtered.forEach(item => {
 
-    // DEBUG NOTE: Creates constant card.
     const card = document.createElement("div");
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     card.className = "card";
 
-    // DEBUG NOTE: Creates constant manufacturer.
     const manufacturer =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       [item.make, item.model]
-      // DEBUG NOTE: Filters the current array based on the supplied condition.
       .filter(Boolean)
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .join(" • ");
 
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     card.innerHTML = `
 
       <div class="card-title">
@@ -1786,173 +1369,114 @@ function renderEquipment() {
     `;
 
 
-    // DEBUG NOTE: Registers a browser event handler.
     card.addEventListener("click", () => openEquipmentDetail(item));
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     cards.appendChild(card);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the renderMaintenance function.
+
+// ---------------------------------------------------------------------------
+// renderMaintenance
+// Filters, sorts, and renders maintenance-log cards.
+// ---------------------------------------------------------------------------
 function renderMaintenance() {
 
-  // DEBUG NOTE: Creates constant searchText.
   const searchText =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     maintenanceSearch.value.trim().toLowerCase();
 
-  // DEBUG NOTE: Creates constant equipment.
   const equipment =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     maintenanceEquipmentFilter.value;
 
-  // DEBUG NOTE: Creates constant complete.
   const complete =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     maintenanceCompleteFilter.value;
 
 
-  // DEBUG NOTE: Creates mutable variable filtered.
   let filtered = allMaintenance.filter(log => {
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (equipment && log.equipment !== equipment) {
-      // DEBUG NOTE: Returns this value to the caller.
       return false;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (complete && normalizeYesNo(log.complete) !== complete) {
-      // DEBUG NOTE: Returns this value to the caller.
       return false;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (searchText) {
 
-      // DEBUG NOTE: Creates constant text.
       const text = [
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.id,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.equipment,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.date,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.performedBy,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.description,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.wi,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.complete,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.spareQty,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.spareId,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.spareDescription,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         log.nextStep
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       ]
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .join(" ")
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .toLowerCase();
 
-      // DEBUG NOTE: Checks this condition before running the nested logic.
       if (!text.includes(searchText)) {
-        // DEBUG NOTE: Returns this value to the caller.
         return false;
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       }
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Returns this value to the caller.
     return true;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
 
-  // DEBUG NOTE: Sorts the current array.
   filtered.sort((a,b) => {
 
-    // DEBUG NOTE: Creates constant dateA.
     const dateA = parseSortableDate(a);
-    // DEBUG NOTE: Creates constant dateB.
     const dateB = parseSortableDate(b);
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (dateA !== dateB) {
-      // DEBUG NOTE: Returns this value to the caller.
       return dateB - dateA;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Returns this value to the caller.
     return compareText(b.id, a.id);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
 
-  // DEBUG NOTE: Updates visible text for this interface element.
   maintenanceSummary.textContent =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     `${filtered.length} of ${allMaintenance.length} maintenance logs`;
 
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   maintenanceCards.innerHTML = "";
 
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!filtered.length) {
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     maintenanceCards.innerHTML =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `<div class="empty">No maintenance logs match those filters.</div>`;
 
-    // DEBUG NOTE: Returns this value to the caller.
     return;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   filtered.forEach(log => {
 
-    // DEBUG NOTE: Creates constant equipmentItem.
     const equipmentItem =
-      // DEBUG NOTE: Finds the first matching item.
       allEquipment.find(item => item.id === log.equipment);
 
-    // DEBUG NOTE: Creates constant equipmentLabel.
     const equipmentLabel =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       equipmentItem?.equipment || log.equipment || "Maintenance Log";
 
-    // DEBUG NOTE: Creates constant card.
     const card = document.createElement("div");
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     card.className = "card maintenance-card";
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     card.innerHTML = `
 
       <div class="card-title">
@@ -1989,158 +1513,103 @@ function renderMaintenance() {
 
     `;
 
-    // DEBUG NOTE: Registers a browser event handler.
     card.addEventListener("click", () => openMaintenanceDetail(log));
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     maintenanceCards.appendChild(card);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the renderDocuments function.
+
+// ---------------------------------------------------------------------------
+// renderDocuments
+// Filters, sorts, and renders document cards.
+// ---------------------------------------------------------------------------
 function renderDocuments() {
 
-  // DEBUG NOTE: Creates constant searchText.
   const searchText =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     documentsSearch.value.trim().toLowerCase();
 
-  // DEBUG NOTE: Creates constant type.
   const type =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     documentsTypeFilter.value;
 
-  // DEBUG NOTE: Creates constant releaseFilter.
   const releaseFilter =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     documentsReleaseFilter.value;
 
-  // DEBUG NOTE: Creates mutable variable filtered.
   let filtered = allDocuments.filter(doc => {
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (type && doc.type !== type) {
-      // DEBUG NOTE: Returns this value to the caller.
       return false;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (releaseFilter === "released" && !doc.releaseDate) {
-      // DEBUG NOTE: Returns this value to the caller.
       return false;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (releaseFilter === "draft" && doc.releaseDate) {
-      // DEBUG NOTE: Returns this value to the caller.
       return false;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (searchText) {
 
-      // DEBUG NOTE: Creates constant text.
       const text = [
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         doc.id,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         doc.title,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         doc.type,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         doc.shortType,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         doc.revision,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         doc.releaseDate
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       ]
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .join(" ")
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .toLowerCase();
 
-      // DEBUG NOTE: Checks this condition before running the nested logic.
       if (!text.includes(searchText)) {
-        // DEBUG NOTE: Returns this value to the caller.
         return false;
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       }
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Returns this value to the caller.
     return true;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
 
-  // DEBUG NOTE: Creates constant typeOrder.
   const typeOrder = {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     "Work Instruction": 1,
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     "Quick Guide": 2,
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     "One Point Lesson": 3
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   };
 
-  // DEBUG NOTE: Sorts the current array.
   filtered.sort((a,b) =>
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99) ||
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     compareText(a.id, b.id) ||
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     compareText(a.title, b.title)
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   );
 
 
-  // DEBUG NOTE: Updates visible text for this interface element.
   documentsSummary.textContent =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     `${filtered.length} of ${allDocuments.length} documents`;
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   documentsCards.innerHTML = "";
 
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!filtered.length) {
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     documentsCards.innerHTML =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `<div class="empty">No documents match those filters.</div>`;
 
-    // DEBUG NOTE: Returns this value to the caller.
     return;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   filtered.forEach(doc => {
 
-    // DEBUG NOTE: Creates constant card.
     const card = document.createElement("div");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     card.className = "card";
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     card.innerHTML = `
 
       <div class="card-title">
@@ -2176,119 +1645,75 @@ function renderDocuments() {
 
     `;
 
-    // DEBUG NOTE: Registers a browser event handler.
     card.addEventListener(
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       "click",
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       () => openDocumentDetail(doc)
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     );
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     documentsCards.appendChild(card);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the renderPM function.
+
+// ---------------------------------------------------------------------------
+// renderPM
+// Filters, sorts, and renders preventive-maintenance cards.
+// ---------------------------------------------------------------------------
 function renderPM() {
 
-  // DEBUG NOTE: Creates constant searchText.
   const searchText = pmSearch.value.trim().toLowerCase();
-  // DEBUG NOTE: Creates constant equipmentJin.
   const equipmentJin = pmEquipmentFilter.value;
-  // DEBUG NOTE: Creates constant statusFilter.
   const statusFilter = pmStatusFilter.value;
-  // DEBUG NOTE: Creates constant now.
   const now = startOfLocalDay(new Date()).getTime();
 
-  // DEBUG NOTE: Creates mutable variable filtered.
   let filtered = allPM.filter(pm => {
-    // DEBUG NOTE: Creates constant open.
     const open = isPMOpen(pm);
-    // DEBUG NOTE: Creates constant dueTime.
     const dueTime = pmDueTime(pm);
-    // DEBUG NOTE: Creates constant overdue.
     const overdue = open && dueTime > 0 && dueTime < now;
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (statusFilter === "open" && !open) return false;
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (statusFilter === "overdue" && !overdue) return false;
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (equipmentJin && pm.jin !== equipmentJin) return false;
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (searchText) {
-      // DEBUG NOTE: Creates constant eq.
       const eq = equipmentForJin(pm.jin);
-      // DEBUG NOTE: Creates constant parts.
       const parts = sparePartsForPM(pm);
-      // DEBUG NOTE: Creates constant text.
       const text = [
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         pm.id, pm.task, pm.jin, pm.status, pm.frequency,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         pm.relatedWI, pm.notes, eq?.equipment, eq?.floor, eq?.area,
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         ...parts.flatMap(p => [p.spareJin, p.item, p.manufacturer, p.partNumber])
-      // DEBUG NOTE: Filters the current array based on the supplied condition.
       ].filter(Boolean).join(" ").toLowerCase();
 
-      // DEBUG NOTE: Checks this condition before running the nested logic.
       if (!text.includes(searchText)) return false;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Returns this value to the caller.
     return true;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
-  // DEBUG NOTE: Sorts the current array.
   filtered.sort((a,b) => {
-    // DEBUG NOTE: Creates constant da.
     const da = pmDueTime(a) || Number.MAX_SAFE_INTEGER;
-    // DEBUG NOTE: Creates constant db.
     const db = pmDueTime(b) || Number.MAX_SAFE_INTEGER;
-    // DEBUG NOTE: Returns this value to the caller.
     return da - db || compareText(a.id, b.id);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
 
-  // DEBUG NOTE: Creates constant openCount.
   const openCount = allPM.filter(isPMOpen).length;
-  // DEBUG NOTE: Creates constant overdueCount.
   const overdueCount = allPM.filter(pm => isPMOpen(pm) && pmDueTime(pm) > 0 && pmDueTime(pm) < now).length;
-  // DEBUG NOTE: Updates visible text for this interface element.
   pmSummary.textContent = `${filtered.length} shown • ${openCount} open • ${overdueCount} overdue`;
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   pmCards.innerHTML = "";
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!filtered.length) {
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     pmCards.innerHTML = '<div class="empty">No PM tasks match those filters.</div>';
-    // DEBUG NOTE: Returns this value to the caller.
     return;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   filtered.forEach(pm => {
-    // DEBUG NOTE: Creates constant eq.
     const eq = equipmentForJin(pm.jin);
-    // DEBUG NOTE: Creates constant card.
     const card = document.createElement("div");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     card.className = "card";
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     card.innerHTML = `
       <div class="card-title">${escapeHtml(`${pm.id}: ${pm.task}`)}</div>
       <div class="card-location">
@@ -2305,72 +1730,47 @@ function renderPM() {
       </div>
     `;
 
-    // DEBUG NOTE: Registers a browser event handler.
     card.addEventListener("click", () => openPMDetail(pm));
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     pmCards.appendChild(card);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openPMDetail function.
+
+// ---------------------------------------------------------------------------
+// openPMDetail
+// Front-end helper function: openPMDetail.
+// ---------------------------------------------------------------------------
 function openPMDetail(pm) {
 
-  // DEBUG NOTE: Creates constant eq.
   const eq = equipmentForJin(pm.jin);
-  // DEBUG NOTE: Creates constant parts.
   const parts = sparePartsForPM(pm);
-  // DEBUG NOTE: Creates constant wi.
   const wi = relatedDocument(pm.relatedWI);
 
-  // DEBUG NOTE: Updates visible text for this interface element.
   modalTitle.textContent = `${pm.id}: ${pm.task}`;
 
-  // DEBUG NOTE: Creates constant partsHtml.
   const partsHtml = parts.length
-    // DEBUG NOTE: Transforms array items into another value.
     ? `<div class="section"><h3>Required Spare Parts</h3><div class="parts-list">${parts.map(part => `
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         <div class="part-box">
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           <strong>${escapeHtml(part.item || part.description || part.spareJin)}</strong>
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           <div class="small-note">${escapeHtml([
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             part.spareJin ? `Spare JIN ${part.spareJin}` : "",
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             part.manufacturer,
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             part.partNumber ? `PN ${part.partNumber}` : "",
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             part.storageLocation ? `Stored: ${part.storageLocation}` : "",
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             part.onHand ? `On hand: ${part.onHand}` : ""
-          // DEBUG NOTE: Filters the current array based on the supplied condition.
           ].filter(Boolean).join(" • "))}</div>
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           ${part.link ? `<div class="buttons"><a class="btn secondary" href="${escapeHtml(part.link)}" target="_blank" rel="noopener noreferrer">🔗 View / Buy Part</a></div>` : ""}
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         </div>
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `).join("")}</div></div>`
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     : (pm.spareJins
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       ? `<div class="section"><h3>Required Spare Parts</h3><div class="small-note">Spare JIN(s): ${escapeHtml(pm.spareJins)} — no matching rows were found in Spare Parts.</div></div>`
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       : "");
 
-  // DEBUG NOTE: Creates constant wiButton.
   const wiButton = wi?.link
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     ? `<a class="btn" href="${escapeHtml(wi.link)}" target="_blank" rel="noopener noreferrer">📄 Open ${escapeHtml(wi.id || "Work Instruction")}</a>`
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     : "";
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   detailBody.innerHTML = `
     ${section("PM Task", [
       ["PM ID", pm.id],
@@ -2403,409 +1803,313 @@ function openPMDetail(pm) {
     </div>
   `;
 
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   modal.classList.add("show");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   document.body.style.overflow = "hidden";
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openNewPM function.
+
+// ---------------------------------------------------------------------------
+// openNewPM
+// Opens and initializes the new PM form.
+// ---------------------------------------------------------------------------
 function openNewPM() {
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmForm.reset();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmFormStartDate.value = todayLocal();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmFormFrequency.value = "3 Months";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmFormFrequencyMonths.value = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmCustomMonthsField.style.display = "none";
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   pmFormMessage.innerHTML = "";
-  // DEBUG NOTE: Updates visible text for this interface element.
   pmSpareSuggestions.textContent = "Select equipment to see matching spare parts.";
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   pmFormModal.classList.add("show");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   document.body.style.overflow = "hidden";
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the closeNewPM function.
+
+// ---------------------------------------------------------------------------
+// closeNewPM
+// Front-end helper function: closeNewPM.
+// ---------------------------------------------------------------------------
 function closeNewPM() {
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   pmFormModal.classList.remove("show");
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!modal.classList.contains("show") && !completePMModal.classList.contains("show")) {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     document.body.style.overflow = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the updatePMSpareSuggestions function.
+
+// ---------------------------------------------------------------------------
+// updatePMSpareSuggestions
+// Front-end helper function: updatePMSpareSuggestions.
+// ---------------------------------------------------------------------------
 function updatePMSpareSuggestions() {
-  // DEBUG NOTE: Creates constant jin.
   const jin = pmFormJin.value;
-  // DEBUG NOTE: Creates constant matches.
   const matches = allSpareParts.filter(p => p.jin === jin || (p.spareJin || "").startsWith(jin + "-"));
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!jin) {
-    // DEBUG NOTE: Updates visible text for this interface element.
     pmSpareSuggestions.textContent = "Select equipment to see matching spare parts.";
-    // DEBUG NOTE: Returns this value to the caller.
     return;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!matches.length) {
-    // DEBUG NOTE: Updates visible text for this interface element.
     pmSpareSuggestions.textContent = "No spare parts are currently linked to this JIN.";
-    // DEBUG NOTE: Returns this value to the caller.
     return;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   pmSpareSuggestions.innerHTML = "Available: " + matches.map(p =>
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     `<button type="button" class="btn secondary" style="padding:5px 8px;margin:3px 3px 0 0;" onclick="addSpareJinToPM(${jsString(p.spareJin)})">${escapeHtml(p.spareJin)} — ${escapeHtml(p.item || p.partNumber || "Part")}</button>`
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   ).join("");
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the addSpareJinToPM function.
+
+// ---------------------------------------------------------------------------
+// addSpareJinToPM
+// Front-end helper function: addSpareJinToPM.
+// ---------------------------------------------------------------------------
 function addSpareJinToPM(spareJin) {
-  // DEBUG NOTE: Creates constant current.
   const current = pmFormSpareJins.value.split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!current.includes(spareJin)) current.push(spareJin);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmFormSpareJins.value = current.join(", ");
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
+
+// ---------------------------------------------------------------------------
+// submitPMForm
+// Sends a new PM record to Apps Script.
+// ---------------------------------------------------------------------------
 async function submitPMForm(event) {
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   event.preventDefault();
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   pmFormMessage.innerHTML = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   savePMButton.disabled = true;
-  // DEBUG NOTE: Updates visible text for this interface element.
   savePMButton.textContent = "Saving...";
 
-  // DEBUG NOTE: Creates constant frequency.
   const frequency = pmFormFrequency.value;
-  // DEBUG NOTE: Creates constant monthMap.
   const monthMap = { "Monthly": "1", "3 Months": "3", "6 Months": "6", "Annual": "12" };
-  // DEBUG NOTE: Creates constant months.
   const months = frequency === "Custom Months" ? pmFormFrequencyMonths.value.trim() : (monthMap[frequency] || "");
 
-  // DEBUG NOTE: Creates constant params.
   const params = new URLSearchParams();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("action", "addPM");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("jin", pmFormJin.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("task", pmFormTask.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("startDate", pmFormStartDate.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("frequency", frequency === "Custom Months" ? `${months} Months` : frequency);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("frequencyMonths", months);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("spareJins", pmFormSpareJins.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("relatedWI", pmFormWI.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("notes", pmFormNotes.value.trim());
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   try {
-    // DEBUG NOTE: Creates constant response.
     const response = await fetch(API_URL, { method: "POST", body: params });
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!response.ok) throw new Error("Could not save PM task.");
-    // DEBUG NOTE: Creates constant data.
     const data = await response.json();
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!data.success) throw new Error(data.error || "Could not save PM task.");
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     allPM.push(data.pm);
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderPM();
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     pmFormMessage.innerHTML = `<div class="success">Saved ${escapeHtml(data.pm.id)}.</div>`;
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     setTimeout(() => {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       closeNewPM();
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       switchView("pm");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }, 650);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   } catch (err) {
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     pmFormMessage.innerHTML = `<div class="error" style="margin:12px 0 0;">${escapeHtml(err.message)}</div>`;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   } finally {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     savePMButton.disabled = false;
-    // DEBUG NOTE: Updates visible text for this interface element.
     savePMButton.textContent = "Save PM";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openCompletePM function.
+
+// ---------------------------------------------------------------------------
+// openCompletePM
+// Opens and initializes the PM-completion form.
+// ---------------------------------------------------------------------------
 function openCompletePM(pmId) {
-  // DEBUG NOTE: Creates constant pm.
   const pm = allPM.find(x => x.id === pmId);
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!pm) return;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   closeDetail();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   completePMForm.reset();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   completePMId.value = pm.id;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   completePMDate.value = todayLocal();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   completePMBy.value = localStorage.getItem("maintenancePerformedBy") || "";
-  // DEBUG NOTE: Updates visible text for this interface element.
   completePMTitle.textContent = `Complete ${pm.id}: ${pm.task}`;
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   completePMMessage.innerHTML = "";
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   completePMModal.classList.add("show");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   document.body.style.overflow = "hidden";
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the closeCompletePM function.
+
+// ---------------------------------------------------------------------------
+// closeCompletePM
+// Front-end helper function: closeCompletePM.
+// ---------------------------------------------------------------------------
 function closeCompletePM() {
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   completePMModal.classList.remove("show");
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!modal.classList.contains("show") && !pmFormModal.classList.contains("show")) {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     document.body.style.overflow = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
+
+// ---------------------------------------------------------------------------
+// submitCompletePM
+// Front-end helper function: submitCompletePM.
+// ---------------------------------------------------------------------------
 async function submitCompletePM(event) {
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   event.preventDefault();
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   completePMMessage.innerHTML = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   completePMButton.disabled = true;
-  // DEBUG NOTE: Updates visible text for this interface element.
   completePMButton.textContent = "Completing...";
 
-  // DEBUG NOTE: Creates constant params.
   const params = new URLSearchParams();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("action", "completePM");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("pmId", completePMId.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("date", completePMDate.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("performedBy", completePMBy.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("notes", completePMNotes.value.trim());
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   try {
-    // DEBUG NOTE: Creates constant response.
     const response = await fetch(API_URL, { method: "POST", body: params });
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!response.ok) throw new Error("Could not complete PM task.");
-    // DEBUG NOTE: Creates constant data.
     const data = await response.json();
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!data.success) throw new Error(data.error || "Could not complete PM task.");
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (completePMBy.value.trim()) {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       localStorage.setItem("maintenancePerformedBy", completePMBy.value.trim());
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Creates constant pmIndex.
     const pmIndex = allPM.findIndex(x => x.id === data.pm.id);
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (pmIndex >= 0) allPM[pmIndex] = data.pm;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     else allPM.push(data.pm);
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (data.log) allMaintenance.push(data.log);
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderPM();
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderMaintenance();
 
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     completePMMessage.innerHTML = `<div class="success">Completed ${escapeHtml(data.pm.id)} and created maintenance log ${escapeHtml(data.log?.id || "")}.</div>`;
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     setTimeout(() => {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       closeCompletePM();
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       switchView("pm");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }, 900);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   } catch (err) {
-    // DEBUG NOTE: Updates rendered HTML for this part of the interface.
     completePMMessage.innerHTML = `<div class="error" style="margin:12px 0 0;">${escapeHtml(err.message)}</div>`;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   } finally {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     completePMButton.disabled = false;
-    // DEBUG NOTE: Updates visible text for this interface element.
     completePMButton.textContent = "✓ Complete Task";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the equipmentForJin function.
+
+// ---------------------------------------------------------------------------
+// equipmentForJin
+// Front-end helper function: equipmentForJin.
+// ---------------------------------------------------------------------------
 function equipmentForJin(jin) {
-  // DEBUG NOTE: Returns this value to the caller.
   return allEquipment.find(item => item.jin === jin || item.id === jin) || null;
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the sparePartsForPM function.
+
+// ---------------------------------------------------------------------------
+// sparePartsForPM
+// Front-end helper function: sparePartsForPM.
+// ---------------------------------------------------------------------------
 function sparePartsForPM(pm) {
-  // DEBUG NOTE: Creates constant ids.
   const ids = String(pm.spareJins || "").split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
-  // DEBUG NOTE: Returns this value to the caller.
   return ids.map(id => allSpareParts.find(part => part.spareJin === id)).filter(Boolean);
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the relatedDocument function.
+
+// ---------------------------------------------------------------------------
+// relatedDocument
+// Front-end helper function: relatedDocument.
+// ---------------------------------------------------------------------------
 function relatedDocument(id) {
-  // DEBUG NOTE: Creates constant target.
   const target = String(id || "").trim();
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!target) return null;
-  // DEBUG NOTE: Returns this value to the caller.
   return allDocuments.find(doc => doc.id === target) || null;
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the isPMOpen function.
+
+// ---------------------------------------------------------------------------
+// isPMOpen
+// Front-end helper function: isPMOpen.
+// ---------------------------------------------------------------------------
 function isPMOpen(pm) {
-  // DEBUG NOTE: Creates constant status.
   const status = String(pm.status || "Open").trim().toLowerCase();
-  // DEBUG NOTE: Returns this value to the caller.
   return !["inactive", "complete", "completed", "closed", "cancelled", "canceled"].includes(status);
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the pmDueTime function.
+
+// ---------------------------------------------------------------------------
+// pmDueTime
+// Front-end helper function: pmDueTime.
+// ---------------------------------------------------------------------------
 function pmDueTime(pm) {
-  // DEBUG NOTE: Creates constant value.
   const value = pm.nextDueIso || pm.nextDue || pm.startDateIso || pm.startDate;
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!value) return 0;
-  // DEBUG NOTE: Creates constant isoTime.
   const isoTime = /^\d{4}-\d{2}-\d{2}$/.test(value)
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     ? new Date(value + "T12:00:00").getTime()
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     : new Date(value).getTime();
-  // DEBUG NOTE: Returns this value to the caller.
   return isNaN(isoTime) ? 0 : isoTime;
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the pmStatusTag function.
+
+// ---------------------------------------------------------------------------
+// pmStatusTag
+// Front-end helper function: pmStatusTag.
+// ---------------------------------------------------------------------------
 function pmStatusTag(pm) {
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!isPMOpen(pm)) return '<span class="tag pm-inactive">Inactive / Complete</span>';
 
-  // DEBUG NOTE: Creates constant due.
   const due = pmDueTime(pm);
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!due) return '<span class="tag pm-open">Open</span>';
 
-  // DEBUG NOTE: Creates constant today.
   const today = startOfLocalDay(new Date()).getTime();
-  // DEBUG NOTE: Creates constant days.
   const days = Math.ceil((due - today) / 86400000);
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (days < 0) return `<span class="tag pm-overdue">Overdue ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}</span>`;
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (days === 0) return '<span class="tag pm-due-soon">Due Today</span>';
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (days <= 30) return `<span class="tag pm-due-soon">Due in ${days} days</span>`;
-  // DEBUG NOTE: Returns this value to the caller.
   return '<span class="tag pm-open">Open</span>';
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the startOfLocalDay function.
+
+// ---------------------------------------------------------------------------
+// startOfLocalDay
+// Front-end helper function: startOfLocalDay.
+// ---------------------------------------------------------------------------
 function startOfLocalDay(date) {
-  // DEBUG NOTE: Returns this value to the caller.
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openDocumentDetail function.
+
+// ---------------------------------------------------------------------------
+// openDocumentDetail
+// Front-end helper function: openDocumentDetail.
+// ---------------------------------------------------------------------------
 function openDocumentDetail(doc) {
 
-  // DEBUG NOTE: Updates visible text for this interface element.
   modalTitle.textContent =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     doc.title || doc.id || "Document";
 
-  // DEBUG NOTE: Creates constant openButton.
   const openButton = doc.link
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     ? `
       <a
         class="btn"
@@ -2816,11 +2120,9 @@ function openDocumentDetail(doc) {
         📄 Open Document
       </a>
     `
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     : `<span class="tag">No document link has been added yet.</span>`;
 
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   detailBody.innerHTML = `
 
     ${section("Document", [
@@ -2837,73 +2139,65 @@ function openDocumentDetail(doc) {
 
   `;
 
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   modal.classList.add("show");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   document.body.style.overflow = "hidden";
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the documentTypeTag function.
+
+// ---------------------------------------------------------------------------
+// documentTypeTag
+// Front-end helper function: documentTypeTag.
+// ---------------------------------------------------------------------------
 function documentTypeTag(doc) {
 
-  // DEBUG NOTE: Creates mutable variable cls.
   let cls = "";
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (doc.shortType === "WI") cls = "doc-wi";
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (doc.shortType === "QG") cls = "doc-qg";
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (doc.shortType === "OPL") cls = "doc-opl";
 
-  // DEBUG NOTE: Returns this value to the caller.
   return `
     <span class="tag ${cls}">
       ${escapeHtml(doc.type)}
     </span>
   `;
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the showDocumentsForEquipmentName function.
+
+// ---------------------------------------------------------------------------
+// showDocumentsForEquipmentName
+// Front-end helper function: showDocumentsForEquipmentName.
+// ---------------------------------------------------------------------------
 function showDocumentsForEquipmentName(equipmentName) {
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   closeDetail();
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   documentsTypeFilter.value = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   documentsReleaseFilter.value = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   documentsSearch.value = equipmentName || "";
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   switchView("documents");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   renderDocuments();
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openEquipmentDetail function.
+
+// ---------------------------------------------------------------------------
+// openEquipmentDetail
+// Front-end helper function: openEquipmentDetail.
+// ---------------------------------------------------------------------------
 function openEquipmentDetail(item) {
 
-  // DEBUG NOTE: Updates visible text for this interface element.
   modalTitle.textContent =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     item.equipment || "Equipment";
 
 
-  // DEBUG NOTE: Creates constant folderButton.
   const folderButton = item.folder
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     ? `
       <a
         class="btn"
@@ -2914,11 +2208,9 @@ function openEquipmentDetail(item) {
         📁 Open Equipment Folder
       </a>
     `
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     : "";
 
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   detailBody.innerHTML = `
 
     ${section("Location", [
@@ -2985,36 +2277,29 @@ function openEquipmentDetail(item) {
   `;
 
 
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   modal.classList.add("show");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   document.body.style.overflow = "hidden";
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openMaintenanceDetail function.
+
+// ---------------------------------------------------------------------------
+// openMaintenanceDetail
+// Front-end helper function: openMaintenanceDetail.
+// ---------------------------------------------------------------------------
 function openMaintenanceDetail(log) {
 
-  // DEBUG NOTE: Creates constant equipmentItem.
   const equipmentItem =
-    // DEBUG NOTE: Finds the first matching item.
     allEquipment.find(item => item.id === log.equipment);
 
-  // DEBUG NOTE: Updates visible text for this interface element.
   modalTitle.textContent =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     equipmentItem?.equipment ||
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     log.equipment ||
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     "Maintenance Log";
 
 
-  // DEBUG NOTE: Creates constant linkButton.
   const linkButton = log.link
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     ? `
       <a
         class="btn"
@@ -3025,11 +2310,9 @@ function openMaintenanceDetail(log) {
         🔗 Open Link
       </a>
     `
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     : "";
 
 
-  // DEBUG NOTE: Updates rendered HTML for this part of the interface.
   detailBody.innerHTML = `
 
     ${section("Maintenance Log", [
@@ -3057,21 +2340,13 @@ function openMaintenanceDetail(log) {
 
       ${log.equipment
         ? `
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           <button
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             class="btn success-btn"
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             type="button"
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             onclick="openNewLogForEquipment(${jsString(log.equipment)})"
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           >
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             ＋ Add Another Log
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           </button>
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         `
         : ""
       }
@@ -3080,268 +2355,202 @@ function openMaintenanceDetail(log) {
   `;
 
 
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   modal.classList.add("show");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   document.body.style.overflow = "hidden";
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the showMaintenanceForEquipment function.
+
+// ---------------------------------------------------------------------------
+// showMaintenanceForEquipment
+// Front-end helper function: showMaintenanceForEquipment.
+// ---------------------------------------------------------------------------
 function showMaintenanceForEquipment(equipmentId) {
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   closeDetail();
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   maintenanceEquipmentFilter.value = equipmentId || "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   maintenanceSearch.value = "";
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   switchView("maintenance");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   renderMaintenance();
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openNewLogForEquipment function.
+
+// ---------------------------------------------------------------------------
+// openNewLogForEquipment
+// Front-end helper function: openNewLogForEquipment.
+// ---------------------------------------------------------------------------
 function openNewLogForEquipment(equipmentId) {
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   closeDetail();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   openNewLog(equipmentId);
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the openNewLog function.
+
+// ---------------------------------------------------------------------------
+// openNewLog
+// Front-end helper function: openNewLog.
+// ---------------------------------------------------------------------------
 function openNewLog(equipmentId = "") {
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   maintenanceForm.reset();
 
-  // DEBUG NOTE: Loops through the referenced data.
   formEquipment.value = equipmentId || "";
-  // DEBUG NOTE: Loops through the referenced data.
   formDate.value = todayLocal();
-  // DEBUG NOTE: Loops through the referenced data.
   formComplete.value = "Yes";
 
-  // DEBUG NOTE: Creates constant rememberedName.
   const rememberedName =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     localStorage.getItem("maintenancePerformedBy") || "";
 
-  // DEBUG NOTE: Loops through the referenced data.
   formPerformedBy.value = rememberedName;
 
-  // DEBUG NOTE: Loops through the referenced data.
   formMessage.innerHTML = "";
 
-  // DEBUG NOTE: Loops through the referenced data.
   formModal.classList.add("show");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   document.body.style.overflow = "hidden";
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
+
+// ---------------------------------------------------------------------------
+// submitMaintenanceForm
+// Sends a new maintenance-log entry to Apps Script.
+// ---------------------------------------------------------------------------
 async function submitMaintenanceForm(event) {
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   event.preventDefault();
 
-  // DEBUG NOTE: Loops through the referenced data.
   formMessage.innerHTML = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   saveLogButton.disabled = true;
-  // DEBUG NOTE: Updates visible text for this interface element.
   saveLogButton.textContent = "Saving...";
 
 
-  // DEBUG NOTE: Creates constant params.
   const params = new URLSearchParams();
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("action", "addMaintenance");
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("equipment", formEquipment.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("date", formDate.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("performedBy", formPerformedBy.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("description", formDescription.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("complete", formComplete.value);
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("wi", formWI.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("spareQty", formSpareQty.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("spareId", formSpareId.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("spareDescription", formSpareDescription.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("nextStep", formNextStep.value.trim());
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   params.set("link", formLink.value.trim());
 
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   try {
 
-    // DEBUG NOTE: Creates constant response.
     const response = await fetch(API_URL, {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       method: "POST",
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       body: params
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     });
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!response.ok) {
-      // DEBUG NOTE: Stops this operation and reports an error.
       throw new Error("Could not save maintenance log.");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Creates constant data.
     const data = await response.json();
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!data.success) {
-      // DEBUG NOTE: Stops this operation and reports an error.
       throw new Error(data.error || "Could not save maintenance log.");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (formPerformedBy.value.trim()) {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       localStorage.setItem(
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         "maintenancePerformedBy",
-        // DEBUG NOTE: Loops through the referenced data.
         formPerformedBy.value.trim()
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       );
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     allMaintenance.push(data.log);
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     renderMaintenance();
 
-    // DEBUG NOTE: Loops through the referenced data.
     formMessage.innerHTML =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `<div class="success">Saved ${escapeHtml(data.log.id)}.</div>`;
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     setTimeout(() => {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       closeNewLog();
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       switchView("maintenance");
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }, 650);
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   } catch (err) {
 
-    // DEBUG NOTE: Loops through the referenced data.
     formMessage.innerHTML =
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `<div class="error" style="margin:12px 0 0;">${escapeHtml(err.message)}</div>`;
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   } finally {
 
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     saveLogButton.disabled = false;
-    // DEBUG NOTE: Updates visible text for this interface element.
     saveLogButton.textContent = "Save Log";
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the closeDetail function.
+
+// ---------------------------------------------------------------------------
+// closeDetail
+// Front-end helper function: closeDetail.
+// ---------------------------------------------------------------------------
 function closeDetail() {
 
-  // DEBUG NOTE: Updates CSS classes to control state or appearance.
   modal.classList.remove("show");
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!formModal.classList.contains("show")) {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     document.body.style.overflow = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the closeNewLog function.
+
+// ---------------------------------------------------------------------------
+// closeNewLog
+// Front-end helper function: closeNewLog.
+// ---------------------------------------------------------------------------
 function closeNewLog() {
 
-  // DEBUG NOTE: Loops through the referenced data.
   formModal.classList.remove("show");
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!modal.classList.contains("show")) {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     document.body.style.overflow = "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the section function.
+
+// ---------------------------------------------------------------------------
+// section
+// Front-end helper function: section.
+// ---------------------------------------------------------------------------
 function section(title, rows) {
 
-  // DEBUG NOTE: Creates constant validRows.
   const validRows =
-    // DEBUG NOTE: Filters the current array based on the supplied condition.
     rows.filter(row =>
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       row[1] !== undefined &&
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       row[1] !== null &&
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       row[1] !== ""
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     );
 
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!validRows.length) {
-    // DEBUG NOTE: Returns this value to the caller.
     return "";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
 
-  // DEBUG NOTE: Returns this value to the caller.
   return `
 
     <div class="section">
@@ -3350,439 +2559,326 @@ function section(title, rows) {
 
       ${validRows.map(row => `
 
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         <div class="detail-row">
 
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           <div class="label">
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             ${escapeHtml(row[0])}
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           </div>
 
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           <div class="value">
-            // DEBUG NOTE: Executes this statement as part of the surrounding logic.
             ${escapeHtml(row[1])}
-          // DEBUG NOTE: Executes this statement as part of the surrounding logic.
           </div>
 
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         </div>
 
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       `).join("")}
 
     </div>
 
   `;
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the criticalTag function.
+
+// ---------------------------------------------------------------------------
+// criticalTag
+// Front-end helper function: criticalTag.
+// ---------------------------------------------------------------------------
 function criticalTag(value) {
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!value) return "";
 
-  // DEBUG NOTE: Creates constant v.
   const v = value.toLowerCase();
 
-  // DEBUG NOTE: Creates mutable variable cls.
   let cls = "";
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (v.includes("tier 1")) cls = "tier1";
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (v.includes("tier 2")) cls = "tier2";
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (v.includes("tier 3")) cls = "tier3";
 
-  // DEBUG NOTE: Returns this value to the caller.
   return `
     <span class="tag ${cls}">
       ${escapeHtml(value)}
     </span>
   `;
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the unitTag function.
+
+// ---------------------------------------------------------------------------
+// unitTag
+// Front-end helper function: unitTag.
+// ---------------------------------------------------------------------------
 function unitTag(value) {
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!value) return "";
 
-  // DEBUG NOTE: Creates mutable variable cls.
   let cls = "";
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (value.toLowerCase() === "future") {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     cls = "future";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Returns this value to the caller.
   return `
     <span class="tag ${cls}">
       ${escapeHtml(value)}
     </span>
   `;
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the completeTag function.
+
+// ---------------------------------------------------------------------------
+// completeTag
+// Front-end helper function: completeTag.
+// ---------------------------------------------------------------------------
 function completeTag(value) {
 
-  // DEBUG NOTE: Creates constant normalized.
   const normalized = normalizeYesNo(value);
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!normalized) return "";
 
-  // DEBUG NOTE: Creates constant cls.
   const cls =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     normalized === "Yes"
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       ? "complete-yes"
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       : "complete-no";
 
-  // DEBUG NOTE: Creates constant label.
   const label =
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     normalized === "Yes"
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       ? "Complete"
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       : "Incomplete";
 
-  // DEBUG NOTE: Returns this value to the caller.
   return `
     <span class="tag ${cls}">
       ${label}
     </span>
   `;
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the normalizeYesNo function.
+
+// ---------------------------------------------------------------------------
+// normalizeYesNo
+// Front-end helper function: normalizeYesNo.
+// ---------------------------------------------------------------------------
 function normalizeYesNo(value) {
 
-  // DEBUG NOTE: Creates constant v.
   const v = String(value || "").trim().toLowerCase();
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (["yes", "y", "true", "complete", "completed"].includes(v)) {
-    // DEBUG NOTE: Returns this value to the caller.
     return "Yes";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (["no", "n", "false", "incomplete", "open"].includes(v)) {
-    // DEBUG NOTE: Returns this value to the caller.
     return "No";
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Returns this value to the caller.
   return String(value || "").trim();
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the parseSortableDate function.
+
+// ---------------------------------------------------------------------------
+// parseSortableDate
+// Front-end helper function: parseSortableDate.
+// ---------------------------------------------------------------------------
 function parseSortableDate(log) {
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (log.dateIso) {
-    // DEBUG NOTE: Creates constant time.
     const time = new Date(log.dateIso + "T12:00:00").getTime();
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (!isNaN(time)) return time;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Creates constant time.
   const time = new Date(log.date).getTime();
 
-  // DEBUG NOTE: Returns this value to the caller.
   return isNaN(time) ? 0 : time;
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the todayLocal function.
+
+// ---------------------------------------------------------------------------
+// todayLocal
+// Front-end helper function: todayLocal.
+// ---------------------------------------------------------------------------
 function todayLocal() {
 
-  // DEBUG NOTE: Creates constant now.
   const now = new Date();
 
-  // DEBUG NOTE: Creates constant y.
   const y = now.getFullYear();
-  // DEBUG NOTE: Creates constant m.
   const m = String(now.getMonth() + 1).padStart(2, "0");
-  // DEBUG NOTE: Creates constant d.
   const d = String(now.getDate()).padStart(2, "0");
 
-  // DEBUG NOTE: Returns this value to the caller.
   return `${y}-${m}-${d}`;
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the compareText function.
+
+// ---------------------------------------------------------------------------
+// compareText
+// Provides case-insensitive text sorting.
+// ---------------------------------------------------------------------------
 function compareText(a,b) {
 
-  // DEBUG NOTE: Returns this value to the caller.
   return String(a || "")
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .localeCompare(String(b || ""), undefined, {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       numeric: true,
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       sensitivity: "base"
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     });
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the compareItem function.
+
+// ---------------------------------------------------------------------------
+// compareItem
+// Front-end helper function: compareItem.
+// ---------------------------------------------------------------------------
 function compareItem(a,b) {
 
-  // DEBUG NOTE: Creates constant aa.
   const aa = parseFloat(a);
-  // DEBUG NOTE: Creates constant bb.
   const bb = parseFloat(b);
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (!isNaN(aa) && !isNaN(bb)) {
-    // DEBUG NOTE: Returns this value to the caller.
     return aa - bb;
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-  // DEBUG NOTE: Returns this value to the caller.
   return compareText(a,b);
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the jsString function.
+
+// ---------------------------------------------------------------------------
+// jsString
+// Front-end helper function: jsString.
+// ---------------------------------------------------------------------------
 function jsString(value) {
-  // DEBUG NOTE: Returns this value to the caller.
   return JSON.stringify(String(value ?? ""));
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Defines the escapeHtml function.
+
+// ---------------------------------------------------------------------------
+// escapeHtml
+// Escapes unsafe characters before inserting user/data text into HTML.
+// ---------------------------------------------------------------------------
 function escapeHtml(value) {
 
-  // DEBUG NOTE: Returns this value to the caller.
   return String(value ?? "")
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .replaceAll("&", "&amp;")
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .replaceAll("<", "&lt;")
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .replaceAll(">", "&gt;")
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .replaceAll('"', "&quot;")
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     .replaceAll("'", "&#039;");
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 
 
-// DEBUG NOTE: Registers a browser event handler.
 equipmentTab.addEventListener("click", () => switchView("equipment"));
-// DEBUG NOTE: Registers a browser event handler.
 maintenanceTab.addEventListener("click", () => switchView("maintenance"));
-// DEBUG NOTE: Registers a browser event handler.
 documentsTab.addEventListener("click", () => switchView("documents"));
-// DEBUG NOTE: Registers a browser event handler.
 pmTab.addEventListener("click", () => switchView("pm"));
 
-// DEBUG NOTE: Registers a browser event handler.
 search.addEventListener("input", renderEquipment);
-// DEBUG NOTE: Registers a browser event handler.
 floorFilter.addEventListener("change", renderEquipment);
-// DEBUG NOTE: Registers a browser event handler.
 areaFilter.addEventListener("change", renderEquipment);
-// DEBUG NOTE: Registers a browser event handler.
 criticalFilter.addEventListener("change", renderEquipment);
 
-// DEBUG NOTE: Registers a browser event handler.
 maintenanceSearch.addEventListener("input", renderMaintenance);
-// DEBUG NOTE: Registers a browser event handler.
 maintenanceEquipmentFilter.addEventListener("change", renderMaintenance);
-// DEBUG NOTE: Registers a browser event handler.
 maintenanceCompleteFilter.addEventListener("change", renderMaintenance);
 
-// DEBUG NOTE: Registers a browser event handler.
 documentsSearch.addEventListener("input", renderDocuments);
-// DEBUG NOTE: Registers a browser event handler.
 documentsTypeFilter.addEventListener("change", renderDocuments);
-// DEBUG NOTE: Registers a browser event handler.
 documentsReleaseFilter.addEventListener("change", renderDocuments);
 
-// DEBUG NOTE: Registers a browser event handler.
 pmSearch.addEventListener("input", renderPM);
-// DEBUG NOTE: Registers a browser event handler.
 pmEquipmentFilter.addEventListener("change", renderPM);
-// DEBUG NOTE: Registers a browser event handler.
 pmStatusFilter.addEventListener("change", renderPM);
 
-// DEBUG NOTE: Registers a browser event handler.
 newLogButton.addEventListener("click", () => openNewLog());
-// DEBUG NOTE: Registers a browser event handler.
 newPMButton.addEventListener("click", openNewPM);
-// DEBUG NOTE: Registers a browser event handler.
 pmFormJin.addEventListener("change", updatePMSpareSuggestions);
-// DEBUG NOTE: Registers a browser event handler.
 pmFormFrequency.addEventListener("change", () => {
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   pmCustomMonthsField.style.display = pmFormFrequency.value === "Custom Months" ? "block" : "none";
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 });
 
-// DEBUG NOTE: Registers a browser event handler.
 closeModal.addEventListener("click", closeDetail);
 
-// DEBUG NOTE: Registers a browser event handler.
 modal.addEventListener("click", event => {
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (event.target === modal) {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     closeDetail();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 });
 
-// DEBUG NOTE: Registers a browser event handler.
 closeFormModal.addEventListener("click", closeNewLog);
-// DEBUG NOTE: Registers a browser event handler.
 cancelLogButton.addEventListener("click", closeNewLog);
 
-// DEBUG NOTE: Loops through the referenced data.
 formModal.addEventListener("click", event => {
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (event.target === formModal) {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     closeNewLog();
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 });
 
-// DEBUG NOTE: Registers a browser event handler.
 maintenanceForm.addEventListener("submit", submitMaintenanceForm);
 
-// DEBUG NOTE: Registers a browser event handler.
 pmForm.addEventListener("submit", submitPMForm);
-// DEBUG NOTE: Registers a browser event handler.
 closePMFormModal.addEventListener("click", closeNewPM);
-// DEBUG NOTE: Registers a browser event handler.
 cancelPMButton.addEventListener("click", closeNewPM);
-// DEBUG NOTE: Registers a browser event handler.
 pmFormModal.addEventListener("click", event => {
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (event.target === pmFormModal) closeNewPM();
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 });
 
-// DEBUG NOTE: Registers a browser event handler.
 completePMForm.addEventListener("submit", submitCompletePM);
-// DEBUG NOTE: Registers a browser event handler.
 closeCompletePMModal.addEventListener("click", closeCompletePM);
-// DEBUG NOTE: Registers a browser event handler.
 cancelCompletePMButton.addEventListener("click", closeCompletePM);
-// DEBUG NOTE: Registers a browser event handler.
 completePMModal.addEventListener("click", event => {
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (event.target === completePMModal) closeCompletePM();
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 });
 
-// DEBUG NOTE: Registers a browser event handler.
 document.addEventListener("keydown", event => {
 
-  // DEBUG NOTE: Checks this condition before running the nested logic.
   if (event.key === "Escape") {
 
-    // DEBUG NOTE: Checks this condition before running the nested logic.
     if (completePMModal.classList.contains("show")) {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       closeCompletePM();
-    // DEBUG NOTE: Updates CSS classes to control state or appearance.
     } else if (pmFormModal.classList.contains("show")) {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       closeNewPM();
-    // DEBUG NOTE: Updates CSS classes to control state or appearance.
     } else if (formModal.classList.contains("show")) {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       closeNewLog();
-    // DEBUG NOTE: Updates CSS classes to control state or appearance.
     } else if (modal.classList.contains("show")) {
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       closeDetail();
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     }
 
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   }
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 });
 
 
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 loadData();
 
 </script>
-<!-- DEBUG NOTE: Front-end JavaScript ends here. -->
 
-<!-- DEBUG NOTE: Front-end JavaScript begins here. -->
+
+<!-- JavaScript: API calls, rendering, filtering, forms, modals, and app behavior. -->
 <script>
-// DEBUG NOTE: Checks this condition before running the nested logic.
 if ("serviceWorker" in navigator) {
-  // DEBUG NOTE: Registers a browser event handler.
   window.addEventListener("load", () => {
-    // DEBUG NOTE: Executes this statement as part of the surrounding logic.
     navigator.serviceWorker.register("./sw.js")
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       .catch(error => {
-        // DEBUG NOTE: Executes this statement as part of the surrounding logic.
         console.error("Service worker registration failed:", error);
-      // DEBUG NOTE: Executes this statement as part of the surrounding logic.
       });
-  // DEBUG NOTE: Executes this statement as part of the surrounding logic.
   });
-// DEBUG NOTE: Executes this statement as part of the surrounding logic.
 }
 </script>
-<!-- DEBUG NOTE: Front-end JavaScript ends here. -->
 
 </body>
 </html>
