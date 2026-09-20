@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V9
-  V8 includes:
+  HOUSE EQUIPMENT APP — INDEX V12
+  V12 adds a Create TCC button to each Equipment detail screen.
+  Existing TCC creation is reused, with the selected equipment pre-populated.
+  Earlier versions include:
     1) House Guide-style home navigation.
     2) Troubleshooting data from the TCC sheet, including Column A TCC IDs.
     3) Category filtering and Trouble / Cause / Correction details.
@@ -1964,6 +1966,33 @@ function buildTroubleshootingCategories() {
 }
 
 
+// Returns the exact equipment text used by the TCC form.
+//
+// Prefer the dedicated Equipment List display value (Column AA in the current
+// workbook). If it is blank, fall back to "JIN - Equipment". Keeping this in
+// one helper ensures the TCC dropdown and the Equipment-detail Create TCC
+// button always use the same value.
+function getTCCEquipmentDisplay(item) {
+
+  const exactDisplay =
+    String(item?.tccEquipmentDisplay || "").trim();
+
+  if (exactDisplay) {
+    return exactDisplay;
+  }
+
+  const jin =
+    String(item?.jin || item?.id || "").trim();
+
+  const name =
+    String(item?.equipment || "").trim();
+
+  return [jin, name]
+    .filter(Boolean)
+    .join(" - ");
+}
+
+
 // Builds the New TCC form lists.
 //
 // The equipment dropdown prefers the exact combined text from Equipment List
@@ -1989,20 +2018,7 @@ function buildTCCFormLists() {
 
   const equipmentNames = [...new Set(
     allEquipment
-      .map(item => {
-        const exactAA =
-          String(item.tccEquipmentDisplay || "").trim();
-
-        if (exactAA) return exactAA;
-
-        const jin =
-          String(item.jin || item.id || "").trim();
-
-        const name =
-          String(item.equipment || "").trim();
-
-        return [jin, name].filter(Boolean).join(" - ");
-      })
+      .map(getTCCEquipmentDisplay)
       .filter(Boolean)
   )].sort(compareText);
 
@@ -2114,10 +2130,36 @@ function openTroubleshootingDetail(item) {
 
 
 // Opens a clean form for a new TCC record.
-function openNewTCC() {
+//
+// selectedEquipment is optional. When this function is launched from an
+// Equipment detail screen, the equipment's exact TCC display value is passed
+// in so the user does not have to select the equipment a second time.
+function openNewTCC(selectedEquipment = "") {
 
   tccForm.reset();
   tccFormMessage.innerHTML = "";
+
+  const equipmentValue =
+    String(selectedEquipment || "").trim();
+
+  if (equipmentValue) {
+
+    // Normally the option already exists because buildTCCFormLists() is built
+    // from the same equipment records. Add it defensively if the sheet data
+    // changed between loads so pre-population still works.
+    const optionExists =
+      [...tccFormEquipment.options]
+        .some(option => option.value === equipmentValue);
+
+    if (!optionExists) {
+      const option = document.createElement("option");
+      option.value = equipmentValue;
+      option.textContent = equipmentValue;
+      tccFormEquipment.appendChild(option);
+    }
+
+    tccFormEquipment.value = equipmentValue;
+  }
 
   tccFormModal.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -2766,6 +2808,14 @@ function openEquipmentDetail(item) {
         📚 Related Documents
       </button>
 
+      <button
+        id="equipmentCreateTCCButton"
+        class="btn"
+        type="button"
+      >
+        🔎 Create TCC
+      </button>
+
       ${folderButton}
 
     </div>
@@ -2788,6 +2838,9 @@ function openEquipmentDetail(item) {
   const documentsButton =
     document.getElementById("equipmentRelatedDocumentsButton");
 
+  const createTCCButton =
+    document.getElementById("equipmentCreateTCCButton");
+
   historyButton.addEventListener("click", () => {
     showMaintenanceForEquipment(equipmentKey);
   });
@@ -2798,6 +2851,10 @@ function openEquipmentDetail(item) {
 
   documentsButton.addEventListener("click", () => {
     showDocumentsForEquipmentName(item.equipment || equipmentKey);
+  });
+
+  createTCCButton.addEventListener("click", () => {
+    openNewTCC(getTCCEquipmentDisplay(item));
   });
 
   modal.classList.add("show");
