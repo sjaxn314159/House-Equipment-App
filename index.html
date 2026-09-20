@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V7
-  V7 includes:
+  HOUSE EQUIPMENT APP — INDEX V8
+  V8 includes:
     1) House Guide-style home navigation.
     2) Troubleshooting data from the TCC sheet, including Column A TCC IDs.
     3) Category filtering and Trouble / Cause / Correction details.
@@ -1342,9 +1342,12 @@ function buildMaintenanceEquipmentLists() {
     const item = entry.item;
     const equipmentKey = entry.equipmentKey;
 
+    // Display the equipment identifier first because it is easier to scan
+    // a long dropdown by JIN / equipment ID. Example:
+    //   0.1.3 - Basement Bar Sink
     const label =
       item.equipment
-        ? `${item.equipment} — ${equipmentKey}`
+        ? `${equipmentKey} - ${item.equipment}`
         : equipmentKey;
 
     const filterOption =
