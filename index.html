@@ -1,10 +1,11 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V6
-  V6 adds:
-    1) A House Guide-style home screen with five section cards.
-    2) A Troubleshooting Guide fed from the workbook's TCC tab.
-    3) Category filtering and clickable Trouble / Cause / Correction details.
+  HOUSE EQUIPMENT APP — INDEX V7
+  V7 includes:
+    1) House Guide-style home navigation.
+    2) Troubleshooting data from the TCC sheet, including Column A TCC IDs.
+    3) Category filtering and Trouble / Cause / Correction details.
+    4) Event-listener based detail buttons instead of fragile inline onclick handlers.
 -->
 <html lang="en">
 <head>
@@ -1327,22 +1328,29 @@ function buildFilters() {
 function buildMaintenanceEquipmentLists() {
 
   const items = [...allEquipment]
-    .filter(item => item.id)
+    .map(item => ({
+      item,
+      equipmentKey: item.id || item.jin || ""
+    }))
+    .filter(entry => entry.equipmentKey)
     .sort((a,b) =>
-      compareText(a.id, b.id)
+      compareText(a.equipmentKey, b.equipmentKey)
     );
 
-  items.forEach(item => {
+  items.forEach(entry => {
+
+    const item = entry.item;
+    const equipmentKey = entry.equipmentKey;
 
     const label =
       item.equipment
-        ? `${item.equipment} — ${item.id}`
-        : item.id;
+        ? `${item.equipment} — ${equipmentKey}`
+        : equipmentKey;
 
     const filterOption =
       document.createElement("option");
 
-    filterOption.value = item.id;
+    filterOption.value = equipmentKey;
     filterOption.textContent = label;
 
     maintenanceEquipmentFilter.appendChild(filterOption);
@@ -1351,7 +1359,7 @@ function buildMaintenanceEquipmentLists() {
     const formOption =
       document.createElement("option");
 
-    formOption.value = item.id;
+    formOption.value = equipmentKey;
     formOption.textContent = label;
 
     formEquipment.appendChild(formOption);
@@ -1883,8 +1891,12 @@ function renderTroubleshooting() {
     const card = document.createElement("div");
     card.className = "card tcc-card";
 
+    // Column A contains the human-readable TCC number.
+    // Show it directly in the list so a user can reference the item by ID.
+    const listTitle = [item.id, item.trouble].filter(Boolean).join(": ");
+
     card.innerHTML = `
-      <div class="card-title">${escapeHtml(item.trouble)}</div>
+      <div class="card-title">${escapeHtml(listTitle)}</div>
       <div class="tcc-category">${escapeHtml(item.category || "Uncategorized")}</div>
     `;
 
@@ -1900,10 +1912,14 @@ function renderTroubleshooting() {
 // Shows the selected TCC record using the app's existing detail modal.
 function openTroubleshootingDetail(item) {
 
-  modalTitle.textContent = item.trouble || "Troubleshooting";
+  // Include the TCC number in the modal title when available.
+  modalTitle.textContent =
+    [item.id, item.trouble].filter(Boolean).join(": ") ||
+    "Troubleshooting";
 
   detailBody.innerHTML = `
     ${section("Troubleshooting", [
+      ["TCC #", item.id],
       ["Category", item.category],
       ["Trouble", item.trouble],
       ["Likely Cause", item.cause],
@@ -2048,10 +2064,27 @@ function openPMDetail(pm) {
 
     <div class="buttons">
       ${wiButton}
-      ${isPMOpen(pm) ? `<button class="btn success-btn" type="button" onclick="openCompletePM(${jsString(pm.id)})">✓ Complete Task</button>` : ""}
-      ${eq?.id ? `<button class="btn secondary" type="button" onclick="showMaintenanceForEquipment(${jsString(eq.id)})">🧰 Maintenance History</button>` : ""}
+      ${isPMOpen(pm) ? `<button id="pmCompleteFromDetailButton" class="btn success-btn" type="button">✓ Complete Task</button>` : ""}
+      ${eq?.id ? `<button id="pmMaintenanceHistoryButton" class="btn secondary" type="button">🧰 Maintenance History</button>` : ""}
     </div>
   `;
+
+  // Wire detail buttons with event listeners instead of inline JavaScript.
+  const completeButton =
+    document.getElementById("pmCompleteFromDetailButton");
+
+  const maintenanceButton =
+    document.getElementById("pmMaintenanceHistoryButton");
+
+  if (completeButton) {
+    completeButton.addEventListener("click", () => openCompletePM(pm.id));
+  }
+
+  if (maintenanceButton) {
+    maintenanceButton.addEventListener("click", () => {
+      showMaintenanceForEquipment(eq.id);
+    });
+  }
 
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -2093,9 +2126,27 @@ function updatePMSpareSuggestions() {
     return;
   }
 
-  pmSpareSuggestions.innerHTML = "Available: " + matches.map(p =>
-    `<button type="button" class="btn secondary" style="padding:5px 8px;margin:3px 3px 0 0;" onclick="addSpareJinToPM(${jsString(p.spareJin)})">${escapeHtml(p.spareJin)} — ${escapeHtml(p.item || p.partNumber || "Part")}</button>`
-  ).join("");
+  pmSpareSuggestions.innerHTML =
+    "Available: " +
+    matches.map((p, index) =>
+      `<button
+        type="button"
+        class="btn secondary pm-spare-suggestion"
+        data-spare-index="${index}"
+        style="padding:5px 8px;margin:3px 3px 0 0;"
+      >${escapeHtml(p.spareJin)} — ${escapeHtml(p.item || p.partNumber || "Part")}</button>`
+    ).join("");
+
+  // Use the array index stored in data-spare-index so no part number/JIN
+  // has to be embedded as executable JavaScript inside the HTML.
+  pmSpareSuggestions
+    .querySelectorAll(".pm-spare-suggestion")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        const match = matches[Number(button.dataset.spareIndex)];
+        if (match) addSpareJinToPM(match.spareJin);
+      });
+    });
 }
 
 
@@ -2334,11 +2385,16 @@ function documentTypeTag(doc) {
 
 function showDocumentsForEquipmentName(equipmentName) {
 
+  /*
+    Related Documents uses the existing document search.
+    It searches the equipment name against document number/title/type fields.
+    This keeps the feature flexible without requiring another workbook mapping.
+  */
   closeDetail();
 
   documentsTypeFilter.value = "";
   documentsReleaseFilter.value = "";
-  documentsSearch.value = equipmentName || "";
+  documentsSearch.value = String(equipmentName || "").trim();
 
   switchView("documents");
   renderDocuments();
@@ -2350,7 +2406,6 @@ function openEquipmentDetail(item) {
 
   modalTitle.textContent =
     item.equipment || "Equipment";
-
 
   const folderButton = item.folder
     ? `
@@ -2365,6 +2420,9 @@ function openEquipmentDetail(item) {
     `
     : "";
 
+  // Maintenance logs historically use Equipment ID.
+  // Fall back to JIN only if the Equipment ID is blank.
+  const equipmentKey = item.id || item.jin || "";
 
   detailBody.innerHTML = `
 
@@ -2402,25 +2460,25 @@ function openEquipmentDetail(item) {
     <div class="buttons">
 
       <button
+        id="equipmentMaintenanceHistoryButton"
         class="btn"
         type="button"
-        onclick="showMaintenanceForEquipment(${jsString(item.id)})"
       >
         🧰 View Maintenance History
       </button>
 
       <button
+        id="equipmentAddMaintenanceButton"
         class="btn success-btn"
         type="button"
-        onclick="openNewLogForEquipment(${jsString(item.id)})"
       >
         ＋ Add Maintenance Log
       </button>
 
       <button
+        id="equipmentRelatedDocumentsButton"
         class="btn"
         type="button"
-        onclick="showDocumentsForEquipmentName(${jsString(item.equipment)})"
       >
         📚 Related Documents
       </button>
@@ -2431,6 +2489,33 @@ function openEquipmentDetail(item) {
 
   `;
 
+  /*
+    IMPORTANT:
+    Do not use inline onclick="function(${...})" here.
+    Equipment IDs and names may contain punctuation or quotes, which can
+    corrupt an inline HTML attribute. Event listeners safely pass the
+    original JavaScript values without converting them into executable HTML.
+  */
+  const historyButton =
+    document.getElementById("equipmentMaintenanceHistoryButton");
+
+  const addLogButton =
+    document.getElementById("equipmentAddMaintenanceButton");
+
+  const documentsButton =
+    document.getElementById("equipmentRelatedDocumentsButton");
+
+  historyButton.addEventListener("click", () => {
+    showMaintenanceForEquipment(equipmentKey);
+  });
+
+  addLogButton.addEventListener("click", () => {
+    openNewLogForEquipment(equipmentKey);
+  });
+
+  documentsButton.addEventListener("click", () => {
+    showDocumentsForEquipmentName(item.equipment || equipmentKey);
+  });
 
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
@@ -2491,9 +2576,9 @@ function openMaintenanceDetail(log) {
       ${log.equipment
         ? `
           <button
+            id="maintenanceAddAnotherButton"
             class="btn success-btn"
             type="button"
-            onclick="openNewLogForEquipment(${jsString(log.equipment)})"
           >
             ＋ Add Another Log
           </button>
@@ -2504,6 +2589,17 @@ function openMaintenanceDetail(log) {
 
   `;
 
+
+  // Safely wire the optional "Add Another Log" button after rendering.
+  // This avoids embedding equipment IDs inside inline JavaScript attributes.
+  const addAnotherButton =
+    document.getElementById("maintenanceAddAnotherButton");
+
+  if (addAnotherButton) {
+    addAnotherButton.addEventListener("click", () => {
+      openNewLogForEquipment(log.equipment);
+    });
+  }
 
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
