@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V8
+  HOUSE EQUIPMENT APP — INDEX V9
   V8 includes:
     1) House Guide-style home navigation.
     2) Troubleshooting data from the TCC sheet, including Column A TCC IDs.
@@ -838,6 +838,12 @@
 
   <!-- TCC / TROUBLESHOOTING VIEW -->
   <div id="troubleshootingView" class="view">
+    <div class="toolbar">
+      <button id="newTCCButton" class="btn success-btn" type="button">
+        ＋ New TCC
+      </button>
+    </div>
+
     <div id="tccSummary" class="summary"></div>
     <div id="tccCards" class="cards"></div>
   </div>
@@ -1041,6 +1047,87 @@
 </div>
 
 
+<!-- V9: CREATE NEW TCC MODAL -->
+<div id="tccFormModal" class="modal">
+  <div class="modal-panel">
+
+    <div class="modal-header">
+      <h2>New Troubleshooting Item</h2>
+      <button id="closeTCCFormModal" class="close" type="button">×</button>
+    </div>
+
+    <div class="detail-body">
+
+      <form id="tccForm">
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label for="tccFormCategory">Category *</label>
+            <input
+              id="tccFormCategory"
+              type="text"
+              list="tccCategorySuggestions"
+              placeholder="Example: Plumbing"
+              required
+            >
+            <datalist id="tccCategorySuggestions"></datalist>
+          </div>
+
+          <div class="field">
+            <label for="tccFormEquipment">Equipment</label>
+            <select id="tccFormEquipment">
+              <option value="">No specific equipment</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="tccFormTrouble">Trouble *</label>
+            <input
+              id="tccFormTrouble"
+              type="text"
+              placeholder="Example: Hot water not working"
+              required
+            >
+          </div>
+
+          <div class="field full">
+            <label for="tccFormCause">Cause</label>
+            <textarea
+              id="tccFormCause"
+              placeholder="Likely cause"
+            ></textarea>
+          </div>
+
+          <div class="field full">
+            <label for="tccFormCorrection">Correction</label>
+            <textarea
+              id="tccFormCorrection"
+              placeholder="Recommended correction"
+            ></textarea>
+          </div>
+
+        </div>
+
+        <div id="tccFormMessage"></div>
+
+        <div class="buttons">
+          <button id="saveTCCButton" class="btn success-btn" type="submit">
+            Save TCC
+          </button>
+
+          <button id="cancelTCCButton" class="btn secondary" type="button">
+            Cancel
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
 <div id="completePMModal" class="modal">
   <div class="modal-panel">
     <div class="modal-header">
@@ -1158,6 +1245,20 @@ const newPMButton = document.getElementById("newPMButton");
 const tccCategoryFilter = document.getElementById("tccCategoryFilter");
 const tccSummary = document.getElementById("tccSummary");
 const tccCards = document.getElementById("tccCards");
+const newTCCButton = document.getElementById("newTCCButton");
+
+const tccFormModal = document.getElementById("tccFormModal");
+const closeTCCFormModal = document.getElementById("closeTCCFormModal");
+const tccForm = document.getElementById("tccForm");
+const tccFormCategory = document.getElementById("tccFormCategory");
+const tccCategorySuggestions = document.getElementById("tccCategorySuggestions");
+const tccFormEquipment = document.getElementById("tccFormEquipment");
+const tccFormTrouble = document.getElementById("tccFormTrouble");
+const tccFormCause = document.getElementById("tccFormCause");
+const tccFormCorrection = document.getElementById("tccFormCorrection");
+const tccFormMessage = document.getElementById("tccFormMessage");
+const saveTCCButton = document.getElementById("saveTCCButton");
+const cancelTCCButton = document.getElementById("cancelTCCButton");
 
 const newLogButton = document.getElementById("newLogButton");
 
@@ -1245,6 +1346,7 @@ async function loadData() {
     buildMaintenanceEquipmentLists();
     buildPMLists();
     buildTroubleshootingCategories();
+    buildTCCFormLists();
 
     renderEquipment();
     renderMaintenance();
@@ -1843,7 +1945,7 @@ function renderDocuments() {
 // TROUBLESHOOTING GUIDE (TCC)
 // ---------------------------------------------------------------------------
 
-// Builds the category dropdown from unique values in TCC Column B.
+// Builds the category filter from unique values in TCC Column B.
 function buildTroubleshootingCategories() {
 
   const categories = [...new Set(
@@ -1862,7 +1964,68 @@ function buildTroubleshootingCategories() {
 }
 
 
-// Renders the trouble list. Category comes from Column B and Trouble from C.
+// Builds the New TCC form lists.
+//
+// The equipment dropdown prefers the exact combined text from Equipment List
+// Column AA. If AA is blank for an item, it falls back to "JIN - Equipment".
+function buildTCCFormLists() {
+
+  tccFormEquipment.innerHTML =
+    '<option value="">No specific equipment</option>';
+
+  tccCategorySuggestions.innerHTML = "";
+
+  const categories = [...new Set(
+    allTroubleshooting
+      .map(item => item.category)
+      .filter(Boolean)
+  )].sort(compareText);
+
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    tccCategorySuggestions.appendChild(option);
+  });
+
+  const equipmentNames = [...new Set(
+    allEquipment
+      .map(item => {
+        const exactAA =
+          String(item.tccEquipmentDisplay || "").trim();
+
+        if (exactAA) return exactAA;
+
+        const jin =
+          String(item.jin || item.id || "").trim();
+
+        const name =
+          String(item.equipment || "").trim();
+
+        return [jin, name].filter(Boolean).join(" - ");
+      })
+      .filter(Boolean)
+  )].sort(compareText);
+
+  // Keep the existing general-purpose TCC value available even if it is not
+  // represented as a physical item on Equipment List.
+  if (!equipmentNames.includes("X.X.X - GENERAL")) {
+    equipmentNames.unshift("X.X.X - GENERAL");
+  }
+
+  equipmentNames.forEach(displayName => {
+    const option = document.createElement("option");
+    option.value = displayName;
+    option.textContent = displayName;
+    tccFormEquipment.appendChild(option);
+  });
+
+}
+
+
+// Renders the trouble list.
+//
+// V9 TCC columns:
+//   A TCC # | B Category | C Equipment | D Trouble | E Cause | F Correction
 function renderTroubleshooting() {
 
   const category = tccCategoryFilter.value;
@@ -1874,10 +2037,12 @@ function renderTroubleshooting() {
 
   filtered.sort((a, b) =>
     compareText(a.category, b.category) ||
+    compareText(a.equipment, b.equipment) ||
     compareText(a.trouble, b.trouble)
   );
 
   const categoryText = category ? ` in ${category}` : "";
+
   tccSummary.textContent =
     `${filtered.length} trouble${filtered.length === 1 ? "" : "s"}${categoryText}`;
 
@@ -1894,17 +2059,28 @@ function renderTroubleshooting() {
     const card = document.createElement("div");
     card.className = "card tcc-card";
 
-    // Column A contains the human-readable TCC number.
-    // Show it directly in the list so a user can reference the item by ID.
-    const listTitle = [item.id, item.trouble].filter(Boolean).join(": ");
+    const listTitle =
+      [item.id, item.trouble]
+        .filter(Boolean)
+        .join(": ");
 
+    // Equipment from TCC Column C is displayed exactly as stored in the sheet.
     card.innerHTML = `
       <div class="card-title">${escapeHtml(listTitle)}</div>
-      <div class="tcc-category">${escapeHtml(item.category || "Uncategorized")}</div>
+
+      <div class="card-location">
+        ${escapeHtml(
+          [item.category, item.equipment]
+            .filter(Boolean)
+            .join(" • ")
+        )}
+      </div>
     `;
 
-    // Clicking a trouble shows the full Trouble / Cause / Correction record.
-    card.addEventListener("click", () => openTroubleshootingDetail(item));
+    card.addEventListener(
+      "click",
+      () => openTroubleshootingDetail(item)
+    );
 
     tccCards.appendChild(card);
   });
@@ -1912,18 +2088,20 @@ function renderTroubleshooting() {
 }
 
 
-// Shows the selected TCC record using the app's existing detail modal.
+// Shows one complete TCC record.
 function openTroubleshootingDetail(item) {
 
-  // Include the TCC number in the modal title when available.
   modalTitle.textContent =
-    [item.id, item.trouble].filter(Boolean).join(": ") ||
+    [item.id, item.trouble]
+      .filter(Boolean)
+      .join(": ") ||
     "Troubleshooting";
 
   detailBody.innerHTML = `
     ${section("Troubleshooting", [
       ["TCC #", item.id],
       ["Category", item.category],
+      ["Equipment", item.equipment],
       ["Trouble", item.trouble],
       ["Likely Cause", item.cause],
       ["Correction", item.correction]
@@ -1934,6 +2112,108 @@ function openTroubleshootingDetail(item) {
   document.body.style.overflow = "hidden";
 }
 
+
+// Opens a clean form for a new TCC record.
+function openNewTCC() {
+
+  tccForm.reset();
+  tccFormMessage.innerHTML = "";
+
+  tccFormModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+
+// Closes the New TCC modal.
+function closeNewTCC() {
+
+  tccFormModal.classList.remove("show");
+
+  if (
+    !modal.classList.contains("show") &&
+    !formModal.classList.contains("show") &&
+    !pmFormModal.classList.contains("show") &&
+    !completePMModal.classList.contains("show")
+  ) {
+    document.body.style.overflow = "";
+  }
+}
+
+
+// Saves a new TCC line to the Google Sheet through Apps Script.
+async function submitTCCForm(event) {
+
+  event.preventDefault();
+
+  tccFormMessage.innerHTML = "";
+  saveTCCButton.disabled = true;
+  saveTCCButton.textContent = "Saving...";
+
+  const params = new URLSearchParams();
+
+  params.set("action", "addTCC");
+  params.set("category", tccFormCategory.value.trim());
+  params.set("equipment", tccFormEquipment.value);
+  params.set("trouble", tccFormTrouble.value.trim());
+  params.set("cause", tccFormCause.value.trim());
+  params.set("correction", tccFormCorrection.value.trim());
+
+  try {
+
+    const response = await fetch(
+      API_URL,
+      {
+        method: "POST",
+        body: params
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not save troubleshooting item.");
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(
+        data.error ||
+        "Could not save troubleshooting item."
+      );
+    }
+
+    // Add the returned row to the in-memory list so the user sees it
+    // immediately without having to refresh the entire app.
+    allTroubleshooting.push(data.troubleshooting);
+
+    // Rebuild categories because the user may have entered a new category.
+    tccCategoryFilter.innerHTML =
+      '<option value="">All Categories</option>';
+
+    buildTroubleshootingCategories();
+    buildTCCFormLists();
+    renderTroubleshooting();
+
+    tccFormMessage.innerHTML =
+      `<div class="success">Saved ${escapeHtml(data.troubleshooting.id)}.</div>`;
+
+    setTimeout(() => {
+      closeNewTCC();
+      switchView("troubleshooting");
+    }, 700);
+
+  } catch (err) {
+
+    tccFormMessage.innerHTML =
+      `<div class="error" style="margin:12px 0 0;">${escapeHtml(err.message)}</div>`;
+
+  } finally {
+
+    saveTCCButton.disabled = false;
+    saveTCCButton.textContent = "Save TCC";
+
+  }
+
+}
 
 
 function renderPM() {
@@ -2977,6 +3257,17 @@ pmStatusFilter.addEventListener("change", renderPM);
 
 tccCategoryFilter.addEventListener("change", renderTroubleshooting);
 
+newTCCButton.addEventListener("click", openNewTCC);
+tccForm.addEventListener("submit", submitTCCForm);
+closeTCCFormModal.addEventListener("click", closeNewTCC);
+cancelTCCButton.addEventListener("click", closeNewTCC);
+
+tccFormModal.addEventListener("click", event => {
+  if (event.target === tccFormModal) {
+    closeNewTCC();
+  }
+});
+
 newLogButton.addEventListener("click", () => openNewLog());
 newPMButton.addEventListener("click", openNewPM);
 pmFormJin.addEventListener("change", updatePMSpareSuggestions);
@@ -3023,6 +3314,8 @@ document.addEventListener("keydown", event => {
 
     if (completePMModal.classList.contains("show")) {
       closeCompletePM();
+    } else if (tccFormModal.classList.contains("show")) {
+      closeNewTCC();
     } else if (pmFormModal.classList.contains("show")) {
       closeNewPM();
     } else if (formModal.classList.contains("show")) {
