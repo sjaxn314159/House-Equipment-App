@@ -1,6 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V12
+  HOUSE EQUIPMENT APP — INDEX V14
+  V14 adds a dedicated Spare Parts section with search, stock filters, reorder visibility, and part detail screens.
+  V13 adds Equipment-detail Add PM behavior while reusing the existing backend endpoint.
   V12 adds a Create TCC button to each Equipment detail screen.
   Existing TCC creation is reused, with the selected equipment pre-populated.
   Earlier versions include:
@@ -246,6 +248,21 @@
     .pm-inactive {
       background: #e9eef3;
       color: #66737f;
+    }
+
+    .stock-reorder {
+      background: #fde7e4;
+      color: #912018;
+    }
+
+    .stock-low {
+      background: #fff1d6;
+      color: #895400;
+    }
+
+    .stock-ok {
+      background: #e4f3ea;
+      color: #11663d;
     }
 
     .parts-list {
@@ -731,6 +748,28 @@
       </div>
     </div>
 
+    <div id="sparePartsHeader" style="display:none;">
+      <input
+        id="sparePartsSearch"
+        class="search"
+        type="search"
+        placeholder="Search spare part, JIN, equipment, supplier, part number..."
+      >
+
+      <div class="filters two">
+        <select id="sparePartsStockFilter">
+          <option value="all">All Spare Parts</option>
+          <option value="reorder">Needs Reorder</option>
+          <option value="critical">Critical Parts</option>
+          <option value="instock">In Stock</option>
+        </select>
+
+        <select id="sparePartsEquipmentFilter">
+          <option value="">All Equipment</option>
+        </select>
+      </div>
+    </div>
+
     <div id="troubleshootingHeader" style="display:none;">
       <select id="tccCategoryFilter" class="search">
         <option value="">All Categories</option>
@@ -786,6 +825,16 @@
         </div>
       </button>
 
+      <button class="home-card" type="button" data-home-view="spareParts">
+        <div class="home-card-title">
+          <span class="home-card-icon">📦</span>
+          <span>Spare Parts</span>
+        </div>
+        <div class="home-card-description">
+          Spare-parts inventory, storage locations, stock levels, critical parts, and reorder links.
+        </div>
+      </button>
+
       <button class="home-card" type="button" data-home-view="troubleshooting">
         <div class="home-card-title">
           <span class="home-card-icon">🔎</span>
@@ -836,6 +885,11 @@
 
     <div id="pmSummary" class="summary"></div>
     <div id="pmCards" class="cards"></div>
+  </div>
+
+  <div id="sparePartsView" class="view">
+    <div id="sparePartsSummary" class="summary"></div>
+    <div id="sparePartsCards" class="cards"></div>
   </div>
 
   <!-- TCC / TROUBLESHOOTING VIEW -->
@@ -1244,6 +1298,14 @@ const pmSummary = document.getElementById("pmSummary");
 const pmCards = document.getElementById("pmCards");
 const newPMButton = document.getElementById("newPMButton");
 
+const sparePartsHeader = document.getElementById("sparePartsHeader");
+const sparePartsView = document.getElementById("sparePartsView");
+const sparePartsSearch = document.getElementById("sparePartsSearch");
+const sparePartsStockFilter = document.getElementById("sparePartsStockFilter");
+const sparePartsEquipmentFilter = document.getElementById("sparePartsEquipmentFilter");
+const sparePartsSummary = document.getElementById("sparePartsSummary");
+const sparePartsCards = document.getElementById("sparePartsCards");
+
 const tccCategoryFilter = document.getElementById("tccCategoryFilter");
 const tccSummary = document.getElementById("tccSummary");
 const tccCards = document.getElementById("tccCards");
@@ -1347,6 +1409,7 @@ async function loadData() {
     buildFilters();
     buildMaintenanceEquipmentLists();
     buildPMLists();
+    buildSparePartsLists();
     buildTroubleshootingCategories();
     buildTCCFormLists();
 
@@ -1354,6 +1417,7 @@ async function loadData() {
     renderMaintenance();
     renderDocuments();
     renderPM();
+    renderSpareParts();
     renderTroubleshooting();
 
   } catch (err) {
@@ -1377,6 +1441,7 @@ function switchView(viewName) {
   const maintenanceActive = viewName === "maintenance";
   const documentsActive = viewName === "documents";
   const pmActive = viewName === "pm";
+  const sparePartsActive = viewName === "spareParts";
   const troubleshootingActive = viewName === "troubleshooting";
 
   // Keep the original nav button state logic for compatibility even though
@@ -1390,6 +1455,7 @@ function switchView(viewName) {
   maintenanceHeader.style.display = maintenanceActive ? "block" : "none";
   documentsHeader.style.display = documentsActive ? "block" : "none";
   pmHeader.style.display = pmActive ? "block" : "none";
+  sparePartsHeader.style.display = sparePartsActive ? "block" : "none";
   troubleshootingHeader.style.display = troubleshootingActive ? "block" : "none";
 
   homeView.classList.toggle("active", homeActive);
@@ -1397,6 +1463,7 @@ function switchView(viewName) {
   maintenanceView.classList.toggle("active", maintenanceActive);
   documentsView.classList.toggle("active", documentsActive);
   pmView.classList.toggle("active", pmActive);
+  sparePartsView.classList.toggle("active", sparePartsActive);
   troubleshootingView.classList.toggle("active", troubleshootingActive);
 
   const titles = {
@@ -1405,6 +1472,7 @@ function switchView(viewName) {
     maintenance: "Maintenance",
     documents: "Documents",
     pm: "Preventive Maintenance",
+    spareParts: "Spare Parts",
     troubleshooting: "Troubleshooting Guide"
   };
 
@@ -2255,6 +2323,189 @@ async function submitTCCForm(event) {
 
   }
 
+}
+
+
+function buildSparePartsLists() {
+
+  sparePartsEquipmentFilter.innerHTML = '<option value="">All Equipment</option>';
+
+  const equipment = [...new Set(
+    allSpareParts
+      .map(part => part.equipment || "")
+      .filter(Boolean)
+  )].sort(compareText);
+
+  equipment.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    sparePartsEquipmentFilter.appendChild(option);
+  });
+}
+
+
+function sparePartNeedsReorder(part) {
+  const status = String(part.status || "").trim().toLowerCase();
+  if (status === "order" || status === "reorder") return true;
+
+  const onHand = Number(String(part.onHand ?? "").replace(/[^0-9.-]/g, ""));
+  const minStock = Number(String(part.minStock ?? "").replace(/[^0-9.-]/g, ""));
+
+  return part.minStock !== "" && !Number.isNaN(onHand) && !Number.isNaN(minStock) && onHand <= minStock;
+}
+
+
+function sparePartStockTag(part) {
+  if (sparePartNeedsReorder(part)) {
+    return '<span class="tag stock-reorder">ORDER</span>';
+  }
+
+  const onHand = Number(String(part.onHand ?? "").replace(/[^0-9.-]/g, ""));
+  const minStock = Number(String(part.minStock ?? "").replace(/[^0-9.-]/g, ""));
+
+  if (!Number.isNaN(onHand) && !Number.isNaN(minStock) && part.minStock !== "" && onHand <= minStock + 1) {
+    return '<span class="tag stock-low">Low Stock</span>';
+  }
+
+  if (!Number.isNaN(onHand) && onHand > 0) {
+    return '<span class="tag stock-ok">In Stock</span>';
+  }
+
+  return '<span class="tag">No Stock Level</span>';
+}
+
+
+function renderSpareParts() {
+  const searchText = sparePartsSearch.value.trim().toLowerCase();
+  const stockFilter = sparePartsStockFilter.value;
+  const equipmentFilter = sparePartsEquipmentFilter.value;
+
+  let filtered = allSpareParts.filter(part => {
+    if (equipmentFilter && part.equipment !== equipmentFilter) return false;
+
+    const critical = String(part.critical || "").trim().toLowerCase() === "yes";
+    const needsReorder = sparePartNeedsReorder(part);
+    const onHand = Number(String(part.onHand ?? "").replace(/[^0-9.-]/g, ""));
+
+    if (stockFilter === "reorder" && !needsReorder) return false;
+    if (stockFilter === "critical" && !critical) return false;
+    if (stockFilter === "instock" && !(onHand > 0)) return false;
+
+    if (searchText) {
+      const text = [
+        part.spareJin, part.spareNumber, part.item, part.description,
+        part.equipment, part.jin, part.supplier, part.manufacturer,
+        part.partNumber, part.storageLocation, part.status
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      if (!text.includes(searchText)) return false;
+    }
+
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    const reorderDiff = Number(sparePartNeedsReorder(b)) - Number(sparePartNeedsReorder(a));
+    if (reorderDiff) return reorderDiff;
+    const criticalDiff = (String(b.critical || "").toLowerCase() === "yes") - (String(a.critical || "").toLowerCase() === "yes");
+    if (criticalDiff) return criticalDiff;
+    return compareText(a.spareJin || a.item, b.spareJin || b.item);
+  });
+
+  const reorderCount = allSpareParts.filter(sparePartNeedsReorder).length;
+  const criticalCount = allSpareParts.filter(part => String(part.critical || "").trim().toLowerCase() === "yes").length;
+
+  sparePartsSummary.textContent = `${filtered.length} of ${allSpareParts.length} spare parts • ${reorderCount} need reorder • ${criticalCount} critical`;
+  sparePartsCards.innerHTML = "";
+
+  if (!filtered.length) {
+    sparePartsCards.innerHTML = '<div class="empty">No spare parts match the current filters.</div>';
+    return;
+  }
+
+  filtered.forEach(part => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-title">${escapeHtml(part.item || part.description || part.spareJin || "Spare Part")}</div>
+      <div class="card-location">${escapeHtml([
+        part.spareJin ? `Spare JIN ${part.spareJin}` : "",
+        part.storageLocation ? `Stored: ${part.storageLocation}` : ""
+      ].filter(Boolean).join(" • "))}</div>
+      <div class="card-info">
+        ${sparePartStockTag(part)}
+        ${String(part.critical || "").trim().toLowerCase() === "yes" ? '<span class="tag tier1">Critical</span>' : ""}
+        ${part.onHand !== "" ? `<span class="tag">On Hand: ${escapeHtml(part.onHand)}</span>` : ""}
+        ${part.minStock !== "" ? `<span class="tag">Min: ${escapeHtml(part.minStock)}</span>` : ""}
+        ${part.partNumber ? `<span class="tag">PN ${escapeHtml(part.partNumber)}</span>` : ""}
+      </div>
+    `;
+
+    card.addEventListener("click", () => openSparePartDetail(part));
+    sparePartsCards.appendChild(card);
+  });
+}
+
+
+function openSparePartDetail(part) {
+  modalTitle.textContent = part.item || part.description || part.spareJin || "Spare Part";
+
+  const equipment = allEquipment.find(item =>
+    (part.jin && item.jin === part.jin) ||
+    (part.equipment && item.equipment === part.equipment)
+  );
+
+  detailBody.innerHTML = `
+    ${section("Spare Part", [
+      ["Spare JIN", part.spareJin],
+      ["Spare #", part.spareNumber],
+      ["Item", part.item],
+      ["Description", part.description],
+      ["Critical", part.critical],
+      ["Manufacturer", part.manufacturer],
+      ["Part Number", part.partNumber],
+      ["Supplier", part.supplier]
+    ])}
+
+    ${section("Inventory", [
+      ["Storage Location", part.storageLocation],
+      ["On Hand", part.onHand],
+      ["Minimum Stock", part.minStock],
+      ["Order Quantity", part.orderQty],
+      ["Status", part.status],
+      ["Count Date", part.countDate],
+      ["Qty on Equipment", part.qtyOnEquip]
+    ])}
+
+    ${section("Purchasing", [
+      ["Price Each", part.priceEach],
+      ["Units", part.units],
+      ["Qty / Pack", part.qtyPack],
+      ["Price / Pack", part.pricePack]
+    ])}
+
+    ${section("Related Equipment", [
+      ["Equipment", part.equipment],
+      ["JIN", part.jin],
+      ["Area", equipment?.area],
+      ["Floor", equipment?.floor]
+    ])}
+
+    <div class="buttons">
+      ${part.link ? `<a class="btn success-btn" href="${escapeHtml(part.link)}" target="_blank" rel="noopener noreferrer">🔗 View / Buy Part</a>` : ""}
+      ${equipment ? '<button id="sparePartEquipmentButton" class="btn secondary" type="button">🔧 View Equipment</button>' : ""}
+    </div>
+  `;
+
+  const equipmentButton = document.getElementById("sparePartEquipmentButton");
+  if (equipmentButton) {
+    equipmentButton.addEventListener("click", () => openEquipmentDetail(equipment));
+  }
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
 }
 
 
@@ -3336,6 +3587,10 @@ documentsReleaseFilter.addEventListener("change", renderDocuments);
 pmSearch.addEventListener("input", renderPM);
 pmEquipmentFilter.addEventListener("change", renderPM);
 pmStatusFilter.addEventListener("change", renderPM);
+
+sparePartsSearch.addEventListener("input", renderSpareParts);
+sparePartsStockFilter.addEventListener("change", renderSpareParts);
+sparePartsEquipmentFilter.addEventListener("change", renderSpareParts);
 
 tccCategoryFilter.addEventListener("change", renderTroubleshooting);
 
