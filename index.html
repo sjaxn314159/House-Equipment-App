@@ -532,6 +532,88 @@
 
 
     /* -----------------------------------------------------------------------
+       V17 ELECTRICAL SYSTEM
+       ----------------------------------------------------------------------- */
+    .electrical-mode {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px 12px 0;
+    }
+
+    .electrical-mode-btn {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      min-height: 42px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .electrical-mode-btn.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+    }
+
+    .breaker-card {
+      border-left: 5px solid var(--blue2);
+    }
+
+    .breaker-card .breaker-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .breaker-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e7f0fb;
+      font-size: 22px;
+      flex: none;
+    }
+
+    .electrical-device-row {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px;
+      margin-bottom: 8px;
+      background: #f8fafc;
+      cursor: pointer;
+    }
+
+    .electrical-device-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .electrical-device-title {
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .electrical-device-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .electrical-action {
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    .protection-tag {
+      background: #e4f3ea;
+      color: #11663d;
+    }
+
+    /* -----------------------------------------------------------------------
        V6 HOME SCREEN
        Mirrors the card-based navigation used by the House Guide app.
        ----------------------------------------------------------------------- */
@@ -830,6 +912,29 @@
       </div>
     </div>
 
+    <div id="electricalHeader" style="display:none;">
+      <input
+        id="electricalSearch"
+        class="search"
+        type="search"
+        placeholder="Search JIN, device, room, panel, or breaker..."
+      >
+
+      <div class="filters">
+        <select id="electricalFloorFilter">
+          <option value="">All Floors</option>
+        </select>
+
+        <select id="electricalPanelFilter">
+          <option value="">All Panels</option>
+        </select>
+
+        <select id="electricalAreaFilter">
+          <option value="">All Areas / Rooms</option>
+        </select>
+      </div>
+    </div>
+
     <div id="troubleshootingHeader" style="display:none;">
       <select id="tccCategoryFilter" class="search">
         <option value="">All Categories</option>
@@ -895,6 +1000,16 @@
         </div>
       </button>
 
+      <button class="home-card" type="button" data-home-view="electrical">
+        <div class="home-card-title">
+          <span class="home-card-icon">⚡</span>
+          <span>Electrical System</span>
+        </div>
+        <div class="home-card-description">
+          Find switches and outlets by JIN, or see everything powered by each breaker.
+        </div>
+      </button>
+
       <button class="home-card" type="button" data-home-view="troubleshooting">
         <div class="home-card-title">
           <span class="home-card-icon">🔎</span>
@@ -950,6 +1065,20 @@
   <div id="sparePartsView" class="view">
     <div id="sparePartsSummary" class="summary"></div>
     <div id="sparePartsCards" class="cards"></div>
+  </div>
+
+  <div id="electricalView" class="view">
+    <div class="electrical-mode">
+      <button id="electricalBreakerMode" class="electrical-mode-btn active" type="button">
+        ⚡ Breakers
+      </button>
+      <button id="electricalDeviceMode" class="electrical-mode-btn" type="button">
+        ⌁ Devices
+      </button>
+    </div>
+
+    <div id="electricalSummary" class="summary"></div>
+    <div id="electricalCards" class="cards"></div>
   </div>
 
   <!-- TCC / TROUBLESHOOTING VIEW -->
@@ -1295,7 +1424,9 @@ let allMaintenance = [];
 let allDocuments = [];
 let allPM = [];
 let allSpareParts = [];
+let allElectrical = [];
 let allTroubleshooting = [];
+let electricalMode = "breakers";
 
 
 const equipmentTab = document.getElementById("equipmentTab");
@@ -1365,6 +1496,17 @@ const sparePartsStockFilter = document.getElementById("sparePartsStockFilter");
 const sparePartsEquipmentFilter = document.getElementById("sparePartsEquipmentFilter");
 const sparePartsSummary = document.getElementById("sparePartsSummary");
 const sparePartsCards = document.getElementById("sparePartsCards");
+
+const electricalHeader = document.getElementById("electricalHeader");
+const electricalView = document.getElementById("electricalView");
+const electricalSearch = document.getElementById("electricalSearch");
+const electricalFloorFilter = document.getElementById("electricalFloorFilter");
+const electricalPanelFilter = document.getElementById("electricalPanelFilter");
+const electricalAreaFilter = document.getElementById("electricalAreaFilter");
+const electricalSummary = document.getElementById("electricalSummary");
+const electricalCards = document.getElementById("electricalCards");
+const electricalBreakerMode = document.getElementById("electricalBreakerMode");
+const electricalDeviceMode = document.getElementById("electricalDeviceMode");
 
 const tccCategoryFilter = document.getElementById("tccCategoryFilter");
 const tccSummary = document.getElementById("tccSummary");
@@ -1462,6 +1604,7 @@ async function loadData() {
     allDocuments = data.documents || [];
     allPM = data.pm || [];
     allSpareParts = data.spareParts || [];
+    allElectrical = data.electrical || [];
     allTroubleshooting = data.troubleshooting || [];
 
     loading.style.display = "none";
@@ -1470,6 +1613,7 @@ async function loadData() {
     buildMaintenanceEquipmentLists();
     buildPMLists();
     buildSparePartsLists();
+    buildElectricalFilters();
     buildTroubleshootingCategories();
     buildTCCFormLists();
 
@@ -1478,6 +1622,7 @@ async function loadData() {
     renderDocuments();
     renderPM();
     renderSpareParts();
+    renderElectrical();
     renderTroubleshooting();
 
   } catch (err) {
@@ -1502,6 +1647,7 @@ function switchView(viewName) {
   const documentsActive = viewName === "documents";
   const pmActive = viewName === "pm";
   const sparePartsActive = viewName === "spareParts";
+  const electricalActive = viewName === "electrical";
   const troubleshootingActive = viewName === "troubleshooting";
 
   // Keep the original nav button state logic for compatibility even though
@@ -1516,6 +1662,7 @@ function switchView(viewName) {
   documentsHeader.style.display = documentsActive ? "block" : "none";
   pmHeader.style.display = pmActive ? "block" : "none";
   sparePartsHeader.style.display = sparePartsActive ? "block" : "none";
+  electricalHeader.style.display = electricalActive ? "block" : "none";
   troubleshootingHeader.style.display = troubleshootingActive ? "block" : "none";
 
   homeView.classList.toggle("active", homeActive);
@@ -1524,6 +1671,7 @@ function switchView(viewName) {
   documentsView.classList.toggle("active", documentsActive);
   pmView.classList.toggle("active", pmActive);
   sparePartsView.classList.toggle("active", sparePartsActive);
+  electricalView.classList.toggle("active", electricalActive);
   troubleshootingView.classList.toggle("active", troubleshootingActive);
 
   const titles = {
@@ -1533,6 +1681,7 @@ function switchView(viewName) {
     documents: "Documents",
     pm: "Preventive Maintenance",
     spareParts: "Spare Parts",
+    electrical: "Electrical System",
     troubleshooting: "Troubleshooting Guide"
   };
 
@@ -2163,6 +2312,325 @@ function buildTCCFormLists() {
     tccFormEquipment.appendChild(option);
   });
 
+}
+
+
+// ---------------------------------------------------------------------------
+// V17 ELECTRICAL SYSTEM
+// ---------------------------------------------------------------------------
+
+function buildElectricalFilters() {
+  electricalFloorFilter.innerHTML = '<option value="">All Floors</option>';
+  electricalPanelFilter.innerHTML = '<option value="">All Panels</option>';
+  electricalAreaFilter.innerHTML = '<option value="">All Areas / Rooms</option>';
+
+  fillSelect(electricalFloorFilter, uniqueValues(allElectrical, "floor"));
+  fillSelect(electricalPanelFilter, uniqueValues(allElectrical, "panel"));
+  fillSelect(electricalAreaFilter, uniqueValues(allElectrical, "area"));
+}
+
+
+function filteredElectricalItems() {
+  const query = electricalSearch.value.trim().toLowerCase();
+  const floor = electricalFloorFilter.value;
+  const panel = electricalPanelFilter.value;
+  const area = electricalAreaFilter.value;
+
+  return allElectrical.filter(item => {
+    if (floor && item.floor !== floor) return false;
+    if (panel && item.panel !== panel) return false;
+    if (area && item.area !== area) return false;
+
+    if (query) {
+      const text = [
+        item.item,
+        item.jin,
+        item.device,
+        item.type,
+        item.floor,
+        item.area,
+        item.panel,
+        item.breaker,
+        item.controlledBy,
+        item.protection,
+        item.notes
+      ].join(" ").toLowerCase();
+
+      if (!text.includes(query)) return false;
+    }
+
+    return true;
+  });
+}
+
+
+function renderElectrical() {
+  const items = filteredElectricalItems();
+
+  electricalBreakerMode.classList.toggle("active", electricalMode === "breakers");
+  electricalDeviceMode.classList.toggle("active", electricalMode === "devices");
+  electricalCards.innerHTML = "";
+
+  if (electricalMode === "devices") {
+    renderElectricalDevices(items);
+    return;
+  }
+
+  renderElectricalBreakers(items);
+}
+
+
+function renderElectricalBreakers(items) {
+  const groups = new Map();
+  let unmapped = 0;
+
+  items.forEach(item => {
+    if (!item.breaker) {
+      unmapped++;
+      return;
+    }
+
+    const key = `${item.panel || "Panel ?"}|||${item.breaker}`;
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        panel: item.panel || "",
+        breaker: item.breaker,
+        devices: []
+      });
+    }
+
+    groups.get(key).devices.push(item);
+  });
+
+  const breakers = [...groups.values()].sort((a, b) =>
+    compareText(a.panel, b.panel) ||
+    compareText(a.breaker, b.breaker)
+  );
+
+  electricalSummary.textContent =
+    `${breakers.length} breaker${breakers.length === 1 ? "" : "s"} • ` +
+    `${items.length} mapped item${items.length === 1 ? "" : "s"}` +
+    (unmapped ? ` • ${unmapped} without breaker assignment` : "");
+
+  if (!breakers.length) {
+    electricalCards.innerHTML =
+      '<div class="empty">No mapped breakers match those filters.</div>';
+    return;
+  }
+
+  breakers.forEach(group => {
+    const card = document.createElement("div");
+    card.className = "card breaker-card";
+
+    const areas = [...new Set(group.devices.map(x => x.area).filter(Boolean))]
+      .sort(compareText);
+
+    const protections = [...new Set(
+      group.devices.map(x => x.protection).filter(Boolean)
+    )];
+
+    card.innerHTML = `
+      <div class="breaker-title-row">
+        <div class="breaker-icon">⚡</div>
+        <div style="min-width:0;flex:1;">
+          <div class="card-title" style="margin-bottom:2px;">
+            ${escapeHtml(group.breaker)}
+          </div>
+          <div class="card-location" style="margin-bottom:0;">
+            ${escapeHtml(
+              [group.panel ? `Panel ${group.panel}` : "", areas.join(", ")]
+                .filter(Boolean)
+                .join(" • ")
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div class="card-info" style="margin-top:10px;">
+        <span class="tag">
+          Powers ${group.devices.length} item${group.devices.length === 1 ? "" : "s"}
+        </span>
+        ${protections.map(value =>
+          `<span class="tag protection-tag">${escapeHtml(value)}</span>`
+        ).join("")}
+      </div>
+    `;
+
+    card.addEventListener("click", () => openBreakerDetail(group));
+    electricalCards.appendChild(card);
+  });
+}
+
+
+function renderElectricalDevices(items) {
+  const sorted = [...items].sort((a, b) =>
+    compareText(a.floor, b.floor) ||
+    compareText(a.area, b.area) ||
+    compareText(a.jin, b.jin)
+  );
+
+  electricalSummary.textContent =
+    `${sorted.length} electrical item${sorted.length === 1 ? "" : "s"}`;
+
+  if (!sorted.length) {
+    electricalCards.innerHTML =
+      '<div class="empty">No electrical items match those filters.</div>';
+    return;
+  }
+
+  sorted.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-title">
+        ${escapeHtml(
+          [item.jin, item.device || item.item]
+            .filter(Boolean)
+            .join(" — ")
+        )}
+      </div>
+
+      <div class="card-location">
+        ${escapeHtml(
+          [item.type, item.floor, item.area]
+            .filter(Boolean)
+            .join(" • ")
+        )}
+      </div>
+
+      <div class="card-info">
+        ${item.panel ? `<span class="tag">Panel ${escapeHtml(item.panel)}</span>` : ""}
+        ${item.breaker ? `<span class="tag">Breaker ${escapeHtml(item.breaker)}</span>` : ""}
+        ${item.protection ? `<span class="tag protection-tag">${escapeHtml(item.protection)}</span>` : ""}
+      </div>
+    `;
+
+    card.addEventListener("click", () => openElectricalDeviceDetail(item));
+    electricalCards.appendChild(card);
+  });
+}
+
+
+function openBreakerDetail(group) {
+  modalTitle.textContent =
+    `${group.breaker}${group.panel ? ` — Panel ${group.panel}` : ""}`;
+
+  const devices = [...group.devices].sort((a, b) =>
+    compareText(a.area, b.area) ||
+    compareText(a.jin, b.jin)
+  );
+
+  const areaText = [...new Set(devices.map(x => x.area).filter(Boolean))]
+    .sort(compareText)
+    .join(", ");
+
+  const protectionText = [...new Set(
+    devices.map(x => x.protection).filter(Boolean)
+  )].join(", ");
+
+  detailBody.innerHTML = `
+    ${section("Breaker", [
+      ["Panel", group.panel],
+      ["Breaker", group.breaker],
+      ["Area / Room", areaText],
+      ["GFCI / AFCI", protectionText],
+      ["Items Powered", String(devices.length)]
+    ])}
+
+    <div class="section">
+      <h3>What This Breaker Powers</h3>
+      <div>
+        ${devices.map(item => `
+          <div
+            class="electrical-device-row"
+            data-electrical-jin="${escapeHtml(item.jin)}"
+          >
+            <div class="electrical-device-title">
+              ${escapeHtml(
+                [item.jin, item.device || item.item]
+                  .filter(Boolean)
+                  .join(" — ")
+              )}
+            </div>
+            <div class="electrical-device-meta">
+              ${escapeHtml(
+                [item.type, item.area, item.controlledBy ? `Controlled by ${item.controlledBy}` : ""]
+                  .filter(Boolean)
+                  .join(" • ")
+              )}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+
+  detailBody.querySelectorAll("[data-electrical-jin]").forEach(row => {
+    row.addEventListener("click", () => {
+      const jin = row.dataset.electricalJin;
+      const item = allElectrical.find(x => String(x.jin) === String(jin));
+      if (item) openElectricalDeviceDetail(item);
+    });
+  });
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+
+function openElectricalDeviceDetail(item) {
+  modalTitle.textContent =
+    [item.jin, item.device || item.item]
+      .filter(Boolean)
+      .join(" — ") ||
+    "Electrical Device";
+
+  detailBody.innerHTML = `
+    ${section("Device", [
+      ["JIN", item.jin],
+      ["Device", item.device],
+      ["Type", item.type],
+      ["Floor", item.floor],
+      ["Area / Room", item.area],
+      ["Panel", item.panel],
+      ["Breaker", item.breaker],
+      ["Controlled By", item.controlledBy],
+      ["GFCI / AFCI", item.protection],
+      ["Notes", item.notes]
+    ])}
+
+    ${item.breaker ? `
+      <button
+        id="showBreakerFromDevice"
+        class="btn electrical-action"
+        type="button"
+      >
+        ⚡ Show Everything on This Breaker
+      </button>
+    ` : ""}
+  `;
+
+  const breakerButton = detailBody.querySelector("#showBreakerFromDevice");
+
+  if (breakerButton) {
+    breakerButton.addEventListener("click", () => {
+      const devices = allElectrical.filter(x =>
+        String(x.panel || "") === String(item.panel || "") &&
+        String(x.breaker || "") === String(item.breaker || "")
+      );
+
+      openBreakerDetail({
+        panel: item.panel || "",
+        breaker: item.breaker,
+        devices: devices
+      });
+    });
+  }
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
 }
 
 
@@ -3710,6 +4178,21 @@ pmStatusFilter.addEventListener("change", renderPM);
 sparePartsSearch.addEventListener("input", renderSpareParts);
 sparePartsStockFilter.addEventListener("change", renderSpareParts);
 sparePartsEquipmentFilter.addEventListener("change", renderSpareParts);
+
+electricalSearch.addEventListener("input", renderElectrical);
+electricalFloorFilter.addEventListener("change", renderElectrical);
+electricalPanelFilter.addEventListener("change", renderElectrical);
+electricalAreaFilter.addEventListener("change", renderElectrical);
+
+electricalBreakerMode.addEventListener("click", () => {
+  electricalMode = "breakers";
+  renderElectrical();
+});
+
+electricalDeviceMode.addEventListener("click", () => {
+  electricalMode = "devices";
+  renderElectrical();
+});
 
 tccCategoryFilter.addEventListener("change", renderTroubleshooting);
 
