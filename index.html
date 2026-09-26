@@ -1425,6 +1425,7 @@ let allDocuments = [];
 let allPM = [];
 let allSpareParts = [];
 let allElectrical = [];
+let electricalDiagnostics = { sheetFound: false, recordCount: 0 };
 let allTroubleshooting = [];
 let electricalMode = "breakers";
 
@@ -1604,7 +1605,11 @@ async function loadData() {
     allDocuments = data.documents || [];
     allPM = data.pm || [];
     allSpareParts = data.spareParts || [];
-    allElectrical = data.electrical || [];
+    allElectrical = Array.isArray(data.electrical) ? data.electrical : [];
+    electricalDiagnostics = data.electricalDiagnostics || {
+      sheetFound: false,
+      recordCount: allElectrical.length
+    };
     allTroubleshooting = data.troubleshooting || [];
 
     loading.style.display = "none";
@@ -2370,6 +2375,24 @@ function renderElectrical() {
   electricalBreakerMode.classList.toggle("active", electricalMode === "breakers");
   electricalDeviceMode.classList.toggle("active", electricalMode === "devices");
   electricalCards.innerHTML = "";
+
+  // Always expose what the browser actually received. This makes an API/sheet
+  // problem immediately obvious instead of presenting an unexplained blank page.
+  const loadedCount = allElectrical.length;
+  if (!loadedCount) {
+    const sheetMessage = electricalDiagnostics && electricalDiagnostics.sheetFound
+      ? "Electrical Tracking sheet found, but 0 records were returned."
+      : "Electrical Tracking sheet was not found by Apps Script.";
+
+    electricalSummary.textContent = `0 electrical devices loaded`;
+    electricalCards.innerHTML = `
+      <div class="empty">
+        <strong>No electrical devices loaded.</strong><br><br>
+        ${escapeHtml(sheetMessage)}
+      </div>
+    `;
+    return;
+  }
 
   if (electricalMode === "devices") {
     renderElectricalDevices(items);
