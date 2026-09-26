@@ -2382,20 +2382,18 @@ function renderElectrical() {
 
 function renderElectricalBreakers(items) {
   const groups = new Map();
-  let unmapped = 0;
 
   items.forEach(item => {
-    if (!item.breaker) {
-      unmapped++;
-      return;
-    }
-
-    const key = `${item.panel || "Panel ?"}|||${item.breaker}`;
+    // Keep devices without a breaker visible instead of silently dropping them.
+    const panel = item.panel || "";
+    const breaker = item.breaker || "Unassigned";
+    const key = `${panel || "Panel ?"}|||${breaker}`;
 
     if (!groups.has(key)) {
       groups.set(key, {
-        panel: item.panel || "",
-        breaker: item.breaker,
+        panel,
+        breaker,
+        unassigned: !item.breaker,
         devices: []
       });
     }
@@ -2403,19 +2401,25 @@ function renderElectricalBreakers(items) {
     groups.get(key).devices.push(item);
   });
 
-  const breakers = [...groups.values()].sort((a, b) =>
-    compareText(a.panel, b.panel) ||
-    compareText(a.breaker, b.breaker)
-  );
+  const breakers = [...groups.values()].sort((a, b) => {
+    if (a.unassigned !== b.unassigned) return a.unassigned ? 1 : -1;
+    return (
+      compareText(a.panel, b.panel) ||
+      compareText(a.breaker, b.breaker)
+    );
+  });
+
+  const mappedCount = items.filter(item => item.breaker).length;
+  const unassignedCount = items.length - mappedCount;
 
   electricalSummary.textContent =
-    `${breakers.length} breaker${breakers.length === 1 ? "" : "s"} • ` +
-    `${items.length} mapped item${items.length === 1 ? "" : "s"}` +
-    (unmapped ? ` • ${unmapped} without breaker assignment` : "");
+    `${breakers.filter(x => !x.unassigned).length} breaker${breakers.filter(x => !x.unassigned).length === 1 ? "" : "s"} • ` +
+    `${items.length} electrical item${items.length === 1 ? "" : "s"}` +
+    (unassignedCount ? ` • ${unassignedCount} without breaker assignment` : "");
 
   if (!breakers.length) {
     electricalCards.innerHTML =
-      '<div class="empty">No mapped breakers match those filters.</div>';
+      '<div class="empty">No electrical items match those filters.</div>';
     return;
   }
 
@@ -2423,16 +2427,21 @@ function renderElectricalBreakers(items) {
     const card = document.createElement("div");
     card.className = "card breaker-card";
 
-    const areas = [...new Set(group.devices.map(x => x.area).filter(Boolean))]
+    const devices = [...group.devices].sort((a, b) =>
+      compareText(a.area, b.area) ||
+      compareText(a.jin, b.jin)
+    );
+
+    const areas = [...new Set(devices.map(x => x.area).filter(Boolean))]
       .sort(compareText);
 
     const protections = [...new Set(
-      group.devices.map(x => x.protection).filter(Boolean)
+      devices.map(x => x.protection).filter(Boolean)
     )];
 
     card.innerHTML = `
       <div class="breaker-title-row">
-        <div class="breaker-icon">⚡</div>
+        <div class="breaker-icon">${group.unassigned ? "❓" : "⚡"}</div>
         <div style="min-width:0;flex:1;">
           <div class="card-title" style="margin-bottom:2px;">
             ${escapeHtml(group.breaker)}
@@ -2449,15 +2458,53 @@ function renderElectricalBreakers(items) {
 
       <div class="card-info" style="margin-top:10px;">
         <span class="tag">
-          Powers ${group.devices.length} item${group.devices.length === 1 ? "" : "s"}
+          Powers ${devices.length} item${devices.length === 1 ? "" : "s"}
         </span>
         ${protections.map(value =>
           `<span class="tag protection-tag">${escapeHtml(value)}</span>`
         ).join("")}
       </div>
+
+      <div class="breaker-powered-list" style="margin-top:12px;">
+        ${devices.map(item => `
+          <button
+            type="button"
+            class="electrical-device-row breaker-device-button"
+            data-breaker-device-jin="${escapeHtml(item.jin)}"
+            style="width:100%;text-align:left;border:0;background:transparent;cursor:pointer;"
+          >
+            <div class="electrical-device-title">
+              ${escapeHtml(
+                [item.jin, item.device || item.item]
+                  .filter(Boolean)
+                  .join(" — ")
+              )}
+            </div>
+            <div class="electrical-device-meta">
+              ${escapeHtml(
+                [item.type, item.area, item.controlledBy ? `Controlled by ${item.controlledBy}` : ""]
+                  .filter(Boolean)
+                  .join(" • ")
+              )}
+            </div>
+          </button>
+        `).join("")}
+      </div>
     `;
 
+    // Clicking the breaker header/card still opens the breaker summary.
     card.addEventListener("click", () => openBreakerDetail(group));
+
+    // Clicking a powered device opens that device directly without also opening the breaker.
+    card.querySelectorAll("[data-breaker-device-jin]").forEach(row => {
+      row.addEventListener("click", event => {
+        event.stopPropagation();
+        const jin = row.dataset.breakerDeviceJin;
+        const item = allElectrical.find(x => String(x.jin) === String(jin));
+        if (item) openElectricalDeviceDetail(item);
+      });
+    });
+
     electricalCards.appendChild(card);
   });
 }
