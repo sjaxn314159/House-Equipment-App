@@ -1,6 +1,7 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V14
+  HOUSE EQUIPMENT APP — INDEX V15
+  V15 reorganizes Equipment-detail controls into a uniform 3×2 View/Action grid and adds an Equipment-specific Spare Parts button.
   V14 adds a dedicated Spare Parts section with search, stock filters, reorder visibility, and part detail screens.
   V13 adds Equipment-detail Add PM behavior while reusing the existing backend endpoint.
   V12 adds a Create TCC button to each Equipment detail screen.
@@ -434,6 +435,49 @@
       background: var(--success);
     }
 
+    /* V15: Equipment-detail controls stay in a predictable 3 x 2 grid. */
+    .equipment-button-section {
+      margin-top: 18px;
+    }
+
+    .equipment-button-label {
+      margin: 12px 0 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .equipment-button-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .equipment-button-grid .btn {
+      width: 100%;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 700;
+      line-height: 1.2;
+      padding: 10px 8px;
+    }
+
+    .equipment-folder-link {
+      display: inline-block;
+      color: var(--blue2);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .equipment-folder-link:hover {
+      text-decoration: underline;
+    }
+
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -616,6 +660,17 @@
 
       .field.full {
         grid-column: auto;
+      }
+
+      .equipment-button-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .equipment-button-grid .btn {
+        min-height: 52px;
+        font-size: 13px;
+        padding: 9px 6px;
       }
 
       .modal-panel {
@@ -2985,21 +3040,54 @@ function showDocumentsForEquipmentName(equipmentName) {
 }
 
 
+function showSparePartsForEquipment(item) {
+
+  closeDetail();
+
+  // Reset the normal Spare Parts filters, then narrow the list to this item.
+  sparePartsStockFilter.value = "all";
+  sparePartsSearch.value = "";
+  sparePartsEquipmentFilter.value = "";
+
+  const equipmentName = String(item?.equipment || "").trim();
+  const equipmentJin = String(item?.jin || item?.id || "").trim();
+
+  // Prefer the dedicated Equipment field because it gives an exact match.
+  // If the workbook does not have that value populated for this equipment,
+  // fall back to searching the JIN, which is also indexed by renderSpareParts().
+  const hasEquipmentOption = [...sparePartsEquipmentFilter.options]
+    .some(option => option.value === equipmentName);
+
+  if (equipmentName && hasEquipmentOption) {
+    sparePartsEquipmentFilter.value = equipmentName;
+  } else {
+    sparePartsSearch.value = equipmentJin || equipmentName;
+  }
+
+  switchView("spareParts");
+  renderSpareParts();
+
+}
+
+
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
     item.equipment || "Equipment";
 
-  const folderButton = item.folder
+  const folderLink = item.folder
     ? `
-      <a
-        class="btn"
-        href="${escapeHtml(item.folder)}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        📁 Open Equipment Folder
-      </a>
+      <div class="detail-row">
+        <div class="label">Equipment Folder</div>
+        <div class="value">
+          <a
+            class="equipment-folder-link"
+            href="${escapeHtml(item.folder)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >📁 Open Folder</a>
+        </div>
+      </div>
     `
     : "";
 
@@ -3040,49 +3128,67 @@ function openEquipmentDetail(item) {
       ["Details", item.details]
     ])}
 
-    <div class="buttons">
+    ${folderLink}
 
-      <button
-        id="equipmentMaintenanceHistoryButton"
-        class="btn"
-        type="button"
-      >
-        🧰 View Maintenance History
-      </button>
+    <div class="equipment-button-section">
 
-      <button
-        id="equipmentAddMaintenanceButton"
-        class="btn success-btn"
-        type="button"
-      >
-        ＋ Add Maintenance Log
-      </button>
+      <div class="equipment-button-label">View</div>
+      <div class="equipment-button-grid">
 
-      <button
-        id="equipmentRelatedDocumentsButton"
-        class="btn"
-        type="button"
-      >
-        📚 Related Documents
-      </button>
+        <button
+          id="equipmentMaintenanceHistoryButton"
+          class="btn secondary"
+          type="button"
+        >
+          🧰 Maint History
+        </button>
 
-      <button
-        id="equipmentCreateTCCButton"
-        class="btn"
-        type="button"
-      >
-        🔎 Create TCC
-      </button>
+        <button
+          id="equipmentRelatedDocumentsButton"
+          class="btn secondary"
+          type="button"
+        >
+          📚 Related Docs
+        </button>
 
-      <button
-        id="equipmentAddPMButton"
-        class="btn success-btn"
-        type="button"
-      >
-        ＋ Add PM
-      </button>
+        <button
+          id="equipmentSparePartsButton"
+          class="btn secondary"
+          type="button"
+        >
+          📦 Spare Parts
+        </button>
 
-      ${folderButton}
+      </div>
+
+      <div class="equipment-button-label">Actions</div>
+      <div class="equipment-button-grid">
+
+        <button
+          id="equipmentAddMaintenanceButton"
+          class="btn success-btn"
+          type="button"
+        >
+          ＋ Add Maint Log
+        </button>
+
+        <button
+          id="equipmentAddPMButton"
+          class="btn success-btn"
+          type="button"
+        >
+          ＋ Add PM
+        </button>
+
+        <button
+          id="equipmentCreateTCCButton"
+          class="btn success-btn"
+          type="button"
+        >
+          ＋ Create TCC
+        </button>
+
+      </div>
 
     </div>
 
@@ -3098,32 +3204,35 @@ function openEquipmentDetail(item) {
   const historyButton =
     document.getElementById("equipmentMaintenanceHistoryButton");
 
-  const addLogButton =
-    document.getElementById("equipmentAddMaintenanceButton");
-
   const documentsButton =
     document.getElementById("equipmentRelatedDocumentsButton");
 
-  const createTCCButton =
-    document.getElementById("equipmentCreateTCCButton");
+  const sparePartsButton =
+    document.getElementById("equipmentSparePartsButton");
+
+  const addLogButton =
+    document.getElementById("equipmentAddMaintenanceButton");
 
   const addPMButton =
     document.getElementById("equipmentAddPMButton");
 
+  const createTCCButton =
+    document.getElementById("equipmentCreateTCCButton");
+
   historyButton.addEventListener("click", () => {
     showMaintenanceForEquipment(equipmentKey);
-  });
-
-  addLogButton.addEventListener("click", () => {
-    openNewLogForEquipment(equipmentKey);
   });
 
   documentsButton.addEventListener("click", () => {
     showDocumentsForEquipmentName(item.equipment || equipmentKey);
   });
 
-  createTCCButton.addEventListener("click", () => {
-    openNewTCC(getTCCEquipmentDisplay(item));
+  sparePartsButton.addEventListener("click", () => {
+    showSparePartsForEquipment(item);
+  });
+
+  addLogButton.addEventListener("click", () => {
+    openNewLogForEquipment(equipmentKey);
   });
 
   addPMButton.addEventListener("click", () => {
@@ -3131,6 +3240,10 @@ function openEquipmentDetail(item) {
     const pmJin = item.jin || item.id || item.itemNumber || "";
     modal.classList.remove("show");
     openNewPM(pmJin);
+  });
+
+  createTCCButton.addEventListener("click", () => {
+    openNewTCC(getTCCEquipmentDisplay(item));
   });
 
   modal.classList.add("show");
