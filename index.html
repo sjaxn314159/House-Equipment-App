@@ -1,6 +1,7 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V15
+  HOUSE EQUIPMENT APP — INDEX V16
+  V16 restores the Equipment Folder as a fourth View button; View controls are a 2×2 grid and Actions remain a 1×3 grid.
   V15 reorganizes Equipment-detail controls into a uniform 3×2 View/Action grid and adds an Equipment-specific Spare Parts button.
   V14 adds a dedicated Spare Parts section with search, stock filters, reorder visibility, and part detail screens.
   V13 adds Equipment-detail Add PM behavior while reusing the existing backend endpoint.
@@ -435,7 +436,7 @@
       background: var(--success);
     }
 
-    /* V15: Equipment-detail controls stay in a predictable 3 x 2 grid. */
+    /* V16: Equipment-detail controls use a 2 x 2 View grid and 1 x 3 Action grid. */
     .equipment-button-section {
       margin-top: 18px;
     }
@@ -453,6 +454,10 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 9px;
+    }
+
+    .equipment-button-grid.view-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .equipment-button-grid .btn {
@@ -3075,22 +3080,6 @@ function openEquipmentDetail(item) {
   modalTitle.textContent =
     item.equipment || "Equipment";
 
-  const folderLink = item.folder
-    ? `
-      <div class="detail-row">
-        <div class="label">Equipment Folder</div>
-        <div class="value">
-          <a
-            class="equipment-folder-link"
-            href="${escapeHtml(item.folder)}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >📁 Open Folder</a>
-        </div>
-      </div>
-    `
-    : "";
-
   // Maintenance logs historically use Equipment ID.
   // Fall back to JIN only if the Equipment ID is blank.
   const equipmentKey = item.id || item.jin || "";
@@ -3128,12 +3117,10 @@ function openEquipmentDetail(item) {
       ["Details", item.details]
     ])}
 
-    ${folderLink}
-
     <div class="equipment-button-section">
 
       <div class="equipment-button-label">View</div>
-      <div class="equipment-button-grid">
+      <div class="equipment-button-grid view-grid">
 
         <button
           id="equipmentMaintenanceHistoryButton"
@@ -3157,6 +3144,16 @@ function openEquipmentDetail(item) {
           type="button"
         >
           📦 Spare Parts
+        </button>
+
+        <button
+          id="equipmentFolderButton"
+          class="btn secondary"
+          type="button"
+          ${item.folder ? "" : "disabled"}
+          title="${item.folder ? "Open equipment folder" : "No equipment folder link is configured"}"
+        >
+          📁 Equipment Folder
         </button>
 
       </div>
@@ -3210,6 +3207,9 @@ function openEquipmentDetail(item) {
   const sparePartsButton =
     document.getElementById("equipmentSparePartsButton");
 
+  const folderButton =
+    document.getElementById("equipmentFolderButton");
+
   const addLogButton =
     document.getElementById("equipmentAddMaintenanceButton");
 
@@ -3230,6 +3230,12 @@ function openEquipmentDetail(item) {
   sparePartsButton.addEventListener("click", () => {
     showSparePartsForEquipment(item);
   });
+
+  if (item.folder) {
+    folderButton.addEventListener("click", () => {
+      window.open(item.folder, "_blank", "noopener,noreferrer");
+    });
+  }
 
   addLogButton.addEventListener("click", () => {
     openNewLogForEquipment(equipmentKey);
