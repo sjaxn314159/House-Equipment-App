@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V20
-  V20 adds the Electrical Tracking Powers field (Column L) to search, lists, and device details.
+  HOUSE EQUIPMENT APP — INDEX V22
+  V22 adds a View TCCs button to Equipment details and filters Troubleshooting to the selected equipment.
+   V21 adds Switch/Outlet and JIN + Device Name equipment-title support.
+   V20 adds the Electrical Tracking Powers field (Column L) to search, lists, and device details.
    V19 adds robust Electrical Tracking parsing and diagnostics.
    V18 lists devices directly under breaker cards.
    V17 adds the Electrical System section.
@@ -1431,6 +1433,10 @@ let allSpareParts = [];
 let allElectrical = [];
 let electricalDiagnostics = { sheetFound: false, recordCount: 0 };
 let allTroubleshooting = [];
+
+// V22: Optional equipment-specific filter used by the View TCCs button.
+let tccEquipmentFilter = "";
+
 let electricalMode = "breakers";
 
 
@@ -2738,6 +2744,22 @@ function renderTroubleshooting() {
 
   let filtered = allTroubleshooting.filter(item => {
     if (category && item.category !== category) return false;
+
+    if (tccEquipmentFilter) {
+      const storedEquipment = String(item.equipment || "").trim().toLowerCase();
+      const wanted = String(tccEquipmentFilter || "").trim().toLowerCase();
+
+      // TCC Column C normally stores the exact JIN + Equipment display value.
+      // Exact matching is preferred, with a contains fallback for older TCC rows.
+      if (
+        storedEquipment !== wanted &&
+        !storedEquipment.includes(wanted) &&
+        !wanted.includes(storedEquipment)
+      ) {
+        return false;
+      }
+    }
+
     return Boolean(item.trouble);
   });
 
@@ -2748,15 +2770,22 @@ function renderTroubleshooting() {
   );
 
   const categoryText = category ? ` in ${category}` : "";
+  const equipmentText = tccEquipmentFilter
+    ? ` for ${tccEquipmentFilter}`
+    : "";
 
   tccSummary.textContent =
-    `${filtered.length} trouble${filtered.length === 1 ? "" : "s"}${categoryText}`;
+    `${filtered.length} TCC${filtered.length === 1 ? "" : "s"}${equipmentText}${categoryText}`;
 
   tccCards.innerHTML = "";
 
   if (!filtered.length) {
     tccCards.innerHTML =
-      '<div class="empty">No troubleshooting items match that category.</div>';
+      `<div class="empty">${
+        tccEquipmentFilter
+          ? `No TCCs are recorded for ${escapeHtml(tccEquipmentFilter)}.`
+          : "No troubleshooting items match that category."
+      }</div>`;
     return;
   }
 
@@ -2930,6 +2959,7 @@ async function submitTCCForm(event) {
 
     setTimeout(() => {
       closeNewTCC();
+      tccEquipmentFilter = "";
       switchView("troubleshooting");
     }, 700);
 
@@ -3637,6 +3667,30 @@ function showSparePartsForEquipment(item) {
 }
 
 
+
+// V22: Opens the Troubleshooting section filtered to TCCs for one equipment item.
+function showTCCsForEquipment(item) {
+
+  closeDetail();
+
+  // Reset category so the equipment filter is the only restriction initially.
+  tccCategoryFilter.value = "";
+
+  // TCC Column C is populated from this same display value when Create TCC is
+  // launched from Equipment, so this gives the most reliable match.
+  tccEquipmentFilter =
+    getTCCEquipmentDisplay(item) ||
+    item.displayTitle ||
+    item.equipment ||
+    item.jin ||
+    item.id ||
+    "";
+
+  switchView("troubleshooting");
+  renderTroubleshooting();
+}
+
+
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
@@ -3719,6 +3773,14 @@ function openEquipmentDetail(item) {
           📁 Equipment Folder
         </button>
 
+        <button
+          id="equipmentViewTCCsButton"
+          class="btn secondary"
+          type="button"
+        >
+          🔎 View TCCs
+        </button>
+
       </div>
 
       <div class="equipment-button-label">Actions</div>
@@ -3773,6 +3835,9 @@ function openEquipmentDetail(item) {
   const folderButton =
     document.getElementById("equipmentFolderButton");
 
+  const viewTCCsButton =
+    document.getElementById("equipmentViewTCCsButton");
+
   const addLogButton =
     document.getElementById("equipmentAddMaintenanceButton");
 
@@ -3799,6 +3864,10 @@ function openEquipmentDetail(item) {
       window.open(item.folder, "_blank", "noopener,noreferrer");
     });
   }
+
+  viewTCCsButton.addEventListener("click", () => {
+    showTCCsForEquipment(item);
+  });
 
   addLogButton.addEventListener("click", () => {
     openNewLogForEquipment(equipmentKey);
