@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V22
-  V22 adds a View TCCs button to Equipment details and filters Troubleshooting to the selected equipment.
+  HOUSE EQUIPMENT APP — INDEX V23
+  V23 refreshes the visual design to match Home Dashboard: gradient header, load-status pill, reload button, and refined cards.
+   V22 adds a View TCCs button to Equipment details and filters Troubleshooting to the selected equipment.
    V21 adds Switch/Outlet and JIN + Device Name equipment-title support.
    V20 adds the Electrical Tracking Powers field (Column L) to search, lists, and device details.
    V19 adds robust Electrical Tracking parsing and diagnostics.
@@ -72,13 +73,13 @@
     }
 
     .header {
-      background: var(--blue);
+      background: linear-gradient(145deg, #14283b, #1f4e78);
       color: white;
-      padding: 16px;
+      padding: calc(16px + env(safe-area-inset-top)) 16px 16px;
       position: sticky;
       top: 0;
       z-index: 20;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      box-shadow: 0 5px 18px rgba(20,40,59,.22);
     }
 
     .header h1 {
@@ -776,6 +777,158 @@
         grid-template-columns: 110px 1fr;
       }
     }
+
+    /* V23 — Dashboard-style header and visual polish */
+    .header-brand {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .11em;
+      opacity: .72;
+      margin-bottom: 2px;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+      opacity: .72;
+      margin-top: 3px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: none;
+    }
+
+    .load-status {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .05em;
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.20);
+      color: white;
+      white-space: nowrap;
+    }
+
+    .load-status.ready {
+      background: #dff4e8;
+      border-color: #dff4e8;
+      color: #11663d;
+    }
+
+    .load-status.error-state {
+      background: #ffe4df;
+      border-color: #ffe4df;
+      color: #912018;
+    }
+
+    .refresh-button {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.30);
+      background: rgba(255,255,255,.12);
+      color: white;
+      font-size: 21px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s, transform .15s;
+    }
+
+    .refresh-button:hover {
+      background: rgba(255,255,255,.20);
+    }
+
+    .refresh-button:active {
+      transform: scale(.94);
+    }
+
+    .refresh-button.spinning {
+      animation: v23-spin .8s linear infinite;
+    }
+
+    @keyframes v23-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .home-card,
+    .card,
+    .part-box,
+    .electrical-device-row {
+      box-shadow: 0 2px 10px rgba(20,40,59,.065);
+    }
+
+    .home-card {
+      border-radius: 17px;
+      transition: transform .12s, border-color .12s, box-shadow .12s;
+    }
+
+    .home-card:hover {
+      box-shadow: 0 5px 16px rgba(20,40,59,.10);
+      transform: translateY(-1px);
+    }
+
+    .card {
+      border-radius: 15px;
+      transition: border-color .12s, box-shadow .12s, transform .12s;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 14px rgba(20,40,59,.09);
+      transform: translateY(-1px);
+    }
+
+    .search,
+    .filters select {
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+
+    .search:focus,
+    .filters select:focus,
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: 2px solid rgba(47,117,181,.28);
+      outline-offset: 1px;
+    }
+
+    .btn {
+      transition: transform .10s, filter .10s, box-shadow .10s;
+    }
+
+    .btn:hover {
+      filter: brightness(1.04);
+      box-shadow: 0 3px 9px rgba(20,40,59,.12);
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    @media (max-width: 520px) {
+      .load-status {
+        display: none;
+      }
+
+      .header h1 {
+        font-size: 22px;
+      }
+
+      .header-subtitle {
+        display: none;
+      }
+    }
+
   </style>
 </head>
 
@@ -785,8 +938,17 @@
 
   <div class="header">
     <div class="header-title-row">
-      <h1 id="appTitle">House Equipment</h1>
-      <button id="homeButton" class="home-button" type="button">← Home</button>
+      <div class="header-brand">
+        <div class="header-eyebrow">HOME MANAGEMENT</div>
+        <h1 id="appTitle">House Equipment</h1>
+        <div class="header-subtitle">Equipment, maintenance & home systems</div>
+      </div>
+
+      <div class="header-actions">
+        <span id="loadStatus" class="load-status">LOADING</span>
+        <button id="refreshButton" class="refresh-button" type="button" aria-label="Reload data" title="Reload data">↻</button>
+        <button id="homeButton" class="home-button" type="button">← Home</button>
+      </div>
     </div>
 
     <div class="nav">
@@ -1448,6 +1610,8 @@ const pmTab = document.getElementById("pmTab");
 const homeView = document.getElementById("homeView");
 const homeButton = document.getElementById("homeButton");
 const appTitle = document.getElementById("appTitle");
+const loadStatus = document.getElementById("loadStatus");
+const refreshButton = document.getElementById("refreshButton");
 
 const equipmentHeader = document.getElementById("equipmentHeader");
 const maintenanceHeader = document.getElementById("maintenanceHeader");
@@ -1596,6 +1760,16 @@ const cancelCompletePMButton = document.getElementById("cancelCompletePMButton")
 
 async function loadData() {
 
+  if (loadStatus) {
+    loadStatus.textContent = "LOADING";
+    loadStatus.classList.remove("ready", "error-state");
+  }
+  if (refreshButton) {
+    refreshButton.classList.add("spinning");
+    refreshButton.disabled = true;
+  }
+  errorBox.innerHTML = "";
+
   try {
 
     const response = await fetch(API_URL);
@@ -1640,6 +1814,12 @@ async function loadData() {
     renderElectrical();
     renderTroubleshooting();
 
+    if (loadStatus) {
+      loadStatus.textContent = "UPDATED";
+      loadStatus.classList.add("ready");
+      loadStatus.classList.remove("error-state");
+    }
+
   } catch (err) {
 
     loading.style.display = "none";
@@ -1647,6 +1827,17 @@ async function loadData() {
     errorBox.innerHTML =
       `<div class="error">${escapeHtml(err.message)}</div>`;
 
+    if (loadStatus) {
+      loadStatus.textContent = "ERROR";
+      loadStatus.classList.add("error-state");
+      loadStatus.classList.remove("ready");
+    }
+
+  } finally {
+    if (refreshButton) {
+      refreshButton.classList.remove("spinning");
+      refreshButton.disabled = false;
+    }
   }
 
 }
@@ -4431,6 +4622,12 @@ document.addEventListener("keydown", event => {
 
 });
 
+
+if (refreshButton) {
+  refreshButton.addEventListener("click", () => {
+    loadData();
+  });
+}
 
 loadData();
 
