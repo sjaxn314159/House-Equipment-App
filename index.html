@@ -1,7 +1,11 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V16
-  V16 restores the Equipment Folder as a fourth View button; View controls are a 2×2 grid and Actions remain a 1×3 grid.
+  HOUSE EQUIPMENT APP — INDEX V20
+  V20 adds the Electrical Tracking Powers field (Column L) to search, lists, and device details.
+   V19 adds robust Electrical Tracking parsing and diagnostics.
+   V18 lists devices directly under breaker cards.
+   V17 adds the Electrical System section.
+   V16 restores the Equipment Folder as a fourth View button; View controls are a 2×2 grid and Actions remain a 1×3 grid.
   V15 reorganizes Equipment-detail controls into a uniform 3×2 View/Action grid and adds an Equipment-specific Spare Parts button.
   V14 adds a dedicated Spare Parts section with search, stock filters, reorder visibility, and part detail screens.
   V13 adds Equipment-detail Add PM behavior while reusing the existing backend endpoint.
@@ -2358,7 +2362,8 @@ function filteredElectricalItems() {
         item.breaker,
         item.controlledBy,
         item.protection,
-        item.notes
+        item.notes,
+        item.powers
       ].join(" ").toLowerCase();
 
       if (!text.includes(query)) return false;
@@ -2505,7 +2510,12 @@ function renderElectricalBreakers(items) {
             </div>
             <div class="electrical-device-meta">
               ${escapeHtml(
-                [item.type, item.area, item.controlledBy ? `Controlled by ${item.controlledBy}` : ""]
+                [
+                  item.type,
+                  item.area,
+                  item.controlledBy ? `Controlled by ${item.controlledBy}` : "",
+                  item.powers ? `Powers: ${item.powers}` : ""
+                ]
                   .filter(Boolean)
                   .join(" • ")
               )}
@@ -2570,6 +2580,12 @@ function renderElectricalDevices(items) {
         )}
       </div>
 
+      ${item.powers ? `
+        <div class="small-note" style="margin-bottom:8px;">
+          <strong>Powers:</strong> ${escapeHtml(item.powers)}
+        </div>
+      ` : ""}
+
       <div class="card-info">
         ${item.panel ? `<span class="tag">Panel ${escapeHtml(item.panel)}</span>` : ""}
         ${item.breaker ? `<span class="tag">Breaker ${escapeHtml(item.breaker)}</span>` : ""}
@@ -2626,7 +2642,12 @@ function openBreakerDetail(group) {
             </div>
             <div class="electrical-device-meta">
               ${escapeHtml(
-                [item.type, item.area, item.controlledBy ? `Controlled by ${item.controlledBy}` : ""]
+                [
+                  item.type,
+                  item.area,
+                  item.controlledBy ? `Controlled by ${item.controlledBy}` : "",
+                  item.powers ? `Powers: ${item.powers}` : ""
+                ]
                   .filter(Boolean)
                   .join(" • ")
               )}
@@ -2666,6 +2687,7 @@ function openElectricalDeviceDetail(item) {
       ["Area / Room", item.area],
       ["Panel", item.panel],
       ["Breaker", item.breaker],
+      ["Powers", item.powers],
       ["Controlled By", item.controlledBy],
       ["GFCI / AFCI", item.protection],
       ["Notes", item.notes]
