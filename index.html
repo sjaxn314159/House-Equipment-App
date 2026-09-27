@@ -1851,7 +1851,9 @@ function renderEquipment() {
     if (searchText) {
 
       const text = [
+        item.displayTitle,
         item.equipment,
+        item.switchOutlet,
         item.id,
         item.floor,
         item.area,
@@ -1918,7 +1920,7 @@ function renderEquipment() {
     card.innerHTML = `
 
       <div class="card-title">
-        ${escapeHtml(item.equipment)}
+        ${escapeHtml(item.displayTitle || item.equipment)}
       </div>
 
       <div class="card-location">
@@ -3150,7 +3152,7 @@ function renderPM() {
       const parts = sparePartsForPM(pm);
       const text = [
         pm.id, pm.task, pm.jin, pm.status, pm.frequency,
-        pm.relatedWI, pm.notes, eq?.equipment, eq?.floor, eq?.area,
+        pm.relatedWI, pm.notes, eq?.displayTitle || eq?.equipment, eq?.floor, eq?.area,
         ...parts.flatMap(p => [p.spareJin, p.item, p.manufacturer, p.partNumber])
       ].filter(Boolean).join(" ").toLowerCase();
 
@@ -3185,7 +3187,7 @@ function renderPM() {
       <div class="card-title">${escapeHtml(`${pm.id}: ${pm.task}`)}</div>
       <div class="card-location">
         ${escapeHtml([
-          eq?.equipment,
+          eq?.displayTitle || eq?.equipment,
           eq ? [eq.floor, eq.area].filter(Boolean).join(" / ") : "",
           pm.jin ? `JIN ${pm.jin}` : ""
         ].filter(Boolean).join(" • "))}
@@ -3638,7 +3640,7 @@ function showSparePartsForEquipment(item) {
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
-    item.equipment || "Equipment";
+    item.displayTitle || item.equipment || "Equipment";
 
   // Maintenance logs historically use Equipment ID.
   // Fall back to JIN only if the Equipment ID is blank.
@@ -3667,7 +3669,8 @@ function openEquipmentDetail(item) {
     ${section("Electrical", [
       ["Panel", item.panel],
       ["Breaker", item.breaker],
-      ["Powers", item.powers]
+      ["Powers", item.powers],
+      ["Switch / Outlet", item.switchOutlet]
     ])}
 
     ${section("Maintenance / Reference", [
