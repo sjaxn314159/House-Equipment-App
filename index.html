@@ -1,6 +1,7 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V23
+  HOUSE EQUIPMENT APP — INDEX V24
+  V24 adds Action Items with equipment-linked creation and completion into Maintenance Log.
   V23 refreshes the visual design to match Home Dashboard: gradient header, load-status pill, reload button, and refined cards.
    V22 adds a View TCCs button to Equipment details and filters Troubleshooting to the selected equipment.
    V21 adds Switch/Outlet and JIN + Device Name equipment-title support.
@@ -1138,6 +1139,16 @@
         </div>
       </button>
 
+      <button class="home-card" type="button" data-home-view="actionItems">
+        <div class="home-card-title">
+          <span class="home-card-icon">✅</span>
+          <span>Action Items</span>
+        </div>
+        <div class="home-card-description">
+          Capture small jobs before they get forgotten, then send completed work to Maintenance history.
+        </div>
+      </button>
+
       <button class="home-card" type="button" data-home-view="documents">
         <div class="home-card-title">
           <span class="home-card-icon">📄</span>
@@ -1212,6 +1223,16 @@
     <div id="maintenanceSummary" class="summary"></div>
 
     <div id="maintenanceCards" class="cards"></div>
+  </div>
+
+  <div id="actionItemsView" class="view">
+    <div class="toolbar">
+      <button id="newActionItemButton" class="btn success-btn" type="button">
+        ＋ Add Action Item
+      </button>
+    </div>
+    <div id="actionItemsSummary" class="summary"></div>
+    <div id="actionItemsCards" class="cards"></div>
   </div>
 
   <div id="documentsView" class="view">
@@ -1581,6 +1602,84 @@
 </div>
 
 
+
+  <div id="actionItemFormModal" class="modal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>Add Action Item</h2>
+        <button id="closeActionItemFormModal" class="close" type="button">×</button>
+      </div>
+      <div class="detail-body">
+        <form id="actionItemForm">
+          <div class="field">
+            <label for="actionItemEquipment">Equipment</label>
+            <select id="actionItemEquipment" required></select>
+          </div>
+          <div class="field">
+            <label for="actionItemAction">Action</label>
+            <input id="actionItemAction" type="text" required placeholder="What needs to be done?">
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="actionItemPriority">Priority</label>
+              <select id="actionItemPriority">
+                <option>Low</option>
+                <option selected>Medium</option>
+                <option>High</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="actionItemDueDate">Due Date</label>
+              <input id="actionItemDueDate" type="date">
+            </div>
+          </div>
+          <div class="field">
+            <label for="actionItemNotes">Notes</label>
+            <textarea id="actionItemNotes"></textarea>
+          </div>
+          <div id="actionItemFormMessage"></div>
+          <div class="buttons">
+            <button id="saveActionItemButton" class="btn success-btn" type="submit">Save Action Item</button>
+            <button id="cancelActionItemButton" class="btn secondary" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="completeActionItemModal" class="modal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2 id="completeActionItemTitle">Complete Action Item</h2>
+        <button id="closeCompleteActionItemModal" class="close" type="button">×</button>
+      </div>
+      <div class="detail-body">
+        <form id="completeActionItemForm">
+          <input id="completeActionItemId" type="hidden">
+          <div class="form-grid">
+            <div class="field">
+              <label for="completeActionItemDate">Completion Date</label>
+              <input id="completeActionItemDate" type="date" required>
+            </div>
+            <div class="field">
+              <label for="completeActionItemBy">Performed By</label>
+              <input id="completeActionItemBy" type="text">
+            </div>
+          </div>
+          <div class="field">
+            <label for="completeActionItemNotes">Completion Notes</label>
+            <textarea id="completeActionItemNotes" placeholder="Optional notes about what was done"></textarea>
+          </div>
+          <div id="completeActionItemMessage"></div>
+          <div class="buttons">
+            <button class="btn success-btn" type="submit">Complete + Add to Maintenance</button>
+            <button id="cancelCompleteActionItemButton" class="btn secondary" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 <script>
 
 const API_URL =
@@ -1589,6 +1688,7 @@ const API_URL =
 
 let allEquipment = [];
 let allMaintenance = [];
+let allActionItems = [];
 let allDocuments = [];
 let allPM = [];
 let allSpareParts = [];
@@ -1621,6 +1721,7 @@ const troubleshootingHeader = document.getElementById("troubleshootingHeader");
 
 const equipmentView = document.getElementById("equipmentView");
 const maintenanceView = document.getElementById("maintenanceView");
+const actionItemsView = document.getElementById("actionItemsView");
 const documentsView = document.getElementById("documentsView");
 const pmView = document.getElementById("pmView");
 const troubleshootingView = document.getElementById("troubleshootingView");
@@ -1645,6 +1746,30 @@ const maintenanceSummary =
   document.getElementById("maintenanceSummary");
 const maintenanceCards =
   document.getElementById("maintenanceCards");
+
+const actionItemsSummary = document.getElementById("actionItemsSummary");
+const actionItemsCards = document.getElementById("actionItemsCards");
+const newActionItemButton = document.getElementById("newActionItemButton");
+const actionItemFormModal = document.getElementById("actionItemFormModal");
+const closeActionItemFormModal = document.getElementById("closeActionItemFormModal");
+const actionItemForm = document.getElementById("actionItemForm");
+const actionItemEquipment = document.getElementById("actionItemEquipment");
+const actionItemAction = document.getElementById("actionItemAction");
+const actionItemPriority = document.getElementById("actionItemPriority");
+const actionItemDueDate = document.getElementById("actionItemDueDate");
+const actionItemNotes = document.getElementById("actionItemNotes");
+const actionItemFormMessage = document.getElementById("actionItemFormMessage");
+const cancelActionItemButton = document.getElementById("cancelActionItemButton");
+const completeActionItemModal = document.getElementById("completeActionItemModal");
+const closeCompleteActionItemModal = document.getElementById("closeCompleteActionItemModal");
+const completeActionItemForm = document.getElementById("completeActionItemForm");
+const completeActionItemTitle = document.getElementById("completeActionItemTitle");
+const completeActionItemId = document.getElementById("completeActionItemId");
+const completeActionItemDate = document.getElementById("completeActionItemDate");
+const completeActionItemBy = document.getElementById("completeActionItemBy");
+const completeActionItemNotes = document.getElementById("completeActionItemNotes");
+const completeActionItemMessage = document.getElementById("completeActionItemMessage");
+const cancelCompleteActionItemButton = document.getElementById("cancelCompleteActionItemButton");
 
 const documentsSearch =
   document.getElementById("documentsSearch");
@@ -1786,6 +1911,7 @@ async function loadData() {
 
     allEquipment = data.equipment || [];
     allMaintenance = data.maintenance || [];
+    allActionItems = data.actionItems || [];
     allDocuments = data.documents || [];
     allPM = data.pm || [];
     allSpareParts = data.spareParts || [];
@@ -1800,6 +1926,7 @@ async function loadData() {
 
     buildFilters();
     buildMaintenanceEquipmentLists();
+    buildActionItemEquipmentList();
     buildPMLists();
     buildSparePartsLists();
     buildElectricalFilters();
@@ -1808,6 +1935,7 @@ async function loadData() {
 
     renderEquipment();
     renderMaintenance();
+    renderActionItems();
     renderDocuments();
     renderPM();
     renderSpareParts();
@@ -1850,6 +1978,7 @@ function switchView(viewName) {
   const homeActive = viewName === "home";
   const equipmentActive = viewName === "equipment";
   const maintenanceActive = viewName === "maintenance";
+  const actionItemsActive = viewName === "actionItems";
   const documentsActive = viewName === "documents";
   const pmActive = viewName === "pm";
   const sparePartsActive = viewName === "spareParts";
@@ -1874,6 +2003,7 @@ function switchView(viewName) {
   homeView.classList.toggle("active", homeActive);
   equipmentView.classList.toggle("active", equipmentActive);
   maintenanceView.classList.toggle("active", maintenanceActive);
+  actionItemsView.classList.toggle("active", actionItemsActive);
   documentsView.classList.toggle("active", documentsActive);
   pmView.classList.toggle("active", pmActive);
   sparePartsView.classList.toggle("active", sparePartsActive);
@@ -1884,6 +2014,7 @@ function switchView(viewName) {
     home: "House Equipment",
     equipment: "Equipment",
     maintenance: "Maintenance",
+    actionItems: "Action Items",
     documents: "Documents",
     pm: "Preventive Maintenance",
     spareParts: "Spare Parts",
@@ -3882,6 +4013,165 @@ function showTCCsForEquipment(item) {
 }
 
 
+
+function buildActionItemEquipmentList() {
+  if (!actionItemEquipment) return;
+  const current = actionItemEquipment.value;
+  actionItemEquipment.innerHTML = `<option value="">Select equipment...</option>`;
+
+  [...allEquipment]
+    .sort((a,b) => compareText(a.displayTitle || a.equipment, b.displayTitle || b.equipment))
+    .forEach(item => {
+      const value = item.id || item.jin || "";
+      if (!value) return;
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = item.displayTitle || item.equipment || value;
+      actionItemEquipment.appendChild(option);
+    });
+
+  if ([...actionItemEquipment.options].some(o => o.value === current)) {
+    actionItemEquipment.value = current;
+  }
+}
+
+function renderActionItems() {
+  if (!actionItemsCards) return;
+
+  const openItems = allActionItems
+    .filter(item => String(item.status || "Open").toLowerCase() !== "complete")
+    .sort((a,b) => {
+      const rank = {High: 0, Medium: 1, Low: 2};
+      const pa = rank[a.priority] ?? 9;
+      const pb = rank[b.priority] ?? 9;
+      if (pa !== pb) return pa - pb;
+      const da = a.dueDateIso ? new Date(a.dueDateIso + "T12:00:00").getTime() : Number.MAX_SAFE_INTEGER;
+      const db = b.dueDateIso ? new Date(b.dueDateIso + "T12:00:00").getTime() : Number.MAX_SAFE_INTEGER;
+      return da - db;
+    });
+
+  actionItemsSummary.textContent =
+    `${openItems.length} open action item${openItems.length === 1 ? "" : "s"} · ${allActionItems.length} total`;
+
+  if (!openItems.length) {
+    actionItemsCards.innerHTML =
+      `<div class="empty">No open action items. Suspiciously responsible.</div>`;
+    return;
+  }
+
+  actionItemsCards.innerHTML = openItems.map(item => {
+    const equipment = allEquipment.find(x => (x.id || x.jin) === item.equipment);
+    const equipmentName = equipment
+      ? (equipment.displayTitle || equipment.equipment || item.equipment)
+      : item.equipment;
+
+    return `
+      <div class="card action-item-card" data-action-id="${escapeHtml(item.id)}">
+        <div class="card-title">${escapeHtml(item.action)}</div>
+        <div class="card-location">${escapeHtml(equipmentName || "")}</div>
+        <div class="card-info">
+          <span class="tag">${escapeHtml(item.id)}</span>
+          <span class="tag">${escapeHtml(item.priority || "Medium")}</span>
+          ${item.dueDate ? `<span class="tag">Due ${escapeHtml(item.dueDate)}</span>` : ""}
+        </div>
+        ${item.notes ? `<div class="maintenance-description">${escapeHtml(item.notes)}</div>` : ""}
+        <div class="buttons">
+          <button class="btn success-btn complete-action-item-btn" type="button" data-action-id="${escapeHtml(item.id)}">
+            ✓ Complete
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  actionItemsCards.querySelectorAll(".complete-action-item-btn").forEach(button => {
+    button.addEventListener("click", event => {
+      event.stopPropagation();
+      const item = allActionItems.find(x => x.id === button.dataset.actionId);
+      if (item) openCompleteActionItem(item);
+    });
+  });
+}
+
+function openNewActionItem(equipmentValue = "") {
+  actionItemForm.reset();
+  actionItemFormMessage.innerHTML = "";
+  actionItemPriority.value = "Medium";
+  buildActionItemEquipmentList();
+  if (equipmentValue) actionItemEquipment.value = equipmentValue;
+  actionItemFormModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeNewActionItem() {
+  actionItemFormModal.classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+async function submitActionItemForm(event) {
+  event.preventDefault();
+  actionItemFormMessage.innerHTML = "";
+
+  const params = new URLSearchParams();
+  params.set("action", "addActionItem");
+  params.set("equipment", actionItemEquipment.value);
+  params.set("actionItem", actionItemAction.value.trim());
+  params.set("priority", actionItemPriority.value);
+  params.set("dueDate", actionItemDueDate.value);
+  params.set("notes", actionItemNotes.value.trim());
+
+  try {
+    const response = await fetch(API_URL, { method: "POST", body: params });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || "Could not add action item.");
+    closeNewActionItem();
+    await loadData();
+    switchView("actionItems");
+  } catch (err) {
+    actionItemFormMessage.innerHTML = `<div class="error">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function openCompleteActionItem(item) {
+  completeActionItemId.value = item.id;
+  completeActionItemTitle.textContent = `Complete ${item.id}`;
+  completeActionItemDate.value = todayLocal();
+  completeActionItemBy.value = "";
+  completeActionItemNotes.value = "";
+  completeActionItemMessage.innerHTML = "";
+  completeActionItemModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeCompleteActionItem() {
+  completeActionItemModal.classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+async function submitCompleteActionItem(event) {
+  event.preventDefault();
+  completeActionItemMessage.innerHTML = "";
+
+  const params = new URLSearchParams();
+  params.set("action", "completeActionItem");
+  params.set("actionId", completeActionItemId.value);
+  params.set("date", completeActionItemDate.value);
+  params.set("performedBy", completeActionItemBy.value.trim());
+  params.set("notes", completeActionItemNotes.value.trim());
+
+  try {
+    const response = await fetch(API_URL, { method: "POST", body: params });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || "Could not complete action item.");
+    closeCompleteActionItem();
+    await loadData();
+    switchView("actionItems");
+  } catch (err) {
+    completeActionItemMessage.innerHTML = `<div class="error">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
@@ -4001,6 +4291,14 @@ function openEquipmentDetail(item) {
           ＋ Create TCC
         </button>
 
+        <button
+          id="equipmentAddActionItemButton"
+          class="btn success-btn"
+          type="button"
+        >
+          ＋ Action Item
+        </button>
+
       </div>
 
     </div>
@@ -4038,6 +4336,9 @@ function openEquipmentDetail(item) {
   const createTCCButton =
     document.getElementById("equipmentCreateTCCButton");
 
+  const addActionItemButton =
+    document.getElementById("equipmentAddActionItemButton");
+
   historyButton.addEventListener("click", () => {
     showMaintenanceForEquipment(equipmentKey);
   });
@@ -4073,6 +4374,11 @@ function openEquipmentDetail(item) {
 
   createTCCButton.addEventListener("click", () => {
     openNewTCC(getTCCEquipmentDisplay(item));
+  });
+
+  addActionItemButton.addEventListener("click", () => {
+    modal.classList.remove("show");
+    openNewActionItem(equipmentKey);
   });
 
   modal.classList.add("show");
@@ -4563,6 +4869,21 @@ tccFormModal.addEventListener("click", event => {
 });
 
 newLogButton.addEventListener("click", () => openNewLog());
+
+newActionItemButton.addEventListener("click", () => openNewActionItem());
+actionItemForm.addEventListener("submit", submitActionItemForm);
+closeActionItemFormModal.addEventListener("click", closeNewActionItem);
+cancelActionItemButton.addEventListener("click", closeNewActionItem);
+actionItemFormModal.addEventListener("click", event => {
+  if (event.target === actionItemFormModal) closeNewActionItem();
+});
+
+completeActionItemForm.addEventListener("submit", submitCompleteActionItem);
+closeCompleteActionItemModal.addEventListener("click", closeCompleteActionItem);
+cancelCompleteActionItemButton.addEventListener("click", closeCompleteActionItem);
+completeActionItemModal.addEventListener("click", event => {
+  if (event.target === completeActionItemModal) closeCompleteActionItem();
+});
 newPMButton.addEventListener("click", openNewPM);
 pmFormJin.addEventListener("change", updatePMSpareSuggestions);
 pmFormFrequency.addEventListener("change", () => {
@@ -4606,7 +4927,11 @@ document.addEventListener("keydown", event => {
 
   if (event.key === "Escape") {
 
-    if (completePMModal.classList.contains("show")) {
+    if (completeActionItemModal.classList.contains("show")) {
+      closeCompleteActionItem();
+    } else if (actionItemFormModal.classList.contains("show")) {
+      closeNewActionItem();
+    } else if (completePMModal.classList.contains("show")) {
       closeCompletePM();
     } else if (tccFormModal.classList.contains("show")) {
       closeNewTCC();
