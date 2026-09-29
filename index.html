@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V27
-  V27 adds photographic hero/card imagery and premium visual depth for a mature commercial-app look.
+  HOUSE EQUIPMENT APP — INDEX V28
+  V28 adds a unified Calendar for future PMs/action items and past completed maintenance.
+   V27 adds photographic hero/card imagery and premium visual depth for a mature commercial-app look.
   V25 upgrades the interface to a polished product-style visual system with hero header, color-coded navigation cards, icon badges, chevrons, improved spacing, and mobile typography.
   V24 adds Action Items with equipment-linked creation and completion into Maintenance Log.
   V23 refreshes the visual design to match Home Dashboard: gradient header, load-status pill, reload button, and refined cards.
@@ -1241,6 +1242,241 @@
       .home-card-description { font-size:13.5px; line-height:1.42; padding-left:58px; max-width:92%; }
     }
 
+  
+    /* -----------------------------------------------------------------------
+       V28 — UNIFIED HOME CALENDAR
+       Future PMs = red, future action items = orange, past completed work = gray.
+       ----------------------------------------------------------------------- */
+    .calendar-shell {
+      padding: 18px 18px calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .calendar-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .calendar-toolbar-title {
+      flex: 1;
+      text-align: center;
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -.02em;
+    }
+
+    .calendar-nav-btn {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--ink);
+      border-radius: 10px;
+      min-height: 42px;
+      padding: 8px 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(20,40,59,.07);
+    }
+
+    .calendar-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin: 0 0 14px;
+      color: var(--soft-ink);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .calendar-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .calendar-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .calendar-legend-dot.pm { background: #b42318; }
+    .calendar-legend-dot.action { background: #d97706; }
+    .calendar-legend-dot.past { background: #7b8794; }
+
+    .calendar-weekdays,
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .calendar-weekdays {
+      background: #edf2f7;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 14px 14px 0 0;
+      overflow: hidden;
+    }
+
+    .calendar-weekday {
+      text-align: center;
+      padding: 9px 3px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--soft-ink);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .calendar-grid {
+      border-top: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+      background: white;
+      border-radius: 0 0 14px 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(20,40,59,.07);
+    }
+
+    .calendar-day {
+      min-height: 118px;
+      padding: 7px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: white;
+      overflow: hidden;
+    }
+
+    .calendar-day.other-month {
+      background: #f7f9fc;
+    }
+
+    .calendar-day.today {
+      box-shadow: inset 0 0 0 2px var(--blue2);
+    }
+
+    .calendar-day-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .calendar-day.other-month .calendar-day-number {
+      color: #9aa6b2;
+    }
+
+    .calendar-day.today .calendar-day-number {
+      background: var(--blue);
+      color: white;
+    }
+
+    .calendar-event {
+      width: 100%;
+      display: block;
+      border: 0;
+      border-radius: 6px;
+      margin: 0 0 4px;
+      padding: 5px 6px;
+      text-align: left;
+      font-size: 10px;
+      line-height: 1.2;
+      font-weight: 800;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .calendar-event.pm {
+      background: #fde7e4;
+      color: #912018;
+      border-left: 3px solid #b42318;
+    }
+
+    .calendar-event.action {
+      background: #fff1d6;
+      color: #895400;
+      border-left: 3px solid #d97706;
+    }
+
+    .calendar-event.past {
+      background: #e9eef3;
+      color: #55616d;
+      border-left: 3px solid #7b8794;
+    }
+
+    .calendar-more {
+      font-size: 10px;
+      color: var(--soft-ink);
+      font-weight: 800;
+      padding: 2px 3px;
+    }
+
+    .calendar-agenda {
+      margin-top: 18px;
+    }
+
+    .calendar-agenda h3 {
+      margin: 0 0 9px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--blue);
+    }
+
+    .calendar-agenda-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px 12px;
+      margin-bottom: 7px;
+      cursor: pointer;
+    }
+
+    .calendar-agenda-date {
+      min-width: 58px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--soft-ink);
+    }
+
+    .calendar-agenda-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .calendar-agenda-meta {
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--soft-ink);
+    }
+
+    .home-card[data-home-view="calendar"] {
+      --photo: url("https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=900&q=76");
+    }
+
+    @media (max-width: 650px) {
+      .calendar-shell { padding: 12px 8px calc(88px + env(safe-area-inset-bottom)); }
+      .calendar-toolbar { gap: 6px; }
+      .calendar-toolbar-title { font-size: 18px; }
+      .calendar-nav-btn { min-height: 38px; padding: 7px 9px; font-size: 12px; }
+      .calendar-day { min-height: 82px; padding: 4px 3px; }
+      .calendar-day-number { width: 21px; height: 21px; font-size: 11px; margin-bottom: 3px; }
+      .calendar-event { font-size: 9px; padding: 4px; border-left-width: 2px; }
+      .calendar-weekday { font-size: 9px; padding: 7px 1px; }
+    }
+
   </style>
 </head>
 
@@ -1460,6 +1696,17 @@
         </div>
       </button>
 
+
+      <button class="home-card accent-blue" type="button" data-home-view="calendar">
+        <div class="home-card-title">
+          <span class="home-card-icon">📆</span>
+          <span>Calendar</span>
+        </div>
+        <div class="home-card-description">
+          See upcoming PMs and action items, plus completed maintenance history by date.
+        </div>
+      </button>
+
       <button class="home-card accent-purple" type="button" data-home-view="documents">
         <div class="home-card-title">
           <span class="home-card-icon">📄</span>
@@ -1509,6 +1756,41 @@
           Find common troubles by category and view the likely cause and correction.
         </div>
       </button>
+    </div>
+  </div>
+
+
+  <div id="calendarView" class="view">
+    <div class="calendar-shell">
+      <div class="calendar-toolbar">
+        <button id="calendarPrev" class="calendar-nav-btn" type="button" aria-label="Previous month">‹</button>
+        <button id="calendarToday" class="calendar-nav-btn" type="button">Today</button>
+        <div id="calendarTitle" class="calendar-toolbar-title"></div>
+        <button id="calendarNext" class="calendar-nav-btn" type="button" aria-label="Next month">›</button>
+      </div>
+
+      <div class="calendar-legend">
+        <span class="calendar-legend-item"><span class="calendar-legend-dot pm"></span>PM due</span>
+        <span class="calendar-legend-item"><span class="calendar-legend-dot action"></span>Action item due</span>
+        <span class="calendar-legend-item"><span class="calendar-legend-dot past"></span>Completed work</span>
+      </div>
+
+      <div class="calendar-weekdays">
+        <div class="calendar-weekday">Sun</div>
+        <div class="calendar-weekday">Mon</div>
+        <div class="calendar-weekday">Tue</div>
+        <div class="calendar-weekday">Wed</div>
+        <div class="calendar-weekday">Thu</div>
+        <div class="calendar-weekday">Fri</div>
+        <div class="calendar-weekday">Sat</div>
+      </div>
+
+      <div id="calendarGrid" class="calendar-grid"></div>
+
+      <div class="calendar-agenda">
+        <h3>Upcoming</h3>
+        <div id="calendarAgenda"></div>
+      </div>
     </div>
   </div>
 
@@ -2006,6 +2288,8 @@ let allSpareParts = [];
 let allElectrical = [];
 let electricalDiagnostics = { sheetFound: false, recordCount: 0 };
 let allTroubleshooting = [];
+let calendarCursor = new Date();
+calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth(), 1);
 
 // V22: Optional equipment-specific filter used by the View TCCs button.
 let tccEquipmentFilter = "";
@@ -2137,6 +2421,14 @@ const tccFormMessage = document.getElementById("tccFormMessage");
 const saveTCCButton = document.getElementById("saveTCCButton");
 const cancelTCCButton = document.getElementById("cancelTCCButton");
 
+const calendarView = document.getElementById("calendarView");
+const calendarGrid = document.getElementById("calendarGrid");
+const calendarTitle = document.getElementById("calendarTitle");
+const calendarAgenda = document.getElementById("calendarAgenda");
+const calendarPrev = document.getElementById("calendarPrev");
+const calendarNext = document.getElementById("calendarNext");
+const calendarToday = document.getElementById("calendarToday");
+
 const newLogButton = document.getElementById("newLogButton");
 
 const modal = document.getElementById("modal");
@@ -2252,6 +2544,7 @@ async function loadData() {
     renderSpareParts();
     renderElectrical();
     renderTroubleshooting();
+    renderCalendar();
 
     if (loadStatus) {
       loadStatus.textContent = "UPDATED";
@@ -2287,6 +2580,7 @@ function switchView(viewName) {
   // V6 uses a House Guide-style home page instead of opening directly
   // into the Equipment list.
   const homeActive = viewName === "home";
+  const calendarActive = viewName === "calendar";
   const equipmentActive = viewName === "equipment";
   const maintenanceActive = viewName === "maintenance";
   const actionItemsActive = viewName === "actionItems";
@@ -2312,6 +2606,7 @@ function switchView(viewName) {
   troubleshootingHeader.style.display = troubleshootingActive ? "block" : "none";
 
   homeView.classList.toggle("active", homeActive);
+  calendarView.classList.toggle("active", calendarActive);
   equipmentView.classList.toggle("active", equipmentActive);
   maintenanceView.classList.toggle("active", maintenanceActive);
   actionItemsView.classList.toggle("active", actionItemsActive);
@@ -2323,6 +2618,7 @@ function switchView(viewName) {
 
   const titles = {
     home: "House Equipment",
+    calendar: "Calendar",
     equipment: "Equipment",
     maintenance: "Maintenance",
     actionItems: "Action Items",
@@ -2336,8 +2632,204 @@ function switchView(viewName) {
   appTitle.textContent = titles[viewName] || "House Equipment";
   homeButton.style.display = homeActive ? "none" : "inline-block";
 
+  if (calendarActive) renderCalendar();
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 
+}
+
+
+
+function calendarDateKey(value) {
+  if (!value) return "";
+  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function calendarLocalDate(key) {
+  const m = String(key || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
+function calendarEvents() {
+  const todayKey = calendarDateKey(new Date());
+  const events = [];
+
+  // Future/open PMs. A PM remains red even when overdue; gray is reserved for completed history.
+  allPM.forEach(pm => {
+    const status = String(pm.status || "").toLowerCase();
+    const date = calendarDateKey(pm.nextDueIso || pm.nextDue);
+    if (!date || status === "inactive" || status === "complete" || status === "completed") return;
+    events.push({
+      date,
+      kind: "pm",
+      title: pm.task || pm.id || "PM",
+      equipment: pm.jin || "",
+      id: pm.id || "",
+      details: pm.notes || "",
+      status: pm.status || "Open"
+    });
+  });
+
+  // Future/open action items.
+  allActionItems.forEach(item => {
+    const status = String(item.status || "").toLowerCase();
+    const date = calendarDateKey(item.dueDateIso || item.dueDate);
+    if (!date || status === "complete" || status === "completed" || status === "closed") return;
+    events.push({
+      date,
+      kind: "action",
+      title: item.action || item.id || "Action Item",
+      equipment: item.equipment || "",
+      id: item.id || "",
+      details: item.notes || "",
+      status: item.status || "Open"
+    });
+  });
+
+  // Completed work is represented by the Maintenance Log. PM and Action Item
+  // completions already create maintenance records, which prevents duplicates.
+  allMaintenance.forEach(log => {
+    const date = calendarDateKey(log.dateIso || log.date);
+    if (!date || date > todayKey) return;
+    events.push({
+      date,
+      kind: "past",
+      title: log.description || log.equipment || "Maintenance",
+      equipment: log.equipment || "",
+      id: log.id || "",
+      details: log.performedBy ? `Performed by ${log.performedBy}` : "",
+      status: "Completed"
+    });
+  });
+
+  return events.sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
+}
+
+function renderCalendar() {
+  if (!calendarGrid || !calendarTitle || !calendarAgenda) return;
+
+  const year = calendarCursor.getFullYear();
+  const month = calendarCursor.getMonth();
+  calendarTitle.textContent = calendarCursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  const events = calendarEvents();
+  const byDate = new Map();
+  events.forEach(event => {
+    if (!byDate.has(event.date)) byDate.set(event.date, []);
+    byDate.get(event.date).push(event);
+  });
+
+  const first = new Date(year, month, 1);
+  const gridStart = new Date(year, month, 1 - first.getDay());
+  const todayKey = calendarDateKey(new Date());
+
+  let html = "";
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    const key = calendarDateKey(d);
+    const dayEvents = byDate.get(key) || [];
+    const otherMonth = d.getMonth() !== month;
+    const today = key === todayKey;
+    const shown = dayEvents.slice(0, 3);
+
+    html += `<div class="calendar-day${otherMonth ? " other-month" : ""}${today ? " today" : ""}">`;
+    html += `<div class="calendar-day-number">${d.getDate()}</div>`;
+
+    shown.forEach((event, idx) => {
+      html += `<button class="calendar-event ${event.kind}" type="button" data-calendar-date="${escapeHtml(key)}" data-calendar-index="${idx}" title="${escapeHtml(event.title)}">${escapeHtml(event.title)}</button>`;
+    });
+
+    if (dayEvents.length > 3) {
+      html += `<div class="calendar-more">+${dayEvents.length - 3} more</div>`;
+    }
+    html += `</div>`;
+  }
+  calendarGrid.innerHTML = html;
+
+  calendarGrid.querySelectorAll(".calendar-event").forEach(button => {
+    button.addEventListener("click", () => {
+      const list = byDate.get(button.dataset.calendarDate) || [];
+      const event = list[Number(button.dataset.calendarIndex)];
+      if (event) showCalendarEvent(event);
+    });
+  });
+
+  const upcoming = events
+    .filter(event => event.date >= todayKey && event.kind !== "past")
+    .slice(0, 12);
+
+  calendarAgenda.innerHTML = upcoming.length
+    ? upcoming.map((event, idx) => {
+        const d = calendarLocalDate(event.date);
+        const dateLabel = d ? d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : event.date;
+        const typeLabel = event.kind === "pm" ? "PM" : "Action";
+        return `<button class="calendar-agenda-item" type="button" data-agenda-index="${idx}">
+          <span class="calendar-agenda-date">${escapeHtml(dateLabel)}</span>
+          <span>
+            <span class="calendar-agenda-title">${escapeHtml(event.title)}</span>
+            <span class="calendar-agenda-meta">${escapeHtml(typeLabel + (event.equipment ? " • " + event.equipment : ""))}</span>
+          </span>
+        </button>`;
+      }).join("")
+    : `<div class="empty">Nothing upcoming. The house has chosen peace.</div>`;
+
+  calendarAgenda.querySelectorAll(".calendar-agenda-item").forEach(button => {
+    button.addEventListener("click", () => {
+      const event = upcoming[Number(button.dataset.agendaIndex)];
+      if (event) showCalendarEvent(event);
+    });
+  });
+}
+
+function showCalendarEvent(event) {
+  const d = calendarLocalDate(event.date);
+  const dateLabel = d
+    ? d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+    : event.date;
+
+  const typeLabel = event.kind === "pm"
+    ? "Preventive Maintenance"
+    : event.kind === "action"
+      ? "Action Item"
+      : "Completed Maintenance";
+
+  modalTitle.textContent = event.title || typeLabel;
+  detailBody.innerHTML = `
+    <div class="section">
+      <h3>${escapeHtml(typeLabel)}</h3>
+      <div class="detail-row"><div class="label">Date</div><div class="value">${escapeHtml(dateLabel)}</div></div>
+      ${event.id ? `<div class="detail-row"><div class="label">ID</div><div class="value">${escapeHtml(event.id)}</div></div>` : ""}
+      ${event.equipment ? `<div class="detail-row"><div class="label">Equipment</div><div class="value">${escapeHtml(event.equipment)}</div></div>` : ""}
+      <div class="detail-row"><div class="label">Status</div><div class="value">${escapeHtml(event.status || "")}</div></div>
+      ${event.details ? `<div class="detail-row"><div class="label">Details</div><div class="value">${escapeHtml(event.details)}</div></div>` : ""}
+    </div>`;
+  modal.classList.add("show");
+}
+
+if (calendarPrev) {
+  calendarPrev.addEventListener("click", () => {
+    calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
+    renderCalendar();
+  });
+}
+if (calendarNext) {
+  calendarNext.addEventListener("click", () => {
+    calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+    renderCalendar();
+  });
+}
+if (calendarToday) {
+  calendarToday.addEventListener("click", () => {
+    const now = new Date();
+    calendarCursor = new Date(now.getFullYear(), now.getMonth(), 1);
+    renderCalendar();
+  });
 }
 
 
@@ -5284,6 +5776,7 @@ if ("serviceWorker" in navigator) {
 
   <nav class="product-tabbar" aria-label="Primary navigation">
     <button type="button" data-product-view="home" class="active" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9.5 20v-6h5v6"/></svg><span>Home</span></button>
+    <button type="button" data-product-view="calendar" aria-label="Calendar"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/><path d="M8 14h2M12 14h2M16 14h1M8 18h2M12 18h2"/></svg><span>Calendar</span></button>
     <button type="button" data-product-view="equipment" aria-label="Equipment"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5 5L4 17l3 3 5.7-5.7a4 4 0 0 0 5-5l-2.4 2.4-3-3z"/></svg><span>Equipment</span></button>
     <button type="button" data-product-view="maintenance" aria-label="Maintenance"><svg viewBox="0 0 24 24"><path d="m14 7 3-3 3 3-3 3"/><path d="m10 17-3 3-3-3 3-3"/><path d="m14.5 9.5-5 5"/><path d="M5 5l14 14"/></svg><span>Maintenance</span></button>
     <button type="button" data-product-view="pm" aria-label="Preventive Maintenance"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/><path d="m8 15 2 2 5-5"/></svg><span>PMs</span></button>
@@ -5293,6 +5786,7 @@ if ("serviceWorker" in navigator) {
   <script>
   (() => {
     const icons = {
+      calendar:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/><path d="M8 14h2M12 14h2M16 14h1M8 18h2M12 18h2"/></svg>',
       equipment:'<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5 5L4 17l3 3 5.7-5.7a4 4 0 0 0 5-5l-2.4 2.4-3-3z"/></svg>',
       maintenance:'<svg viewBox="0 0 24 24"><path d="M5 5l14 14M14 7l3-3 3 3-3 3M10 17l-3 3-3-3 3-3"/></svg>',
       actionItems:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg>',
