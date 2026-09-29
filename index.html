@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V28
-  V28 adds a unified Calendar for future PMs/action items and past completed maintenance.
+  HOUSE EQUIPMENT APP — INDEX V29
+  V29 refines the product UI: removes the header emblem, keeps bottom navigation on one row, adds button depth, and sharpens spacing/surfaces.
+   V28 adds a unified Calendar for future PMs/action items and past completed maintenance.
    V27 adds photographic hero/card imagery and premium visual depth for a mature commercial-app look.
   V25 upgrades the interface to a polished product-style visual system with hero header, color-coded navigation cards, icon badges, chevrons, improved spacing, and mobile typography.
   V24 adds Action Items with equipment-linked creation and completion into Maintenance Log.
@@ -1475,6 +1476,169 @@
       .calendar-day-number { width: 21px; height: 21px; font-size: 11px; margin-bottom: 3px; }
       .calendar-event { font-size: 9px; padding: 4px; border-left-width: 2px; }
       .calendar-weekday { font-size: 9px; padding: 7px 1px; }
+    }
+
+  
+    /* -----------------------------------------------------------------------
+       V29 — CLEANER / SHARPER PRODUCT POLISH
+       ----------------------------------------------------------------------- */
+    :root {
+      --v29-shadow: 0 7px 20px rgba(20,40,59,.085);
+      --v29-border: #cfd8e3;
+    }
+
+    body {
+      background: linear-gradient(180deg, #eef3f8 0, #f7f9fc 320px, #f7f9fc 100%);
+    }
+
+    .header {
+      padding-left: 20px;
+      padding-right: 20px;
+      box-shadow: 0 8px 24px rgba(15,43,66,.18);
+    }
+
+    .header-title-row {
+      gap: 12px;
+    }
+
+    .header h1 {
+      letter-spacing: -.045em;
+    }
+
+    .home-view {
+      padding-top: 24px;
+    }
+
+    .home-grid {
+      gap: 10px;
+    }
+
+    .home-card,
+    .card,
+    .part-box,
+    .electrical-device-row,
+    .calendar-agenda-item {
+      border-color: var(--v29-border);
+      box-shadow: var(--v29-shadow);
+    }
+
+    .home-card {
+      border-radius: 15px;
+    }
+
+    .home-card:hover,
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(20,40,59,.11);
+    }
+
+    .btn,
+    .calendar-nav-btn {
+      box-shadow:
+        0 3px 0 rgba(15,43,66,.14),
+        0 5px 12px rgba(20,40,59,.09);
+    }
+
+    .btn:active,
+    .calendar-nav-btn:active {
+      transform: translateY(2px);
+      box-shadow:
+        0 1px 0 rgba(15,43,66,.12),
+        0 2px 5px rgba(20,40,59,.08);
+    }
+
+    /* Header icon/emblem is decorative, not a control. Hide all known variants. */
+    .product-brand-icon,
+    .brand-icon,
+    .header-brand-icon,
+    .header-logo-icon {
+      display: none !important;
+    }
+
+    /* One-row bottom navigation. Slightly narrower controls + tactile depth. */
+    .product-bottom-nav {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      align-items: stretch;
+      gap: 5px !important;
+      padding: 7px 7px calc(7px + env(safe-area-inset-bottom)) !important;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .product-bottom-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .product-bottom-nav button {
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+      width: auto !important;
+      padding: 7px 2px 6px !important;
+      border: 1px solid #d4dde7 !important;
+      border-radius: 10px !important;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f6f9 100%) !important;
+      box-shadow:
+        0 2px 0 rgba(20,40,59,.13),
+        0 4px 9px rgba(20,40,59,.08) !important;
+      transform: translateY(0);
+      transition: transform .10s, box-shadow .10s, background .10s;
+    }
+
+    .product-bottom-nav button:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 2px rgba(20,40,59,.10) !important;
+    }
+
+    .product-bottom-nav button.active {
+      background: linear-gradient(180deg, #eaf3fb 0%, #dfeef9 100%) !important;
+      border-color: #a8c5db !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.8),
+        0 2px 0 rgba(31,78,120,.18),
+        0 4px 10px rgba(31,78,120,.11) !important;
+    }
+
+    .product-bottom-nav button svg {
+      width: 20px !important;
+      height: 20px !important;
+      margin: 0 auto 3px !important;
+    }
+
+    .product-bottom-nav button span {
+      font-size: 9px !important;
+      line-height: 1.05 !important;
+      white-space: nowrap;
+      letter-spacing: -.01em;
+    }
+
+    @media (max-width: 520px) {
+      .header {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .product-bottom-nav {
+        gap: 3px !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+      }
+
+      .product-bottom-nav button {
+        border-radius: 8px !important;
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+      }
+
+      .product-bottom-nav button svg {
+        width: 18px !important;
+        height: 18px !important;
+      }
+
+      .product-bottom-nav button span {
+        font-size: 8px !important;
+      }
     }
 
   </style>
