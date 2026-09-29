@@ -1,6 +1,7 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V24
+  HOUSE EQUIPMENT APP — INDEX V25
+  V25 upgrades the interface to a polished product-style visual system with hero header, color-coded navigation cards, icon badges, chevrons, improved spacing, and mobile typography.
   V24 adds Action Items with equipment-linked creation and completion into Maintenance Log.
   V23 refreshes the visual design to match Home Dashboard: gradient header, load-status pill, reload button, and refined cards.
    V22 adds a View TCCs button to Equipment details and filters Troubleshooting to the selected equipment.
@@ -930,6 +931,152 @@
       }
     }
 
+
+    /* -----------------------------------------------------------------------
+       V25 — PRODUCT UI REFRESH
+       Keeps all existing app behavior; this layer is presentation-only.
+       ----------------------------------------------------------------------- */
+    :root {
+      --surface: #ffffff;
+      --canvas: #f4f7fb;
+      --ink: #172033;
+      --soft-ink: #64748b;
+    }
+
+    body {
+      background: linear-gradient(180deg, #eef4f9 0, var(--canvas) 360px, #f7f9fc 100%);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app { max-width: 920px; background: transparent; }
+
+    .header {
+      background:
+        radial-gradient(circle at 88% 15%, rgba(74,163,220,.34), transparent 28%),
+        radial-gradient(circle at 70% 120%, rgba(26,111,168,.30), transparent 38%),
+        linear-gradient(135deg, #102d46 0%, #164d73 52%, #246a97 100%);
+      padding: calc(22px + env(safe-area-inset-top)) 24px 25px;
+      box-shadow: 0 10px 30px rgba(15,43,66,.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      width: 250px; height: 250px;
+      right: -90px; bottom: -160px;
+      border-radius: 50%;
+      border: 42px solid rgba(255,255,255,.045);
+      pointer-events: none;
+    }
+
+    .header-title-row { position: relative; z-index: 1; gap: 16px; }
+    .header-eyebrow { font-size: 12px; letter-spacing: .18em; opacity: .76; margin-bottom: 7px; }
+    .header h1 { font-size: clamp(28px, 5vw, 38px); letter-spacing: -.035em; line-height: 1.05; margin: 0; }
+    .header-subtitle { font-size: 14px; line-height: 1.4; opacity: .78; margin-top: 9px; max-width: 430px; }
+    .header-actions { gap: 10px; }
+    .refresh-button, .home-button {
+      min-width: 48px; height: 48px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.32);
+      background: rgba(255,255,255,.14);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px rgba(255,255,255,.18), 0 5px 16px rgba(0,0,0,.12);
+    }
+    .refresh-button { font-size: 24px; }
+    .home-button { padding: 0 15px; }
+    .load-status { background: rgba(255,255,255,.12); backdrop-filter: blur(8px); }
+
+    .home-view { padding: 30px 24px calc(42px + env(safe-area-inset-bottom)); }
+    .home-intro { margin-bottom: 22px; }
+    .home-intro h2 { font-size: 30px; letter-spacing: -.03em; color: #194f78; margin-bottom: 7px; }
+    .home-intro p { font-size: 16px; line-height: 1.5; color: #6a7889; max-width: 650px; }
+    .home-grid { gap: 16px; }
+
+    .home-card {
+      --accent: #1689d8;
+      --tint: #eaf6ff;
+      position: relative;
+      overflow: hidden;
+      min-height: 142px;
+      padding: 24px 64px 22px 24px;
+      border: 1px solid rgba(148,163,184,.32);
+      border-left: 6px solid var(--accent);
+      border-radius: 22px;
+      background: linear-gradient(110deg, #fff 0%, #fff 56%, var(--tint) 100%);
+      box-shadow: 0 7px 24px rgba(35,61,83,.09);
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    .home-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(35,61,83,.13); border-color: rgba(100,116,139,.35); }
+    .home-card:active { transform: scale(.992); }
+    .home-card::after {
+      content: "›";
+      position: absolute;
+      right: 18px; top: 50%; transform: translateY(-50%);
+      width: 42px; height: 42px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: rgba(255,255,255,.92);
+      color: #173a59; font-size: 34px; font-weight: 300; line-height: 1;
+      box-shadow: 0 3px 12px rgba(35,61,83,.10);
+    }
+    .home-card-title { gap: 15px; font-size: 21px; letter-spacing: -.015em; margin-bottom: 8px; }
+    .home-card-icon {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: inline-grid; place-items: center;
+      background: var(--accent); color: white;
+      font-size: 23px; text-align: center;
+      box-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+    .home-card-description { padding-left: 63px; font-size: 14.5px; line-height: 1.45; color: #657489; max-width: 620px; }
+
+    .accent-blue   { --accent:#0f91df; --tint:#e9f6ff; }
+    .accent-green  { --accent:#2ea55f; --tint:#eaf8ef; }
+    .accent-orange { --accent:#f59a23; --tint:#fff3e5; }
+    .accent-purple { --accent:#7056df; --tint:#f0edff; }
+    .accent-red    { --accent:#ef4f58; --tint:#fff0f1; }
+    .accent-teal   { --accent:#1aa6a1; --tint:#e9f9f7; }
+    .accent-amber  { --accent:#d89116; --tint:#fff7e6; }
+    .accent-slate  { --accent:#52667b; --tint:#edf2f6; }
+
+    /* Give the working screens the same visual language as the home screen. */
+    .card, .part-box, .electrical-device-row {
+      border-color: rgba(148,163,184,.34);
+      border-radius: 17px;
+      box-shadow: 0 5px 18px rgba(35,61,83,.07);
+    }
+    .search, .filters select, .field input, .field select, .field textarea {
+      border-radius: 13px;
+      border-color: #cfd9e3;
+      background: rgba(255,255,255,.96);
+    }
+    .btn { border-radius: 12px; }
+
+    @media (min-width: 700px) {
+      .home-grid { grid-template-columns: 1fr 1fr; }
+      .home-card { min-height: 165px; }
+    }
+
+    @media (max-width: 520px) {
+      .header { padding: calc(18px + env(safe-area-inset-top)) 18px 20px; }
+      .header h1 { font-size: 29px; }
+      .header-subtitle { display: block; font-size: 13px; max-width: 245px; }
+      .header-eyebrow { font-size: 10px; }
+      .refresh-button, .home-button { min-width: 46px; height: 46px; }
+      .home-button { font-size: 0; width: 46px; padding: 0; }
+      .home-button::after { content: "⌂"; font-size: 23px; }
+      .home-view { padding: 25px 16px calc(34px + env(safe-area-inset-bottom)); }
+      .home-intro h2 { font-size: 27px; }
+      .home-intro p { font-size: 15px; }
+      .home-grid { gap: 13px; }
+      .home-card { min-height: 132px; padding: 20px 55px 19px 17px; border-radius: 20px; }
+      .home-card-title { gap: 12px; font-size: 20px; }
+      .home-card-icon { width: 44px; height: 44px; font-size: 21px; }
+      .home-card-description { padding-left: 56px; font-size: 14px; }
+      .home-card::after { right: 12px; width: 38px; height: 38px; font-size: 30px; }
+    }
+
   </style>
 </head>
 
@@ -942,7 +1089,7 @@
       <div class="header-brand">
         <div class="header-eyebrow">HOME MANAGEMENT</div>
         <h1 id="appTitle">House Equipment</h1>
-        <div class="header-subtitle">Equipment, maintenance & home systems</div>
+        <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
       </div>
 
       <div class="header-actions">
@@ -1115,11 +1262,11 @@
   <div id="homeView" class="view active home-view">
     <div class="home-intro">
       <h2>House Equipment</h2>
-      <p>Select a section to view equipment, records, documents, maintenance tasks, or troubleshooting information.</p>
+      <p>Everything you need to manage the equipment and systems in your home.</p>
     </div>
 
     <div class="home-grid">
-      <button class="home-card" type="button" data-home-view="equipment">
+      <button class="home-card accent-blue" type="button" data-home-view="equipment">
         <div class="home-card-title">
           <span class="home-card-icon">🔧</span>
           <span>Equipment</span>
@@ -1129,7 +1276,7 @@
         </div>
       </button>
 
-      <button class="home-card" type="button" data-home-view="maintenance">
+      <button class="home-card accent-green" type="button" data-home-view="maintenance">
         <div class="home-card-title">
           <span class="home-card-icon">🛠️</span>
           <span>Maintenance</span>
@@ -1139,7 +1286,7 @@
         </div>
       </button>
 
-      <button class="home-card" type="button" data-home-view="actionItems">
+      <button class="home-card accent-orange" type="button" data-home-view="actionItems">
         <div class="home-card-title">
           <span class="home-card-icon">✅</span>
           <span>Action Items</span>
@@ -1149,7 +1296,7 @@
         </div>
       </button>
 
-      <button class="home-card" type="button" data-home-view="documents">
+      <button class="home-card accent-purple" type="button" data-home-view="documents">
         <div class="home-card-title">
           <span class="home-card-icon">📄</span>
           <span>Documents</span>
@@ -1159,7 +1306,7 @@
         </div>
       </button>
 
-      <button class="home-card" type="button" data-home-view="pm">
+      <button class="home-card accent-red" type="button" data-home-view="pm">
         <div class="home-card-title">
           <span class="home-card-icon">📅</span>
           <span>Preventive Maintenance</span>
@@ -1169,7 +1316,7 @@
         </div>
       </button>
 
-      <button class="home-card" type="button" data-home-view="spareParts">
+      <button class="home-card accent-teal" type="button" data-home-view="spareParts">
         <div class="home-card-title">
           <span class="home-card-icon">📦</span>
           <span>Spare Parts</span>
@@ -1179,7 +1326,7 @@
         </div>
       </button>
 
-      <button class="home-card" type="button" data-home-view="electrical">
+      <button class="home-card accent-amber" type="button" data-home-view="electrical">
         <div class="home-card-title">
           <span class="home-card-icon">⚡</span>
           <span>Electrical System</span>
@@ -1189,7 +1336,7 @@
         </div>
       </button>
 
-      <button class="home-card" type="button" data-home-view="troubleshooting">
+      <button class="home-card accent-slate" type="button" data-home-view="troubleshooting">
         <div class="home-card-title">
           <span class="home-card-icon">🔎</span>
           <span>Troubleshooting Guide</span>
