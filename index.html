@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V30
-  V30 correctly targets the live product UI: hides the decorative brand mark and fits all six bottom-nav buttons on one row with tactile depth.
+  HOUSE EQUIPMENT APP — INDEX V31
+  V31 adds the realistic dark 'Home Systems' visual theme while preserving all existing app behavior.
+   V30 correctly targets the live product UI: hides the decorative brand mark and fits all six bottom-nav buttons on one row with tactile depth.
    V29 refines the product UI: removes the header emblem, keeps bottom navigation on one row, adds button depth, and sharpens spacing/surfaces.
    V28 adds a unified Calendar for future PMs/action items and past completed maintenance.
    V27 adds photographic hero/card imagery and premium visual depth for a mature commercial-app look.
@@ -1748,6 +1749,291 @@
       }
     }
 
+  
+    /* -----------------------------------------------------------------------
+       V31 — REALISTIC DARK HOME SYSTEMS THEME
+       Designed to be fully achievable with standard HTML/CSS: crisp dark
+       surfaces, restrained glow, thin accents, clear hierarchy, no fake metal.
+       ----------------------------------------------------------------------- */
+    :root {
+      --v31-bg:#07111b;
+      --v31-bg2:#0a1723;
+      --v31-panel:#0e1d2a;
+      --v31-panel2:#112534;
+      --v31-line:#21394a;
+      --v31-text:#eef7fb;
+      --v31-muted:#8fa5b5;
+      --v31-cyan:#35c9e8;
+      --v31-cyan2:#1596ba;
+      --v31-green:#36d399;
+      --v31-orange:#f3a33b;
+      --v31-red:#f05d68;
+      --v31-purple:#9b8cff;
+      --v31-shadow:0 12px 30px rgba(0,0,0,.28);
+    }
+
+    html { background:var(--v31-bg); }
+    body {
+      background:
+        radial-gradient(circle at 50% -10%, rgba(36,116,151,.18), transparent 30%),
+        linear-gradient(180deg,#07111b 0%,#091621 46%,#07111b 100%) !important;
+      color:var(--v31-text);
+    }
+    .app { background:transparent; }
+
+    .header {
+      min-height:178px !important;
+      padding:calc(20px + env(safe-area-inset-top)) 20px 22px !important;
+      background-image:
+        linear-gradient(90deg,rgba(5,17,27,.97) 0%,rgba(8,31,45,.91) 55%,rgba(11,43,58,.78) 100%),
+        url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80") !important;
+      background-position:center 55% !important;
+      border-bottom:1px solid rgba(53,201,232,.18);
+      box-shadow:0 10px 28px rgba(0,0,0,.34) !important;
+    }
+    .header::before {
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.14)),
+        repeating-linear-gradient(90deg,transparent 0 79px,rgba(53,201,232,.018) 80px) !important;
+    }
+    .header-eyebrow {
+      color:#75d9ed;
+      opacity:.86 !important;
+      font-size:10px !important;
+      letter-spacing:.20em !important;
+    }
+    .header h1 {
+      color:#f6fbfd;
+      font-size:clamp(27px,6vw,34px) !important;
+      font-weight:760 !important;
+      text-shadow:none !important;
+    }
+    .header-subtitle { color:#9eb3c2 !important; opacity:1 !important; }
+    .load-status {
+      color:#8ef0bd;
+      border-color:rgba(54,211,153,.25);
+      background:rgba(54,211,153,.08);
+    }
+    .refresh-button,.home-button {
+      color:#dff8ff !important;
+      background:linear-gradient(180deg,rgba(21,55,72,.94),rgba(10,31,44,.94)) !important;
+      border:1px solid #31566c !important;
+      box-shadow:inset 0 1px rgba(255,255,255,.06),0 5px 14px rgba(0,0,0,.28) !important;
+    }
+
+    .home-view {
+      padding-top:16px !important;
+      background:
+        linear-gradient(rgba(53,201,232,.022) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(53,201,232,.022) 1px,transparent 1px);
+      background-size:32px 32px;
+    }
+
+    .v31-home-hero {
+      position:relative;
+      overflow:hidden;
+      margin:0 0 14px;
+      padding:19px 18px 17px;
+      border:1px solid #20394b;
+      border-radius:16px;
+      background:
+        radial-gradient(circle at 88% 20%,rgba(53,201,232,.11),transparent 31%),
+        linear-gradient(135deg,rgba(16,38,53,.98),rgba(8,24,35,.98));
+      box-shadow:var(--v31-shadow),inset 0 1px rgba(255,255,255,.025);
+    }
+    .v31-home-hero::after {
+      content:"";
+      position:absolute;
+      right:-24px; bottom:-48px;
+      width:170px; height:170px;
+      border:1px solid rgba(53,201,232,.10);
+      border-radius:50%;
+      box-shadow:0 0 0 26px rgba(53,201,232,.025),0 0 0 52px rgba(53,201,232,.018);
+      pointer-events:none;
+    }
+    .v31-kicker {
+      color:var(--v31-cyan);
+      font-size:9px;
+      font-weight:850;
+      letter-spacing:.20em;
+      margin-bottom:6px;
+    }
+    .v31-hero-title {
+      color:#f4fbfd;
+      font-size:25px;
+      line-height:1.08;
+      font-weight:780;
+      letter-spacing:-.03em;
+    }
+    .v31-hero-copy {
+      max-width:470px;
+      margin-top:7px;
+      color:#91a8b8;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .v31-status-row {
+      display:flex;
+      gap:15px;
+      margin-top:14px;
+      color:#6f899a;
+      font-size:8px;
+      font-weight:800;
+      letter-spacing:.12em;
+    }
+    .v31-status-row span:first-child { color:#8bdcb8; }
+    .v31-status-row i {
+      display:inline-block;width:6px;height:6px;border-radius:50%;
+      background:var(--v31-green);box-shadow:0 0 9px rgba(54,211,153,.7);
+      margin-right:5px;
+    }
+
+    .v31-section-label {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin:16px 2px 8px;
+      color:#6f8798;
+      font-size:9px;
+      font-weight:850;
+      letter-spacing:.14em;
+    }
+    .v31-section-label span:first-child { color:#8ba5b5; }
+
+    .home-card {
+      --accent:var(--v31-cyan);
+      --photo:none;
+      min-height:116px !important;
+      padding:18px 52px 17px 17px !important;
+      border:1px solid #213a4b !important;
+      border-left:3px solid var(--accent) !important;
+      border-radius:14px !important;
+      background:linear-gradient(112deg,rgba(15,31,44,.99) 0%,rgba(14,31,44,.98) 62%,rgba(17,42,56,.94) 100%) !important;
+      box-shadow:0 7px 18px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.025) !important;
+    }
+    .home-card::before {
+      opacity:.17;
+      filter:saturate(.55) contrast(1.05);
+      background-image:
+        linear-gradient(90deg,#0e1d2a 0%,rgba(14,29,42,.98) 48%,rgba(14,29,42,.58) 76%,rgba(14,29,42,.20) 100%),
+        var(--photo) !important;
+    }
+    .home-card:hover {
+      transform:translateY(-1px);
+      border-color:#31546a !important;
+      box-shadow:0 10px 24px rgba(0,0,0,.28),0 0 0 1px rgba(53,201,232,.035) !important;
+    }
+    .home-card::after {
+      right:13px !important;
+      width:32px !important;height:32px !important;
+      color:#8fb4c7 !important;
+      background:#122938 !important;
+      border:1px solid #2a485b !important;
+      box-shadow:inset 0 1px rgba(255,255,255,.03) !important;
+    }
+    .home-card-title {
+      color:#edf7fb !important;
+      font-size:18px !important;
+      font-weight:740 !important;
+      margin-bottom:5px !important;
+    }
+    .home-card-icon {
+      width:42px !important;height:42px !important;
+      border-radius:11px !important;
+      color:var(--accent) !important;
+      background:color-mix(in srgb,var(--accent) 12%,#0b1b27) !important;
+      border:1px solid color-mix(in srgb,var(--accent) 34%,#173042) !important;
+      box-shadow:inset 0 0 18px color-mix(in srgb,var(--accent) 8%,transparent) !important;
+    }
+    .home-card-icon svg { width:21px !important;height:21px !important; }
+    .home-card-description {
+      padding-left:54px !important;
+      color:#8ea4b4 !important;
+      font-size:12.5px !important;
+      line-height:1.42 !important;
+    }
+
+    .accent-blue   { --accent:#35c9e8 !important; }
+    .accent-green  { --accent:#36d399 !important; }
+    .accent-orange { --accent:#f3a33b !important; }
+    .accent-purple { --accent:#9b8cff !important; }
+    .accent-red    { --accent:#f05d68 !important; }
+    .accent-teal   { --accent:#32c8bb !important; }
+    .accent-amber  { --accent:#e8b64c !important; }
+    .accent-slate  { --accent:#8ba6ba !important; }
+
+    /* Working screens use the same dark product language. */
+    .summary,.small-note,.label,.card-location,.electrical-device-meta { color:var(--v31-muted) !important; }
+    .card,.part-box,.electrical-device-row,.calendar-agenda-item {
+      color:var(--v31-text);
+      background:linear-gradient(180deg,#102230,#0d1d29) !important;
+      border-color:#213b4d !important;
+      box-shadow:0 5px 16px rgba(0,0,0,.20) !important;
+    }
+    .card-title,.electrical-device-title,.calendar-agenda-title { color:#edf7fb !important; }
+    .search,.filters select,.field input,.field select,.field textarea {
+      color:#e9f5fa !important;
+      background:#0e202d !important;
+      border-color:#294457 !important;
+    }
+    .search::placeholder,.field input::placeholder,.field textarea::placeholder { color:#6f8798; }
+    .section h3,.calendar-agenda h3 { color:#55cbe4 !important;border-color:#254052 !important; }
+    .modal { background:rgba(0,6,10,.72) !important; }
+    .modal-panel { background:#0b1823 !important;color:#edf7fb !important; }
+    .modal-header { background:linear-gradient(135deg,#0d293b,#123e55) !important;border-bottom:1px solid #295067; }
+    .detail-row { border-color:#1d3444; }
+
+    /* Calendar */
+    .calendar-toolbar-title { color:#edf7fb !important; }
+    .calendar-nav-btn {
+      color:#dff6fb !important;background:#102534 !important;border-color:#29485c !important;
+    }
+    .calendar-legend { color:#8ea5b5 !important; }
+    .calendar-weekdays { background:#102431 !important;border-color:#284456 !important; }
+    .calendar-weekday { color:#89a2b2 !important; }
+    .calendar-grid { background:#0c1a25 !important;border-color:#284456 !important;box-shadow:0 8px 22px rgba(0,0,0,.25) !important; }
+    .calendar-day { background:#0d1e2a !important;border-color:#1f394a !important; }
+    .calendar-day.other-month { background:#091721 !important; }
+    .calendar-day-number { color:#cfe1e9; }
+    .calendar-day.today { box-shadow:inset 0 0 0 2px var(--v31-cyan) !important; }
+    .calendar-day.today .calendar-day-number { background:var(--v31-cyan2) !important; }
+
+    @media (max-width:699px) {
+      .app { padding-bottom:calc(80px + env(safe-area-inset-bottom)) !important; }
+      .header { min-height:164px !important; }
+      .header-subtitle { display:block !important;max-width:255px !important;font-size:12px !important; }
+      .home-view { padding:13px 12px calc(26px + env(safe-area-inset-bottom)) !important; }
+      .home-grid { gap:9px !important; }
+
+      .product-tabbar {
+        grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+        gap:4px !important;
+        padding:6px 5px calc(6px + env(safe-area-inset-bottom)) !important;
+        background:rgba(7,18,27,.97) !important;
+        border-top:1px solid #20394a !important;
+        box-shadow:0 -10px 28px rgba(0,0,0,.35) !important;
+        backdrop-filter:blur(18px);
+      }
+      .product-tabbar button {
+        min-width:0 !important;
+        min-height:52px !important;
+        padding:5px 1px 4px !important;
+        color:#738c9d !important;
+        border:1px solid #1b3242 !important;
+        border-radius:9px !important;
+        background:linear-gradient(180deg,#0f202c,#0a1822) !important;
+        box-shadow:inset 0 1px rgba(255,255,255,.025),0 2px 5px rgba(0,0,0,.18) !important;
+      }
+      .product-tabbar button svg { width:18px !important;height:18px !important; }
+      .product-tabbar button span { font-size:8px !important; }
+      .product-tabbar button.active {
+        color:#63dbf1 !important;
+        border-color:#28576d !important;
+        background:linear-gradient(180deg,#123347,#0d2635) !important;
+        box-shadow:inset 0 0 0 1px rgba(53,201,232,.05),0 0 14px rgba(53,201,232,.07) !important;
+      }
+    }
+
   </style>
 </head>
 
@@ -1931,11 +2217,21 @@
 
   <!-- V6 HOME SCREEN -->
   <div id="homeView" class="view active home-view">
+    <div class="v31-home-hero">
+      <div class="v31-kicker">HOME SYSTEMS</div>
+      <div class="v31-hero-title">House Control</div>
+      <div class="v31-hero-copy">Equipment, maintenance, schedules, parts, and home systems in one place.</div>
+      <div class="v31-status-row">
+        <span><i></i> SYSTEM ONLINE</span>
+        <span>LOCAL DATA</span>
+      </div>
+    </div>
     <div class="home-intro">
       <h2>House Equipment</h2>
       <p>Everything you need to manage the equipment and systems in your home.</p>
     </div>
 
+    <div class="v31-section-label"><span>CONTROL CENTER</span><span>SELECT A SYSTEM</span></div>
     <div class="home-grid">
       <button class="home-card accent-blue" type="button" data-home-view="equipment">
         <div class="home-card-title">
