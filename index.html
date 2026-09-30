@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V32
-  V32 polishes the dark Home Systems theme for readability, contrast, card depth, controls, tags, and mobile navigation.
+  HOUSE EQUIPMENT APP — INDEX V33
+  V33 introduces the light NASA / Scandinavian technical interface while preserving all existing app behavior.
+   V32 polishes the dark Home Systems theme for readability, contrast, card depth, controls, tags, and mobile navigation.
    V31 adds the realistic dark 'Home Systems' visual theme while preserving all existing app behavior.
    V30 correctly targets the live product UI: hides the decorative brand mark and fits all six bottom-nav buttons on one row with tactile depth.
    V29 refines the product UI: removes the header emblem, keeps bottom navigation on one row, adds button depth, and sharpens spacing/surfaces.
@@ -2256,6 +2257,215 @@
       .card-location{font-size:13px!important;}
       .card-info{gap:6px!important;}
       .tag{padding:5px 9px!important;font-size:11px!important;}
+    }
+
+  
+
+    /* -----------------------------------------------------------------------
+       V33 — NASA / SCANDINAVIAN LIGHT TECHNICAL INTERFACE
+       Presentation-only override. Existing app behavior remains unchanged.
+       ----------------------------------------------------------------------- */
+    :root{
+      --nasa-paper:#f4f4f1; --nasa-white:#fbfbf9; --nasa-panel:#f8f8f5;
+      --nasa-ink:#161b1f; --nasa-mid:#596168; --nasa-faint:#8b9297;
+      --nasa-line:#c9ced0; --nasa-line2:#dde0df; --nasa-orange:#ff5a12;
+      --nasa-green:#21b66f; --nasa-shadow:0 10px 26px rgba(29,35,39,.09);
+    }
+    html{background:#e9eae8!important;}
+    body{
+      color:var(--nasa-ink)!important;
+      background:
+        linear-gradient(rgba(70,78,82,.045) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(70,78,82,.045) 1px,transparent 1px),
+        linear-gradient(180deg,#fafaf8 0,#efefec 100%)!important;
+      background-size:44px 44px,44px 44px,auto!important;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;
+    }
+    .app{max-width:900px!important;background:rgba(248,248,245,.72)!important;box-shadow:0 0 0 1px rgba(90,96,99,.08)!important;}
+
+    /* Header becomes a bright technical title plate. */
+    .header{
+      min-height:245px!important;
+      color:var(--nasa-ink)!important;
+      background-image:
+        linear-gradient(90deg,rgba(250,250,248,.985) 0%,rgba(250,250,248,.94) 48%,rgba(250,250,248,.44) 100%),
+        url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=78")!important;
+      background-size:cover!important;background-position:center 52%!important;
+      border-bottom:1px solid #bfc5c7!important;
+      box-shadow:0 7px 18px rgba(30,35,38,.08)!important;
+      padding:calc(26px + env(safe-area-inset-top)) 28px 25px!important;
+    }
+    .header::before{
+      content:""!important;display:block!important;position:absolute!important;inset:0!important;pointer-events:none!important;
+      background:
+        linear-gradient(rgba(66,73,77,.08) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(66,73,77,.08) 1px,transparent 1px)!important;
+      background-size:54px 54px!important;mask-image:linear-gradient(90deg,transparent 38%,#000 100%);
+    }
+    .header::after{content:"+"!important;display:block!important;position:absolute!important;right:23px!important;bottom:17px!important;width:auto!important;height:auto!important;border:0!important;color:#777f83!important;font:300 20px/1 monospace!important;}
+    .header-title-row{align-items:flex-start!important;position:relative!important;z-index:2!important;}
+    .header-brand{padding-left:0!important;max-width:560px!important;}
+    .brand-mark{display:none!important;}
+    .header-eyebrow{
+      color:#3f464a!important;font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace!important;
+      letter-spacing:.30em!important;opacity:1!important;margin-bottom:16px!important;
+    }
+    .header-eyebrow::before{content:"";display:inline-block;width:22px;height:3px;background:var(--nasa-orange);margin:0 11px 3px 0;}
+    .header h1{
+      color:#15191c!important;text-shadow:none!important;font-weight:850!important;
+      font-size:clamp(36px,7vw,58px)!important;line-height:.92!important;letter-spacing:-.055em!important;
+      text-transform:uppercase!important;max-width:520px!important;
+    }
+    .header-subtitle{color:#555d62!important;font-size:13px!important;letter-spacing:.16em!important;line-height:1.55!important;text-transform:uppercase!important;max-width:390px!important;margin-top:16px!important;}
+    .header-brand::after{
+      content:"V33.0  •  LOCAL DATA";display:block;margin-top:19px;color:#777e82;
+      font:700 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;
+    }
+    .header-actions{padding-top:2px!important;}
+    .load-status{display:none!important;}
+    .refresh-button,.home-button{
+      color:#1f262a!important;background:rgba(249,249,246,.88)!important;border:1px solid #aeb5b8!important;
+      box-shadow:0 4px 12px rgba(35,40,43,.08),inset 0 1px #fff!important;backdrop-filter:blur(8px)!important;
+    }
+    .refresh-button{position:relative!important;}
+    .refresh-button::after{content:"";position:absolute;inset:-7px;border:1px solid #d0d4d5;border-radius:50%;border-right-color:var(--nasa-orange);}
+
+    /* Home technical hero */
+    .home-view{padding:16px 20px calc(105px + env(safe-area-inset-bottom))!important;}
+    .v31-home-hero{
+      color:var(--nasa-ink)!important;border:1px solid #c3c8ca!important;border-radius:3px!important;
+      clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)!important;
+      background:
+        radial-gradient(circle at 78% 54%,transparent 0 48px,#d7d9d8 49px 50px,transparent 51px),
+        linear-gradient(rgba(72,78,82,.055) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(72,78,82,.055) 1px,transparent 1px),
+        linear-gradient(135deg,#fafaf8,#efefec)!important;
+      background-size:auto,32px 32px,32px 32px,auto!important;
+      box-shadow:var(--nasa-shadow)!important;padding:25px 28px!important;min-height:176px!important;
+    }
+    .v31-home-hero::before{content:"01  ///";display:block;color:var(--nasa-orange);font:800 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;margin-bottom:15px;}
+    .v31-kicker{color:#555e63!important;font:700 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace!important;letter-spacing:.26em!important;}
+    .v31-hero-title{color:#171c1f!important;font-size:35px!important;line-height:1!important;font-weight:850!important;letter-spacing:-.04em!important;text-transform:uppercase!important;margin-top:8px!important;}
+    .v31-hero-copy{color:#666e72!important;font-size:13px!important;letter-spacing:.12em!important;line-height:1.55!important;text-transform:uppercase!important;max-width:570px!important;}
+    .v31-status-row{border-top:1px solid #d0d4d4!important;color:#5d6569!important;font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace!important;letter-spacing:.18em!important;}
+    .v31-status-row span:first-child{color:#2e5543!important;}
+    .v31-status-row i{background:var(--nasa-green)!important;box-shadow:0 0 0 3px rgba(33,182,111,.10)!important;}
+    .home-intro{display:none!important;}
+    .v31-section-label{color:#535b60!important;border-bottom:1px solid #cbd0d1!important;font:700 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace!important;letter-spacing:.25em!important;margin:19px 4px 12px!important;padding-bottom:9px!important;}
+    .v31-section-label::after{content:"";position:absolute;left:4px;bottom:-1px;width:105px;height:3px;background:var(--nasa-orange);}
+
+    /* System cards */
+    .home-grid{gap:12px!important;}
+    .home-card{
+      --accent:var(--nasa-orange)!important;--tint:#f1f1ee!important;min-height:148px!important;
+      color:var(--nasa-ink)!important;background:
+        linear-gradient(112deg,rgba(250,250,248,.99) 0%,rgba(250,250,248,.98) 66%,rgba(225,226,223,.74) 100%),
+        var(--photo)!important;
+      background-size:cover!important;background-position:center!important;
+      border:1px solid #c5cacc!important;border-left:1px solid #c5cacc!important;border-radius:3px!important;
+      clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)!important;
+      box-shadow:0 7px 18px rgba(34,39,42,.08)!important;padding:23px 68px 21px 23px!important;
+    }
+    .home-card::before{
+      content:""!important;position:absolute!important;inset:0!important;z-index:-1!important;
+      background:
+        linear-gradient(90deg,rgba(250,250,248,.99) 0%,rgba(250,250,248,.98) 58%,rgba(250,250,248,.60) 78%,rgba(250,250,248,.30) 100%),
+        var(--photo)!important;
+      background-size:cover!important;background-position:center!important;filter:grayscale(1) contrast(.82)!important;opacity:.9!important;
+    }
+    .home-card::after{
+      color:var(--nasa-orange)!important;background:rgba(250,250,247,.94)!important;border:1px solid #bfc5c7!important;
+      width:39px!important;height:39px!important;font-size:29px!important;box-shadow:0 3px 10px rgba(30,35,38,.07)!important;
+    }
+    .home-card-title{color:#171c1f!important;font-size:21px!important;font-weight:820!important;letter-spacing:-.025em!important;text-transform:uppercase!important;}
+    .home-card-icon{
+      color:#333a3e!important;background:#eeeeeb!important;border:1px solid #c6cbcd!important;border-radius:2px!important;
+      width:48px!important;height:48px!important;box-shadow:none!important;position:relative!important;
+    }
+    .home-card-icon::after{content:"";position:absolute;left:-7px;bottom:-7px;width:15px;height:3px;background:var(--nasa-orange);transform:rotate(-45deg);}
+    .home-card-description{color:#626a6f!important;font-size:13.5px!important;line-height:1.45!important;letter-spacing:.015em!important;}
+
+    /* All working screens use the same paper/instrument language. */
+    .cards,.calendar-shell{color:var(--nasa-ink)!important;}
+    .card,.part-box,.electrical-device-row,.calendar-agenda-item{
+      color:var(--nasa-ink)!important;background:rgba(251,251,248,.97)!important;border:1px solid #c9cecf!important;border-radius:3px!important;
+      box-shadow:0 5px 14px rgba(32,37,40,.06)!important;
+    }
+    .card::before{background:var(--nasa-orange)!important;opacity:1!important;top:0!important;bottom:auto!important;width:38px!important;height:3px!important;}
+    .card-title,.electrical-device-title,.calendar-agenda-title,.part-box strong,.value,.maintenance-description{color:#1a2023!important;}
+    .card-location,.summary,.small-note,.electrical-device-meta,.calendar-agenda-meta,.calendar-agenda-date,.label,.equipment-button-label,.tcc-category{color:#687075!important;}
+    .search,.filters select,.field input,.field select,.field textarea{
+      color:#202629!important;background:#fbfbf8!important;border:1px solid #bfc5c7!important;border-radius:2px!important;box-shadow:inset 0 1px #fff!important;
+    }
+    .search::placeholder,.field input::placeholder,.field textarea::placeholder{color:#90979a!important;}
+    .filters select option,.field select option{background:#fff!important;color:#222!important;}
+    .search:focus,.filters select:focus,.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--nasa-orange)!important;box-shadow:0 0 0 2px rgba(255,90,18,.10)!important;}
+    .btn{color:#fff!important;background:#252c30!important;border:1px solid #252c30!important;border-radius:2px!important;box-shadow:none!important;text-transform:uppercase!important;letter-spacing:.06em!important;font-size:12px!important;}
+    .btn.secondary{color:#252b2f!important;background:#f2f2ef!important;border-color:#bfc5c7!important;}
+    .btn.success-btn{color:#fff!important;background:#287c58!important;border-color:#287c58!important;}
+    .equipment-folder-link,.section h3{color:#d94808!important;}
+    .section h3{border-color:#d1d5d5!important;letter-spacing:.12em!important;}
+    .modal-panel{background:#f5f5f2!important;color:#1b2023!important;}
+    .modal-header{color:#171c1f!important;background:#f8f8f5!important;border-bottom:3px solid var(--nasa-orange)!important;}
+    .modal-header h2{color:#171c1f!important;text-transform:uppercase!important;letter-spacing:-.02em!important;}
+    .close{color:#202629!important;background:#ececea!important;border:1px solid #c5cacc!important;}
+    .detail-row{border-color:#d5d8d8!important;}
+    .electrical-mode-btn{color:#30373b!important;background:#f8f8f5!important;border-color:#c4c9ca!important;border-radius:2px!important;}
+    .electrical-mode-btn.active{color:#fff!important;background:#292f33!important;border-color:#292f33!important;box-shadow:inset 0 -3px var(--nasa-orange)!important;}
+    .breaker-icon{background:#efefec!important;color:#30373b!important;border:1px solid #c7cccd!important;border-radius:2px!important;}
+
+    .tag,.tier1,.tier2,.tier3,.future,.complete-yes,.complete-no,.doc-wi,.doc-qg,.doc-opl,.pm-overdue,.pm-due-soon,.pm-open,.pm-inactive,.stock-reorder,.stock-low,.stock-ok,.protection-tag{
+      color:#42494d!important;background:#efefec!important;border:1px solid #cbd0d1!important;border-radius:2px!important;box-shadow:none!important;
+    }
+    .tier1,.complete-no,.pm-overdue,.stock-reorder{color:#9b2c25!important;background:#f8e8e5!important;border-color:#dfbbb5!important;}
+    .tier2,.pm-due-soon,.stock-low,.doc-opl{color:#8a5310!important;background:#f8efdf!important;border-color:#dfc9a7!important;}
+    .tier3,.complete-yes,.stock-ok,.protection-tag,.doc-qg{color:#286647!important;background:#e6f2eb!important;border-color:#b8d5c5!important;}
+    .future,.doc-wi,.pm-open{color:#3f5d6e!important;background:#e9eff2!important;border-color:#c4d1d7!important;}
+
+    /* Calendar */
+    .calendar-toolbar-title{color:#1b2023!important;text-transform:uppercase!important;}
+    .calendar-legend{color:#61696d!important;}
+    .calendar-weekdays{background:#e8e9e6!important;border-color:#c5cacc!important;border-radius:2px 2px 0 0!important;}
+    .calendar-weekday{color:#596166!important;}
+    .calendar-grid{background:#f9f9f6!important;border-color:#c5cacc!important;border-radius:0 0 2px 2px!important;box-shadow:none!important;}
+    .calendar-day{background:#fbfbf8!important;border-color:#d4d7d7!important;}
+    .calendar-day.other-month{background:#eeeeeb!important;}
+    .calendar-day-number{color:#272d31!important;}
+    .calendar-day.other-month .calendar-day-number{color:#999fa2!important;}
+    .calendar-day.today{box-shadow:inset 0 0 0 2px var(--nasa-orange)!important;}
+    .calendar-day.today .calendar-day-number{background:var(--nasa-orange)!important;color:#fff!important;}
+    .calendar-more{color:#70787c!important;}
+
+    @media(max-width:699px){
+      .header{min-height:238px!important;padding:calc(22px + env(safe-area-inset-top)) 20px 22px!important;background-position:58% center!important;}
+      .header h1{font-size:43px!important;max-width:315px!important;}
+      .header-subtitle{display:block!important;font-size:10px!important;max-width:285px!important;letter-spacing:.13em!important;}
+      .header-brand::after{font-size:8px!important;}
+      .refresh-button,.home-button{min-width:44px!important;height:44px!important;}
+      .home-view{padding:14px 10px calc(98px + env(safe-area-inset-bottom))!important;}
+      .v31-home-hero{padding:20px 19px!important;min-height:165px!important;}
+      .v31-hero-title{font-size:30px!important;}
+      .v31-hero-copy{font-size:10.5px!important;max-width:92%!important;}
+      .v31-status-row{font-size:8px!important;}
+      .v31-section-label{margin-left:3px!important;margin-right:3px!important;}
+      .home-grid{gap:10px!important;}
+      .home-card{min-height:136px!important;padding:20px 56px 18px 17px!important;}
+      .home-card-title{font-size:19px!important;gap:12px!important;}
+      .home-card-icon{width:44px!important;height:44px!important;}
+      .home-card-description{font-size:12.5px!important;padding-left:56px!important;max-width:96%!important;}
+      .product-tabbar{
+        background:rgba(246,246,243,.97)!important;border-top:1px solid #bfc5c7!important;
+        box-shadow:0 -7px 20px rgba(34,39,42,.09)!important;backdrop-filter:blur(14px)!important;
+      }
+      .product-tabbar button{
+        color:#596166!important;background:transparent!important;border:1px solid transparent!important;border-radius:2px!important;
+        box-shadow:none!important;
+      }
+      .product-tabbar button span{color:inherit!important;font-size:8px!important;font-weight:700!important;}
+      .product-tabbar button.active{
+        color:#d94808!important;background:#f1f1ee!important;border-color:#c3c8ca!important;
+        box-shadow:inset 0 3px var(--nasa-orange)!important;
+      }
     }
 
   </style>
