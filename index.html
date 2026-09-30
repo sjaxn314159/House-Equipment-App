@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V33
-  V33 introduces the light NASA / Scandinavian technical interface while preserving all existing app behavior.
+  HOUSE EQUIPMENT APP — INDEX V34
+  V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
+   V33 introduces the light NASA / Scandinavian technical interface while preserving all existing app behavior.
    V32 polishes the dark Home Systems theme for readability, contrast, card depth, controls, tags, and mobile navigation.
    V31 adds the realistic dark 'Home Systems' visual theme while preserving all existing app behavior.
    V30 correctly targets the live product UI: hides the decorative brand mark and fits all six bottom-nav buttons on one row with tactile depth.
@@ -2318,7 +2319,7 @@
     }
     .header-subtitle{color:#555d62!important;font-size:13px!important;letter-spacing:.16em!important;line-height:1.55!important;text-transform:uppercase!important;max-width:390px!important;margin-top:16px!important;}
     .header-brand::after{
-      content:"V33.0  •  LOCAL DATA";display:block;margin-top:19px;color:#777e82;
+      content:"V34.0  •  LOCAL DATA";display:block;margin-top:19px;color:#777e82;
       font:700 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;
     }
     .header-actions{padding-top:2px!important;}
@@ -2468,7 +2469,66 @@
       }
     }
 
-  </style>
+  
+
+    /* -----------------------------------------------------------------------
+       V34 — MERGED HERO + TALLER MOBILE NAV + SPACE SYSTEM IMAGERY
+       Presentation-only override. Existing app behavior remains unchanged.
+       ----------------------------------------------------------------------- */
+    .header{
+      min-height:310px!important;
+      padding-bottom:24px!important;
+      background-image:
+        linear-gradient(90deg,rgba(250,250,248,.99) 0%,rgba(250,250,248,.94) 47%,rgba(250,250,248,.30) 100%),
+        url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=82")!important;
+      background-position:center 48%!important;
+    }
+    .v34-merged-status{
+      position:relative;z-index:2;margin-top:24px;width:min(520px,82%);min-height:64px;
+      display:grid;grid-template-columns:auto 1fr;grid-template-areas:"main local" "copy copy";
+      align-items:center;column-gap:18px;row-gap:7px;padding:13px 17px 12px;
+      color:#32393d;background:rgba(249,249,246,.88);border:1px solid #c4c9ca;
+      clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);
+      box-shadow:0 5px 15px rgba(35,40,43,.06);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    }
+    .v34-status-main{grid-area:main;display:flex;align-items:center;gap:9px;font:800 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.17em;white-space:nowrap;}
+    .v34-status-main i{width:9px;height:9px;border-radius:50%;background:var(--nasa-green);box-shadow:0 0 0 3px rgba(33,182,111,.11);}
+    .v34-status-local{grid-area:local;justify-self:end;color:#71797d;font:700 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;white-space:nowrap;}
+    .v34-status-copy{grid-area:copy;color:#727a7e;font:650 8px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.10em;text-transform:uppercase;}
+    .home-view{padding-top:15px!important;}
+    .v31-section-label{margin-top:4px!important;}
+
+    /* More representative, slightly space-program imagery. */
+    .home-card[data-home-view="equipment"]{--photo:url("https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="maintenance"]{--photo:url("https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="actionItems"]{--photo:url("https://images.unsplash.com/photo-1457364887197-9150188c107b?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="calendar"]{--photo:url("https://images.unsplash.com/photo-1447433819943-74a20887a81e?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="documents"]{--photo:url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="pm"]{--photo:url("https://images.unsplash.com/photo-1454789548928-9efd52dc4031?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="spareParts"]{--photo:url("https://images.unsplash.com/photo-1517976547714-720226b864c1?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="electrical"]{--photo:url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=80")!important;}
+    .home-card[data-home-view="troubleshooting"]{--photo:url("https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=1000&q=80")!important;}
+
+    @media(max-width:699px){
+      .app{padding-bottom:calc(126px + env(safe-area-inset-bottom))!important;}
+      .header{min-height:300px!important;padding:calc(22px + env(safe-area-inset-top)) 20px 20px!important;background-position:61% center!important;}
+      .v34-merged-status{margin-top:20px;width:88%;min-height:60px;padding:12px 14px;column-gap:10px;}
+      .v34-status-main{font-size:8.5px;letter-spacing:.14em;}
+      .v34-status-local{font-size:7px;}
+      .v34-status-copy{font-size:7px;letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .home-view{padding-bottom:calc(145px + env(safe-area-inset-bottom))!important;}
+      .product-tabbar{
+        min-height:108px!important;
+        padding:12px 8px calc(14px + env(safe-area-inset-bottom))!important;
+        align-items:stretch!important;
+      }
+      .product-tabbar button{
+        min-height:78px!important;padding:8px 2px 7px!important;gap:7px!important;
+      }
+      .product-tabbar button svg{width:27px!important;height:27px!important;}
+      .product-tabbar button span{font-size:9px!important;line-height:1.05!important;}
+    }
+</style>
 </head>
 
 <body>
@@ -2488,6 +2548,12 @@
         <button id="refreshButton" class="refresh-button" type="button" aria-label="Reload data" title="Reload data">↻</button>
         <button id="homeButton" class="home-button" type="button">← Home</button>
       </div>
+    </div>
+
+    <div class="v34-merged-status" aria-label="House systems status">
+      <span class="v34-status-main"><i></i> SYSTEMS ONLINE</span>
+      <span class="v34-status-copy">Equipment · Maintenance · Schedules · Parts · Home Systems</span>
+      <span class="v34-status-local">ALL SYSTEMS NOMINAL</span>
     </div>
 
     <div class="nav">
@@ -2651,15 +2717,6 @@
 
   <!-- V6 HOME SCREEN -->
   <div id="homeView" class="view active home-view">
-    <div class="v31-home-hero">
-      <div class="v31-kicker">HOME SYSTEMS</div>
-      <div class="v31-hero-title">House Control</div>
-      <div class="v31-hero-copy">Equipment, maintenance, schedules, parts, and home systems in one place.</div>
-      <div class="v31-status-row">
-        <span><i></i> SYSTEM ONLINE</span>
-        <span>LOCAL DATA</span>
-      </div>
-    </div>
     <div class="home-intro">
       <h2>House Equipment</h2>
       <p>Everything you need to manage the equipment and systems in your home.</p>
