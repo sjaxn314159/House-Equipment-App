@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V31
-  V31 adds the realistic dark 'Home Systems' visual theme while preserving all existing app behavior.
+  HOUSE EQUIPMENT APP — INDEX V32
+  V32 polishes the dark Home Systems theme for readability, contrast, card depth, controls, tags, and mobile navigation.
+   V31 adds the realistic dark 'Home Systems' visual theme while preserving all existing app behavior.
    V30 correctly targets the live product UI: hides the decorative brand mark and fits all six bottom-nav buttons on one row with tactile depth.
    V29 refines the product UI: removes the header emblem, keeps bottom navigation on one row, adds button depth, and sharpens spacing/surfaces.
    V28 adds a unified Calendar for future PMs/action items and past completed maintenance.
@@ -2032,6 +2033,229 @@
         background:linear-gradient(180deg,#123347,#0d2635) !important;
         box-shadow:inset 0 0 0 1px rgba(53,201,232,.05),0 0 14px rgba(53,201,232,.07) !important;
       }
+    }
+
+  
+    /* -----------------------------------------------------------------------
+       V32 — DARK HOME SYSTEMS POLISH / READABILITY PASS
+       ----------------------------------------------------------------------- */
+    :root{
+      --v32-bg:#07131d;
+      --v32-panel:#0d202d;
+      --v32-panel-hi:#122a39;
+      --v32-line:#28485b;
+      --v32-line-soft:#1d3747;
+      --v32-text:#f2f8fb;
+      --v32-secondary:#b2c4cf;
+      --v32-muted:#8fa6b5;
+      --v32-cyan:#45d6ef;
+      --v32-cyan-dim:#1b89aa;
+    }
+
+    body{color:var(--v32-text)!important;}
+
+    /* Header: cleaner, darker, more like a finished control interface. */
+    .header{
+      border-bottom:1px solid rgba(69,214,239,.25)!important;
+      box-shadow:0 12px 30px rgba(0,0,0,.38)!important;
+    }
+    .header h1{color:#fff!important;text-shadow:0 2px 12px rgba(0,0,0,.34)!important;}
+    .header-subtitle{color:#c3d3dc!important;}
+    .header-eyebrow{color:#72def1!important;}
+    .refresh-button,.home-button{
+      border-color:#38667c!important;
+      background:linear-gradient(180deg,rgba(20,55,72,.96),rgba(9,31,43,.98))!important;
+      color:#eafaff!important;
+      box-shadow:inset 0 1px rgba(255,255,255,.09),0 5px 14px rgba(0,0,0,.30)!important;
+    }
+
+    /* Search / filter controls */
+    .search,.filters select,.field input,.field select,.field textarea{
+      color:#eef8fb!important;
+      background:linear-gradient(180deg,#102532,#0c1e2a)!important;
+      border:1px solid #315267!important;
+      box-shadow:inset 0 1px rgba(255,255,255,.025),0 3px 9px rgba(0,0,0,.13)!important;
+    }
+    .search::placeholder,.field input::placeholder,.field textarea::placeholder{
+      color:#879eac!important;opacity:1;
+    }
+    .search:focus,.filters select:focus,.field input:focus,.field select:focus,.field textarea:focus{
+      border-color:#48cbe4!important;
+      box-shadow:0 0 0 3px rgba(69,214,239,.12),inset 0 1px rgba(255,255,255,.025)!important;
+    }
+    .filters select option,.field select option{background:#102532;color:#eef8fb;}
+
+    /* Working cards: stronger separation and much better text contrast. */
+    .card,.part-box,.electrical-device-row,.calendar-agenda-item{
+      position:relative;
+      color:var(--v32-text)!important;
+      background:
+        linear-gradient(180deg,rgba(18,42,57,.98),rgba(11,29,41,.99))!important;
+      border:1px solid var(--v32-line)!important;
+      box-shadow:
+        inset 0 1px rgba(255,255,255,.035),
+        0 7px 18px rgba(0,0,0,.23)!important;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      left:0;top:14px;bottom:14px;width:2px;
+      border-radius:0 3px 3px 0;
+      background:linear-gradient(180deg,transparent,var(--v32-cyan),transparent);
+      opacity:.55;
+      pointer-events:none;
+    }
+    .card:hover{
+      border-color:#3b6378!important;
+      box-shadow:inset 0 1px rgba(255,255,255,.04),0 10px 24px rgba(0,0,0,.28)!important;
+    }
+    .card-title,.electrical-device-title,.calendar-agenda-title,.part-box strong{
+      color:#f5fbfd!important;
+    }
+    .card-location,.summary,.small-note,.electrical-device-meta,.calendar-agenda-meta,
+    .calendar-agenda-date,.label,.equipment-button-label,.tcc-category{
+      color:var(--v32-secondary)!important;
+    }
+    .value,.maintenance-description{color:#e3edf2!important;}
+
+    /* Critical fix: old light-theme pill classes were causing white-on-white text. */
+    .tag,
+    .tier1,.tier2,.tier3,.future,
+    .complete-yes,.complete-no,
+    .doc-wi,.doc-qg,.doc-opl,
+    .pm-overdue,.pm-due-soon,.pm-open,.pm-inactive,
+    .stock-reorder,.stock-low,.stock-ok,.protection-tag{
+      color:#dceaf0!important;
+      background:#172d3b!important;
+      border:1px solid #315064!important;
+      box-shadow:inset 0 1px rgba(255,255,255,.025)!important;
+      font-weight:650;
+    }
+    .tier1,.complete-no,.pm-overdue,.stock-reorder{
+      color:#ffb6bb!important;background:rgba(240,93,104,.12)!important;border-color:rgba(240,93,104,.38)!important;
+    }
+    .tier2,.pm-due-soon,.stock-low,.doc-opl{
+      color:#ffd08c!important;background:rgba(243,163,59,.12)!important;border-color:rgba(243,163,59,.38)!important;
+    }
+    .tier3,.complete-yes,.stock-ok,.protection-tag,.doc-qg{
+      color:#91e6bd!important;background:rgba(54,211,153,.11)!important;border-color:rgba(54,211,153,.34)!important;
+    }
+    .future,.doc-wi,.pm-open{
+      color:#9ee6f4!important;background:rgba(53,201,232,.10)!important;border-color:rgba(53,201,232,.34)!important;
+    }
+    .pm-inactive{color:#b8c6cf!important;background:#162936!important;border-color:#304a5a!important;}
+
+    /* Buttons */
+    .btn{
+      color:#effaff!important;
+      background:linear-gradient(180deg,#187da1,#12627f)!important;
+      border:1px solid #258eae!important;
+      box-shadow:inset 0 1px rgba(255,255,255,.10),0 3px 8px rgba(0,0,0,.22)!important;
+    }
+    .btn.secondary{
+      color:#dceaf0!important;
+      background:linear-gradient(180deg,#1a3343,#132a38)!important;
+      border-color:#355569!important;
+    }
+    .btn.success-btn{
+      color:#eafff5!important;
+      background:linear-gradient(180deg,#21875f,#176c4b)!important;
+      border-color:#2a9b70!important;
+    }
+    .equipment-folder-link{color:#67d9ef!important;}
+
+    /* Home screen: refine V31 rather than redesign it. */
+    .v31-home-hero{
+      border-color:#2a4b5e!important;
+      background:
+        radial-gradient(circle at 88% 15%,rgba(69,214,239,.14),transparent 30%),
+        linear-gradient(135deg,#112b3a,#091a25)!important;
+      box-shadow:inset 0 1px rgba(255,255,255,.035),0 10px 26px rgba(0,0,0,.28)!important;
+    }
+    .v31-hero-copy{color:#adc0cb!important;}
+    .v31-section-label{color:#91a8b6!important;}
+    .home-card{
+      border-color:#29495b!important;
+      background:linear-gradient(112deg,#102532 0%,#0d202d 66%,#112b39 100%)!important;
+      box-shadow:inset 0 1px rgba(255,255,255,.03),0 8px 20px rgba(0,0,0,.24)!important;
+    }
+    .home-card-title{color:#f4fafc!important;}
+    .home-card-description{color:#aec0ca!important;}
+    .home-card::after{
+      color:#9bddec!important;
+      border-color:#31566b!important;
+      background:#102938!important;
+    }
+
+    /* Modal / details */
+    .modal-panel{background:#091923!important;color:#eef7fb!important;}
+    .modal-header{
+      background:linear-gradient(135deg,#103149,#13506a)!important;
+      border-bottom:1px solid #32708a!important;
+    }
+    .detail-row{border-color:#213b4b!important;}
+    .section h3{color:#55d5ed!important;border-color:#294657!important;}
+    .field label{color:#b2c4cf!important;}
+
+    /* Calendar contrast */
+    .calendar-toolbar-title{color:#f2f8fb!important;}
+    .calendar-legend{color:#a9bdc8!important;}
+    .calendar-weekdays{background:#102633!important;border-color:#2b4b5d!important;}
+    .calendar-weekday{color:#b4c6cf!important;}
+    .calendar-grid{background:#091a24!important;border-color:#2b4b5d!important;}
+    .calendar-day{background:#0d202c!important;border-color:#213c4c!important;}
+    .calendar-day.other-month{background:#091821!important;}
+    .calendar-day-number{color:#dce9ef!important;}
+    .calendar-day.other-month .calendar-day-number{color:#6e8796!important;}
+    .calendar-more{color:#9fb4c0!important;}
+
+    /* Preserve category colors, but tune event backgrounds for dark mode. */
+    .calendar-event.pm{background:rgba(240,93,104,.15)!important;color:#ffbdc1!important;border-left-color:#f05d68!important;}
+    .calendar-event.action{background:rgba(243,163,59,.15)!important;color:#ffd08c!important;border-left-color:#f3a33b!important;}
+    .calendar-event.past{background:#182b37!important;color:#bdcbd3!important;border-left-color:#718796!important;}
+
+    /* Electrical controls */
+    .electrical-mode-btn{
+      color:#dbeaf0!important;background:#102431!important;border-color:#2d4d60!important;
+    }
+    .electrical-mode-btn.active{
+      color:#eefdff!important;background:#146f91!important;border-color:#2da8c8!important;
+    }
+    .breaker-icon{background:#153346!important;color:#67d9ef!important;}
+
+    /* Bottom nav: more legible and slightly more 'instrument panel'. */
+    @media(max-width:699px){
+      .product-tabbar{
+        background:rgba(6,17,25,.985)!important;
+        border-top:1px solid #294758!important;
+        box-shadow:0 -10px 30px rgba(0,0,0,.42)!important;
+      }
+      .product-tabbar button{
+        color:#91a7b5!important;
+        border-color:#213b4b!important;
+        background:linear-gradient(180deg,#102430,#0a1923)!important;
+      }
+      .product-tabbar button span{
+        color:inherit!important;
+        font-size:8px!important;
+        font-weight:700!important;
+      }
+      .product-tabbar button.active{
+        color:#62dcef!important;
+        border-color:#32677c!important;
+        background:
+          linear-gradient(180deg,rgba(24,76,96,.92),rgba(12,43,58,.98))!important;
+        box-shadow:
+          inset 0 1px rgba(255,255,255,.055),
+          inset 0 -2px rgba(69,214,239,.38),
+          0 0 15px rgba(69,214,239,.07)!important;
+      }
+      .cards{padding-left:10px!important;padding-right:10px!important;}
+      .card{padding:15px 14px 15px 16px!important;margin-bottom:10px!important;}
+      .card-title{font-size:17px!important;letter-spacing:-.012em;}
+      .card-location{font-size:13px!important;}
+      .card-info{gap:6px!important;}
+      .tag{padding:5px 9px!important;font-size:11px!important;}
     }
 
   </style>
