@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  ATLAS HOME MANAGEMENT — INDEX V41
+  ATLAS HOME MANAGEMENT — INDEX V42
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
+   V42 adds the Energy dashboard using UtilityAPI-synced bill/interval data and repairs the Maintenance home-card image.
    V41 fixes mobile dashboard card geometry: consistent image/text split, icon placement, title baseline, text wrapping, and chevron alignment.
    V40 introduces the mobile-first commercial Atlas UI while preserving V39 Google authentication and all existing app behavior.
    V39 adds Google sign-in and authenticated API requests; household data is not loaded until authorized.
@@ -2871,7 +2872,8 @@
     .home-card[data-home-view="equipment"]{--photo:url("https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80")!important;}
     .home-card[data-home-view="electrical"]{--photo:url("https://images.unsplash.com/photo-1555963966-b7ae5404b6ed?auto=format&fit=crop&w=900&q=80")!important;}
     .home-card[data-home-view="keys"]{--photo:url("https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=900&q=80")!important;}
-    .home-card[data-home-view="maintenance"]{--photo:url("https://images.unsplash.com/photo-1581147036324-c1c89c2c8b5c?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="maintenance"]{--photo:url("https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="energy"]{--photo:url("https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=900&q=80")!important;}
     .home-card[data-home-view="documents"]{--photo:url("https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80")!important;}
     .home-card[data-home-view="actionItems"]{--photo:url("https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80")!important;}
     .home-card[data-home-view="calendar"]{--photo:url("https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=900&q=80")!important;}
@@ -3094,6 +3096,28 @@
         top:157px!important;margin:0!important;padding-right:34px!important;
       }
     }
+
+
+    /* V42 — ENERGY DASHBOARD */
+    .energy-shell{padding:16px 14px calc(94px + env(safe-area-inset-bottom));}
+    .energy-hero{background:linear-gradient(135deg,#132d3d,#245b73);color:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 8px 24px rgba(15,23,42,.12);}
+    .energy-hero-kicker{font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:6px;}
+    .energy-hero-title{font-size:24px;font-weight:800;letter-spacing:-.03em;margin:0 0 4px;}
+    .energy-hero-sub{font-size:13px;opacity:.78;line-height:1.4;}
+    .energy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+    .energy-tile{background:#fff;border:1px solid #dfe5ea;border-radius:16px;padding:14px;box-shadow:0 2px 9px rgba(15,23,42,.05);}
+    .energy-label{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#77838d;margin-bottom:7px;}
+    .energy-value{font-size:25px;font-weight:820;letter-spacing:-.035em;color:#20282d;line-height:1.05;}
+    .energy-meta{font-size:11px;color:#7a858d;margin-top:5px;}
+    .energy-section{margin-top:16px;}
+    .energy-section h3{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#68747d;}
+    .energy-list{display:grid;gap:8px;}
+    .energy-row{background:#fff;border:1px solid #dfe5ea;border-radius:13px;padding:12px 13px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+    .energy-row-title{font-weight:760;font-size:14px;color:#222b30;}
+    .energy-row-meta{font-size:11px;color:#7b868e;margin-top:3px;}
+    .energy-row-value{text-align:right;font-weight:800;font-size:15px;color:#263238;}
+    .energy-empty{background:#fff;border:1px dashed #cbd3d9;border-radius:14px;padding:22px;text-align:center;color:#75818a;font-size:13px;}
+    @media(min-width:700px){.energy-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
 
 </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3348,6 +3372,16 @@
         </div>
         <div class="home-card-description">
           Review maintenance history or create a new maintenance log.
+        </div>
+      </button>
+
+      <button class="home-card accent-teal" type="button" data-home-view="energy">
+        <div class="home-card-title">
+          <span class="home-card-icon">⚡</span>
+          <span>Energy</span>
+        </div>
+        <div class="home-card-description">
+          Track electric and gas usage, bills, and recent UtilityAPI data.
         </div>
       </button>
 
@@ -4035,6 +4069,8 @@ let allEquipment = [];
 let allMaintenance = [];
 let allActionItems = [];
 let allKeys = [];
+let allEnergyBills = [];
+let allEnergyIntervals = [];
 let allDocuments = [];
 let allPM = [];
 let allSpareParts = [];
@@ -4250,6 +4286,76 @@ const completePMButton = document.getElementById("completePMButton");
 const cancelCompletePMButton = document.getElementById("cancelCompletePMButton");
 
 
+
+function energyService(row) {
+  return String(row.service || row.serviceClass || row.service_class || row.type || "").toLowerCase();
+}
+function energyNum(row, names) {
+  for (const n of names) {
+    const v = row && row[n];
+    if (v !== "" && v !== null && v !== undefined && !isNaN(Number(v))) return Number(v);
+  }
+  return null;
+}
+function energyDate(row) {
+  return row.endDate || row.bill_end_date || row.end || row.date || row.startDate || row.bill_start_date || row.start || "";
+}
+function energyFmtDate(v) {
+  if (!v) return "Date unavailable";
+  const d = new Date(v);
+  return isNaN(d) ? String(v) : d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+}
+function renderEnergy() {
+  const summary = document.getElementById("energySummary");
+  const billsBox = document.getElementById("energyBillsList");
+  const intervalsBox = document.getElementById("energyIntervalsList");
+  if (!summary || !billsBox || !intervalsBox) return;
+
+  const bills = Array.isArray(allEnergyBills) ? [...allEnergyBills] : [];
+  const intervals = Array.isArray(allEnergyIntervals) ? [...allEnergyIntervals] : [];
+  bills.sort((a,b)=>new Date(energyDate(b)||0)-new Date(energyDate(a)||0));
+  intervals.sort((a,b)=>new Date(energyDate(b)||0)-new Date(energyDate(a)||0));
+
+  const latestGasBill = bills.find(x=>energyService(x).includes("gas"));
+  const latestElecBill = bills.find(x=>energyService(x).includes("electric"));
+  const latestGasUse = intervals.find(x=>energyService(x).includes("gas") || String(x.unit||x.totalUnit||"").toLowerCase()==="ccf");
+  const latestElecUse = intervals.find(x=>energyService(x).includes("electric") || String(x.unit||x.totalUnit||"").toLowerCase()==="kwh");
+
+  const cost = r => energyNum(r,["totalCost","billTotalCost","bill_total_cost","cost"]);
+  const kwh = r => energyNum(r,["kwh","totalKwh","billTotalKwh","bill_total_kwh","value","usage"]);
+  const vol = r => energyNum(r,["ccf","totalVolume","billTotalVolume","bill_total_volume","value","usage"]);
+
+  const tile = (label,value,meta) => `<div class="energy-tile"><div class="energy-label">${escapeHtml(label)}</div><div class="energy-value">${escapeHtml(value)}</div><div class="energy-meta">${escapeHtml(meta)}</div></div>`;
+  summary.innerHTML =
+    tile("Electric Bill", cost(latestElecBill)!=null ? "$"+cost(latestElecBill).toFixed(2) : "—", latestElecBill ? energyFmtDate(energyDate(latestElecBill)) : "No bill data") +
+    tile("Gas Bill", cost(latestGasBill)!=null ? "$"+cost(latestGasBill).toFixed(2) : "—", latestGasBill ? energyFmtDate(energyDate(latestGasBill)) : "No bill data") +
+    tile("Electric Usage", kwh(latestElecUse)!=null ? kwh(latestElecUse).toLocaleString(undefined,{maximumFractionDigits:2})+" kWh" : "—", latestElecUse ? energyFmtDate(energyDate(latestElecUse)) : "No interval data") +
+    tile("Gas Usage", vol(latestGasUse)!=null ? vol(latestGasUse).toLocaleString(undefined,{maximumFractionDigits:2})+" CCF" : "—", latestGasUse ? energyFmtDate(energyDate(latestGasUse)) : "No interval data");
+
+  if (!bills.length) {
+    billsBox.innerHTML = '<div class="energy-empty">No Energy Bills data returned by the API yet.</div>';
+  } else {
+    billsBox.innerHTML = bills.slice(0,12).map(r=>{
+      const svc = energyService(r).includes("gas") ? "Gas" : energyService(r).includes("electric") ? "Electric" : "Utility";
+      const usage = svc==="Gas" ? vol(r) : kwh(r);
+      const unit = svc==="Gas" ? "CCF" : "kWh";
+      return `<div class="energy-row"><div><div class="energy-row-title">${svc}</div><div class="energy-row-meta">${energyFmtDate(energyDate(r))}${usage!=null ? " · "+usage.toLocaleString(undefined,{maximumFractionDigits:2})+" "+unit : ""}</div></div><div class="energy-row-value">${cost(r)!=null ? "$"+cost(r).toFixed(2) : "—"}</div></div>`;
+    }).join("");
+  }
+
+  if (!intervals.length) {
+    intervalsBox.innerHTML = '<div class="energy-empty">No Energy Intervals data returned by the API yet.</div>';
+  } else {
+    intervalsBox.innerHTML = intervals.slice(0,14).map(r=>{
+      const svc = energyService(r).includes("gas") || String(r.unit||"").toLowerCase()==="ccf" ? "Gas" : "Electric";
+      const usage = svc==="Gas" ? vol(r) : kwh(r);
+      const unit = svc==="Gas" ? "CCF" : "kWh";
+      return `<div class="energy-row"><div><div class="energy-row-title">${svc}</div><div class="energy-row-meta">${energyFmtDate(energyDate(r))}</div></div><div class="energy-row-value">${usage!=null ? usage.toLocaleString(undefined,{maximumFractionDigits:2})+" "+unit : "—"}</div></div>`;
+    }).join("");
+  }
+}
+
+
 async function loadData() {
 
   if (loadStatus) {
@@ -4280,6 +4386,8 @@ async function loadData() {
     allMaintenance = data.maintenance || [];
     allActionItems = data.actionItems || [];
     allKeys = data.keys || [];
+    allEnergyBills = data.energyBills || (data.energy && data.energy.bills) || [];
+    allEnergyIntervals = data.energyIntervals || (data.energy && data.energy.intervals) || [];
     allDocuments = data.documents || [];
     allPM = data.pm || [];
     allSpareParts = data.spareParts || [];
@@ -4310,6 +4418,7 @@ async function loadData() {
     renderSpareParts();
     renderElectrical();
     renderKeys();
+    renderEnergy();
     renderTroubleshooting();
     renderCalendar();
 
@@ -4391,6 +4500,7 @@ function switchView(viewName) {
     calendar: "Calendar",
     equipment: "Equipment",
     maintenance: "Maintenance",
+    energy: "Energy",
     actionItems: "Action Items",
     documents: "Documents",
     pm: "Preventive Maintenance",
