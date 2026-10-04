@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V35
+  HOUSE EQUIPMENT APP — INDEX V36
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
+   V36 removes the obstructive systems-status card, moves status inline, uses graphite mobile chrome, adds search clear buttons, and supports editing Action Items.
    V35 refines V34 with a neutral iOS status-bar surround and a compact right-side systems status module.
    V34 merges the hero/status area, enlarges mobile navigation, and adds space-program imagery.
    V33 introduces the light NASA / Scandinavian technical interface while preserving all existing app behavior.
@@ -36,7 +37,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1f4e78">
+  <meta name="theme-color" content="#3b4044">
 
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -2321,7 +2322,7 @@
     }
     .header-subtitle{color:#555d62!important;font-size:13px!important;letter-spacing:.16em!important;line-height:1.55!important;text-transform:uppercase!important;max-width:390px!important;margin-top:16px!important;}
     .header-brand::after{
-      content:"V35.0  •  LOCAL DATA";display:block;margin-top:19px;color:#777e82;
+      content:"V36.0  •  LOCAL DATA";display:block;margin-top:19px;color:#777e82;
       font:700 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em;
     }
     .header-actions{padding-top:2px!important;}
@@ -2588,6 +2589,99 @@
       .v31-section-label{margin-top:2px!important;}
     }
 
+
+    /* -----------------------------------------------------------------------
+       V36 — MOBILE SPACE RECOVERY + ACTION EDITING
+       ----------------------------------------------------------------------- */
+    .header-brand::after{display:none!important;}
+
+    .v36-meta-row{
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:7px;
+      margin-top:19px;
+      color:#777e82;
+      font:700 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+    .v36-system-status{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      color:#596267;
+      white-space:nowrap;
+    }
+    .v36-system-dot{
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:#2dbb78;
+      box-shadow:0 0 0 3px rgba(45,187,120,.10);
+      flex:none;
+    }
+
+    /* The former V34/V35 card consumed valuable control space. */
+    .v34-merged-status{display:none!important;}
+
+    .search-wrap{
+      position:relative;
+      width:100%;
+    }
+    .search-wrap .search{
+      padding-right:46px!important;
+    }
+    .search-clear{
+      position:absolute;
+      right:7px;
+      top:50%;
+      transform:translateY(-50%);
+      width:32px;
+      height:32px;
+      padding:0;
+      border:0;
+      border-radius:50%;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:#e6e8e8;
+      color:#50585d;
+      font-size:22px;
+      line-height:1;
+      cursor:pointer;
+      z-index:2;
+    }
+    .search-clear.visible{display:flex;}
+    .search-clear:active{transform:translateY(-50%) scale(.94);}
+
+    .action-item-card{cursor:pointer;}
+    .action-item-card::after{
+      content:"Tap card to edit";
+      display:block;
+      margin-top:10px;
+      color:#8a9195;
+      font:700 8px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    @media(max-width:699px){
+      html,body{background:#3b4044!important;}
+      .app{background:#eeeeeb!important;}
+
+      .header{
+        min-height:0!important;
+        padding-bottom:18px!important;
+        background-position:61% center!important;
+      }
+      .header-title-row{min-height:0!important;}
+      .header-brand{max-width:calc(100% - 112px)!important;}
+      .header h1{font-size:41px!important;max-width:300px!important;}
+      .header-subtitle{max-width:285px!important;}
+      .v36-meta-row{margin-top:17px;}
+    }
+
 </style>
 </head>
 
@@ -2601,6 +2695,10 @@
         <div class="header-eyebrow">HOME MANAGEMENT</div>
         <h1 id="appTitle">House Equipment</h1>
         <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
+        <div class="v36-meta-row" aria-label="App version and system status">
+          <span>V36.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
+          <span class="v36-system-status"><i class="v36-system-dot"></i> SYSTEMS ONLINE</span>
+        </div>
       </div>
 
       <div class="header-actions">
@@ -2608,12 +2706,6 @@
         <button id="refreshButton" class="refresh-button" type="button" aria-label="Reload data" title="Reload data">↻</button>
         <button id="homeButton" class="home-button" type="button">← Home</button>
       </div>
-    </div>
-
-    <div class="v34-merged-status" aria-label="House systems status">
-      <span class="v34-status-main"><i></i> SYSTEMS ONLINE</span>
-      <span class="v34-status-copy">Equipment · Maintenance · Schedules · Parts · Home Systems</span>
-      <span class="v34-status-local">ALL SYSTEMS NOMINAL</span>
     </div>
 
     <div class="nav">
@@ -2635,12 +2727,15 @@
     </div>
 
     <div id="equipmentHeader" style="display:none;">
-      <input
-        id="search"
-        class="search"
-        type="search"
-        placeholder="Search equipment, make, model, serial #..."
-      >
+      <div class="search-wrap">
+        <input
+          id="search"
+          class="search"
+          type="search"
+          placeholder="Search equipment, make, model, serial #..."
+        >
+        <button class="search-clear" type="button" data-clear-search="search" aria-label="Clear search" title="Clear search">×</button>
+      </div>
 
       <div class="filters">
         <select id="floorFilter">
@@ -2658,12 +2753,15 @@
     </div>
 
     <div id="maintenanceHeader" style="display:none;">
-      <input
-        id="maintenanceSearch"
-        class="search"
-        type="search"
-        placeholder="Search maintenance logs..."
-      >
+      <div class="search-wrap">
+        <input
+          id="maintenanceSearch"
+          class="search"
+          type="search"
+          placeholder="Search maintenance logs..."
+        >
+        <button class="search-clear" type="button" data-clear-search="maintenanceSearch" aria-label="Clear search" title="Clear search">×</button>
+      </div>
 
       <div class="filters two">
         <select id="maintenanceEquipmentFilter">
@@ -2703,12 +2801,15 @@
     </div>
 
     <div id="pmHeader" style="display:none;">
-      <input
-        id="pmSearch"
-        class="search"
-        type="search"
-        placeholder="Search PM task, equipment, JIN, spare part..."
-      >
+      <div class="search-wrap">
+        <input
+          id="pmSearch"
+          class="search"
+          type="search"
+          placeholder="Search PM task, equipment, JIN, spare part..."
+        >
+        <button class="search-clear" type="button" data-clear-search="pmSearch" aria-label="Clear search" title="Clear search">×</button>
+      </div>
 
       <div class="filters two">
         <select id="pmEquipmentFilter">
@@ -3317,11 +3418,12 @@
   <div id="actionItemFormModal" class="modal">
     <div class="modal-panel">
       <div class="modal-header">
-        <h2>Add Action Item</h2>
+        <h2 id="actionItemFormTitle">Add Action Item</h2>
         <button id="closeActionItemFormModal" class="close" type="button">×</button>
       </div>
       <div class="detail-body">
         <form id="actionItemForm">
+          <input id="actionItemId" type="hidden">
           <div class="field">
             <label for="actionItemEquipment">Equipment</label>
             <select id="actionItemEquipment" required></select>
@@ -3466,12 +3568,15 @@ const newActionItemButton = document.getElementById("newActionItemButton");
 const actionItemFormModal = document.getElementById("actionItemFormModal");
 const closeActionItemFormModal = document.getElementById("closeActionItemFormModal");
 const actionItemForm = document.getElementById("actionItemForm");
+const actionItemFormTitle = document.getElementById("actionItemFormTitle");
+const actionItemId = document.getElementById("actionItemId");
 const actionItemEquipment = document.getElementById("actionItemEquipment");
 const actionItemAction = document.getElementById("actionItemAction");
 const actionItemPriority = document.getElementById("actionItemPriority");
 const actionItemDueDate = document.getElementById("actionItemDueDate");
 const actionItemNotes = document.getElementById("actionItemNotes");
 const actionItemFormMessage = document.getElementById("actionItemFormMessage");
+const saveActionItemButton = document.getElementById("saveActionItemButton");
 const cancelActionItemButton = document.getElementById("cancelActionItemButton");
 const completeActionItemModal = document.getElementById("completeActionItemModal");
 const closeCompleteActionItemModal = document.getElementById("closeCompleteActionItemModal");
@@ -6012,14 +6117,43 @@ function renderActionItems() {
       if (item) openCompleteActionItem(item);
     });
   });
+
+  actionItemsCards.querySelectorAll(".action-item-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const item = allActionItems.find(x => x.id === card.dataset.actionId);
+      if (item) openEditActionItem(item);
+    });
+  });
 }
 
 function openNewActionItem(equipmentValue = "") {
   actionItemForm.reset();
+  actionItemId.value = "";
+  actionItemFormTitle.textContent = "Add Action Item";
+  saveActionItemButton.textContent = "Save Action Item";
   actionItemFormMessage.innerHTML = "";
   actionItemPriority.value = "Medium";
   buildActionItemEquipmentList();
   if (equipmentValue) actionItemEquipment.value = equipmentValue;
+  actionItemFormModal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function openEditActionItem(item) {
+  if (!item) return;
+  actionItemForm.reset();
+  buildActionItemEquipmentList();
+
+  actionItemId.value = item.id || "";
+  actionItemFormTitle.textContent = `Edit ${item.id || "Action Item"}`;
+  saveActionItemButton.textContent = "Save Changes";
+  actionItemEquipment.value = item.equipment || "";
+  actionItemAction.value = item.action || "";
+  actionItemPriority.value = item.priority || "Medium";
+  actionItemDueDate.value = item.dueDateIso || "";
+  actionItemNotes.value = item.notes || "";
+  actionItemFormMessage.innerHTML = "";
+
   actionItemFormModal.classList.add("show");
   document.body.style.overflow = "hidden";
 }
@@ -6033,8 +6167,10 @@ async function submitActionItemForm(event) {
   event.preventDefault();
   actionItemFormMessage.innerHTML = "";
 
+  const editing = !!actionItemId.value;
   const params = new URLSearchParams();
-  params.set("action", "addActionItem");
+  params.set("action", editing ? "updateActionItem" : "addActionItem");
+  if (editing) params.set("actionId", actionItemId.value);
   params.set("equipment", actionItemEquipment.value);
   params.set("actionItem", actionItemAction.value.trim());
   params.set("priority", actionItemPriority.value);
@@ -6044,7 +6180,9 @@ async function submitActionItemForm(event) {
   try {
     const response = await fetch(API_URL, { method: "POST", body: params });
     const data = await response.json();
-    if (!data.success) throw new Error(data.error || "Could not add action item.");
+    if (!data.success) {
+      throw new Error(data.error || (editing ? "Could not update action item." : "Could not add action item."));
+    }
     closeNewActionItem();
     await loadData();
     switchView("actionItems");
@@ -6868,6 +7006,26 @@ document.addEventListener("keydown", event => {
 
 });
 
+
+
+document.querySelectorAll(".search-clear").forEach(button => {
+  const input = document.getElementById(button.dataset.clearSearch);
+  if (!input) return;
+
+  const syncClearButton = () => {
+    button.classList.toggle("visible", input.value.length > 0);
+  };
+
+  input.addEventListener("input", syncClearButton);
+  button.addEventListener("click", () => {
+    input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.focus();
+    syncClearButton();
+  });
+
+  syncClearButton();
+});
 
 if (refreshButton) {
   refreshButton.addEventListener("click", () => {
