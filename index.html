@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  ATLAS HOME MANAGEMENT — INDEX V42
+  ATLAS HOME MANAGEMENT — INDEX V43
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
    V42 adds the Energy dashboard using UtilityAPI-synced bill/interval data and repairs the Maintenance home-card image.
    V41 fixes mobile dashboard card geometry: consistent image/text split, icon placement, title baseline, text wrapping, and chevron alignment.
@@ -3144,7 +3144,7 @@
         <h1 id="appTitle">ATLAS</h1>
         <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
         <div class="v36-meta-row" aria-label="App version and system status">
-          <span>V41.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
+          <span>V43.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
           <span class="v36-system-status"><i class="v36-system-dot"></i> SYSTEMS ONLINE</span>
         </div>
       </div>
@@ -3513,6 +3513,34 @@
     <div id="error"></div>
 
     <div id="cards" class="cards"></div>
+  </div>
+
+  <div id="energyView" class="view">
+    <div class="energy-shell">
+      <div class="energy-hero">
+        <div class="energy-hero-kicker">ATLAS · UTILITY MONITOR</div>
+        <div class="energy-hero-title">Home Energy</div>
+        <div class="energy-hero-sub">Electric and gas usage synchronized from UtilityAPI.</div>
+      </div>
+
+      <div id="energySummary" class="energy-grid">
+        <div class="energy-empty">Loading energy data…</div>
+      </div>
+
+      <div class="energy-section">
+        <h3>Recent Bills</h3>
+        <div id="energyBillsList" class="energy-list">
+          <div class="energy-empty">Loading bill history…</div>
+        </div>
+      </div>
+
+      <div class="energy-section">
+        <h3>Recent Usage</h3>
+        <div id="energyIntervalsList" class="energy-list">
+          <div class="energy-empty">Loading usage history…</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="maintenanceView" class="view">
@@ -4106,6 +4134,7 @@ const troubleshootingHeader = document.getElementById("troubleshootingHeader");
 
 const equipmentView = document.getElementById("equipmentView");
 const maintenanceView = document.getElementById("maintenanceView");
+const energyView = document.getElementById("energyView");
 const actionItemsView = document.getElementById("actionItemsView");
 const documentsView = document.getElementById("documentsView");
 const pmView = document.getElementById("pmView");
@@ -4313,6 +4342,15 @@ function renderEnergy() {
 
   const bills = Array.isArray(allEnergyBills) ? [...allEnergyBills] : [];
   const intervals = Array.isArray(allEnergyIntervals) ? [...allEnergyIntervals] : [];
+
+  // V43: the view now always exists. If V38 is not deployed or returns no
+  // energy arrays, show an explicit state instead of an apparently blank page.
+  if (!bills.length && !intervals.length) {
+    summary.innerHTML = '<div class="energy-empty" style="grid-column:1/-1">Energy is connected, but no energy records were returned by the Atlas API.</div>';
+    billsBox.innerHTML = '<div class="energy-empty">No Energy Bills data returned by the API.</div>';
+    intervalsBox.innerHTML = '<div class="energy-empty">No Energy Intervals data returned by the API.</div>';
+    return;
+  }
   bills.sort((a,b)=>new Date(energyDate(b)||0)-new Date(energyDate(a)||0));
   intervals.sort((a,b)=>new Date(energyDate(b)||0)-new Date(energyDate(a)||0));
 
@@ -4459,6 +4497,7 @@ function switchView(viewName) {
   const calendarActive = viewName === "calendar";
   const equipmentActive = viewName === "equipment";
   const maintenanceActive = viewName === "maintenance";
+  const energyActive = viewName === "energy";
   const actionItemsActive = viewName === "actionItems";
   const documentsActive = viewName === "documents";
   const pmActive = viewName === "pm";
@@ -4487,6 +4526,7 @@ function switchView(viewName) {
   calendarView.classList.toggle("active", calendarActive);
   equipmentView.classList.toggle("active", equipmentActive);
   maintenanceView.classList.toggle("active", maintenanceActive);
+  energyView.classList.toggle("active", energyActive);
   actionItemsView.classList.toggle("active", actionItemsActive);
   documentsView.classList.toggle("active", documentsActive);
   pmView.classList.toggle("active", pmActive);
