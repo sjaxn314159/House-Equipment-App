@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  ATLAS HOME MANAGEMENT — INDEX V39
+  ATLAS HOME MANAGEMENT — INDEX V40
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
+   V40 introduces the mobile-first commercial Atlas UI while preserving V39 Google authentication and all existing app behavior.
    V39 adds Google sign-in and authenticated API requests; household data is not loaded until authorized.
    V38 refines Home-screen system icons into cleaner monochrome circular badges and removes the diagonal orange icon tick.
    V37 adds a Keys directory linked to the Keys sheet, searchable key details, category filtering, and direct navigation to linked Equipment records.
@@ -2724,6 +2725,267 @@
     .atlas-auth-card p{margin:0 0 20px;color:#66737f;line-height:1.45;}
     #atlasGoogleButton{display:flex;justify-content:center;min-height:44px;}
     .atlas-auth-error{margin-top:14px;color:#b42318;font-size:13px;min-height:18px;}
+
+    /* =======================================================================
+       V40 — FULL SEND / MOBILE-FIRST COMMERCIAL ATLAS UI
+       Presentation-only override. V39 auth + application behavior preserved.
+       ======================================================================= */
+    :root{
+      --v40-ink:#17202a;
+      --v40-muted:#6d7885;
+      --v40-paper:#f5f4f0;
+      --v40-card:#fff;
+      --v40-line:#e3e6e8;
+      --v40-navy:#16232d;
+      --v40-blue:#1777b7;
+      --v40-green:#258b5a;
+      --v40-amber:#d89517;
+      --v40-red:#c84e3d;
+      --v40-radius:20px;
+      --v40-shadow:0 8px 26px rgba(27,39,49,.08);
+    }
+
+    html,body{background:#e9ecee!important;}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif!important;
+      color:var(--v40-ink)!important;
+    }
+    .app{
+      max-width:1040px!important;
+      background:var(--v40-paper)!important;
+      box-shadow:0 0 0 1px rgba(23,32,42,.05),0 20px 60px rgba(23,32,42,.10);
+    }
+
+    /* Home-style photographic masthead */
+    .header{
+      min-height:245px!important;
+      position:relative!important;
+      overflow:hidden!important;
+      padding:calc(22px + env(safe-area-inset-top)) 24px 22px!important;
+      background-image:
+        linear-gradient(90deg,rgba(12,25,34,.90) 0%,rgba(12,25,34,.68) 45%,rgba(12,25,34,.24) 100%),
+        url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=84")!important;
+      background-size:cover!important;
+      background-position:center 52%!important;
+      border:0!important;
+      box-shadow:none!important;
+      color:#fff!important;
+    }
+    .header::before{
+      content:""!important;position:absolute!important;inset:0!important;
+      background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.18))!important;
+      pointer-events:none!important;
+    }
+    .header-title-row{position:relative!important;z-index:2!important;align-items:flex-start!important;}
+    .header-brand{
+      padding-left:0!important;max-width:560px!important;min-height:0!important;
+    }
+    .header-brand::before{display:none!important;}
+    .header-eyebrow{
+      color:rgba(255,255,255,.78)!important;font-size:10px!important;
+      letter-spacing:.20em!important;font-weight:800!important;margin-bottom:5px!important;
+    }
+    .header h1{
+      color:#fff!important;font-family:Georgia,"Times New Roman",serif!important;
+      font-size:48px!important;font-weight:600!important;letter-spacing:-.035em!important;
+      line-height:.98!important;text-shadow:0 2px 16px rgba(0,0,0,.22)!important;
+    }
+    .header-subtitle{
+      display:block!important;color:rgba(255,255,255,.91)!important;
+      max-width:410px!important;font-size:15px!important;letter-spacing:0!important;
+      line-height:1.4!important;margin-top:10px!important;
+    }
+    .v36-meta-row{
+      margin-top:18px!important;color:rgba(255,255,255,.74)!important;
+      font-size:8px!important;letter-spacing:.13em!important;
+    }
+    .v36-system-status{color:rgba(255,255,255,.90)!important;}
+    .header-actions{position:relative!important;z-index:3!important;}
+    .refresh-button,.home-button{
+      background:rgba(17,29,38,.38)!important;color:#fff!important;
+      border:1px solid rgba(255,255,255,.32)!important;
+      backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;
+      border-radius:50%!important;box-shadow:none!important;
+    }
+    .home-button{border-radius:22px!important;}
+
+    /* Content */
+    .view:not(.home-view){background:var(--v40-paper)!important;}
+    .home-view{
+      padding:18px 18px calc(112px + env(safe-area-inset-bottom))!important;
+      background:var(--v40-paper)!important;
+    }
+    .home-intro{display:none!important;}
+    .v31-home-hero{display:none!important;}
+    .v31-section-label{
+      margin:0 2px 10px!important;color:#7d8790!important;
+      font-size:10px!important;letter-spacing:.15em!important;font-weight:800!important;
+    }
+    .home-grid{
+      display:grid!important;grid-template-columns:repeat(3,1fr)!important;
+      gap:14px!important;margin:0!important;
+    }
+    .home-card{
+      min-height:174px!important;padding:0 16px 16px!important;
+      border:1px solid var(--v40-line)!important;border-radius:var(--v40-radius)!important;
+      background:#fff!important;box-shadow:var(--v40-shadow)!important;
+      overflow:hidden!important;display:flex!important;flex-direction:column!important;
+      justify-content:flex-end!important;position:relative!important;
+    }
+    .home-card::before{
+      content:""!important;position:absolute!important;inset:0 0 auto 0!important;
+      height:88px!important;background-image:
+        linear-gradient(180deg,rgba(10,20,28,.02),rgba(10,20,28,.14)),var(--photo)!important;
+      background-size:cover!important;background-position:center!important;
+      transform:none!important;filter:none!important;opacity:1!important;
+    }
+    .home-card::after{
+      content:"›"!important;position:absolute!important;right:13px!important;bottom:16px!important;
+      width:28px!important;height:28px!important;border-radius:50%!important;
+      display:flex!important;align-items:center!important;justify-content:center!important;
+      background:#f0f2f3!important;color:#33404b!important;border:0!important;
+      font-size:23px!important;line-height:1!important;box-shadow:none!important;
+    }
+    .home-card-title{
+      position:relative!important;z-index:2!important;display:block!important;
+      padding-right:30px!important;margin:0 0 4px!important;color:var(--v40-ink)!important;
+      font-size:16px!important;font-weight:760!important;line-height:1.18!important;
+    }
+    .home-card-icon{
+      position:absolute!important;left:14px!important;top:-50px!important;
+      width:38px!important;height:38px!important;border-radius:50%!important;
+      display:flex!important;align-items:center!important;justify-content:center!important;
+      background:#fff!important;color:var(--accent)!important;border:1px solid rgba(255,255,255,.75)!important;
+      box-shadow:0 5px 15px rgba(17,29,38,.16)!important;font-size:18px!important;
+    }
+    .home-card-description{
+      position:relative!important;z-index:2!important;padding:0 32px 0 0!important;
+      margin:0!important;color:var(--v40-muted)!important;font-size:11.5px!important;
+      line-height:1.35!important;max-width:none!important;
+    }
+    .home-card:hover{transform:translateY(-2px)!important;box-shadow:0 13px 32px rgba(27,39,49,.12)!important;}
+    .home-card:active{transform:scale(.985)!important;}
+
+    /* Better real-world category photography */
+    .home-card[data-home-view="equipment"]{--photo:url("https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="electrical"]{--photo:url("https://images.unsplash.com/photo-1555963966-b7ae5404b6ed?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="keys"]{--photo:url("https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="maintenance"]{--photo:url("https://images.unsplash.com/photo-1581147036324-c1c89c2c8b5c?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="documents"]{--photo:url("https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="actionItems"]{--photo:url("https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="calendar"]{--photo:url("https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="pm"]{--photo:url("https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="spareParts"]{--photo:url("https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=900&q=80")!important;}
+    .home-card[data-home-view="troubleshooting"]{--photo:url("https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=900&q=80")!important;}
+
+    /* Lists and controls */
+    .toolbar,.summary{background:transparent!important;}
+    .search{
+      background:#fff!important;border:1px solid var(--v40-line)!important;border-radius:14px!important;
+      box-shadow:0 2px 10px rgba(27,39,49,.04)!important;color:var(--v40-ink)!important;
+    }
+    .filters select{
+      background:#fff!important;border:1px solid var(--v40-line)!important;border-radius:12px!important;
+      color:#394653!important;
+    }
+    .cards{padding:8px 14px calc(110px + env(safe-area-inset-bottom))!important;}
+    .card,.part-box,.electrical-device-row{
+      border:1px solid var(--v40-line)!important;border-radius:17px!important;
+      background:#fff!important;box-shadow:0 4px 16px rgba(27,39,49,.055)!important;
+    }
+    .card{padding:15px!important;margin-bottom:10px!important;}
+    .card-title{color:var(--v40-ink)!important;font-weight:760!important;}
+    .card-location,.small-note{color:var(--v40-muted)!important;}
+    .card:hover{border-color:#ccd3d8!important;box-shadow:0 7px 20px rgba(27,39,49,.08)!important;}
+
+    /* Bottom navigation */
+    .product-tabbar{
+      background:rgba(22,35,45,.96)!important;border:0!important;
+      box-shadow:0 -8px 30px rgba(14,24,31,.18)!important;
+      backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;
+    }
+    .product-tabbar button{
+      color:#c9d0d5!important;background:transparent!important;border:0!important;
+      box-shadow:none!important;border-radius:14px!important;
+    }
+    .product-tabbar button svg{stroke:currentColor!important;}
+    .product-tabbar button span{color:inherit!important;font-weight:650!important;letter-spacing:0!important;}
+    .product-tabbar button.active{
+      color:#65b8ef!important;background:rgba(255,255,255,.06)!important;
+      border:0!important;box-shadow:none!important;
+    }
+
+    /* Authentication screen now matches Atlas */
+    .atlas-auth-gate{
+      background:
+        linear-gradient(180deg,rgba(16,31,41,.70),rgba(16,31,41,.88)),
+        url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=82") center/cover!important;
+    }
+    .atlas-auth-card{
+      border:1px solid rgba(255,255,255,.40)!important;border-radius:24px!important;
+      box-shadow:0 22px 70px rgba(0,0,0,.28)!important;padding:34px!important;
+    }
+    .atlas-auth-mark{
+      background:var(--v40-navy)!important;width:62px!important;height:62px!important;
+      font-family:Georgia,"Times New Roman",serif!important;font-size:27px!important;
+    }
+
+    @media(max-width:699px){
+      html,body{background:#dfe3e6!important;}
+      .app{padding-bottom:calc(94px + env(safe-area-inset-bottom))!important;}
+
+      .header{
+        min-height:250px!important;
+        padding:calc(18px + env(safe-area-inset-top)) 18px 18px!important;
+        background-position:58% center!important;
+      }
+      .header-title-row{min-height:0!important;}
+      .header-brand{max-width:72%!important;}
+      .header h1{font-size:42px!important;max-width:none!important;}
+      .header-subtitle{font-size:12px!important;max-width:245px!important;line-height:1.35!important;}
+      .v36-meta-row{margin-top:14px!important;font-size:7px!important;gap:5px!important;}
+      .header-actions{gap:8px!important;}
+      .refresh-button,.home-button{min-width:42px!important;width:42px!important;height:42px!important;padding:0!important;}
+      .home-button{font-size:0!important;}
+      .home-button::after{content:"⌂"!important;font-size:20px!important;}
+
+      .home-view{
+        margin-top:-13px!important;position:relative!important;z-index:5!important;
+        padding:0 12px calc(108px + env(safe-area-inset-bottom))!important;
+        border-radius:18px 18px 0 0!important;
+      }
+      .v31-section-label{padding-top:18px!important;margin-left:4px!important;}
+      .home-grid{grid-template-columns:1fr 1fr!important;gap:10px!important;}
+      .home-card{
+        min-height:157px!important;padding:0 12px 13px!important;border-radius:17px!important;
+      }
+      .home-card::before{height:80px!important;}
+      .home-card-title{font-size:14px!important;padding-right:24px!important;}
+      .home-card-icon{left:10px!important;top:-43px!important;width:34px!important;height:34px!important;font-size:16px!important;}
+      .home-card-description{font-size:10px!important;padding-right:24px!important;line-height:1.28!important;}
+      .home-card::after{right:9px!important;bottom:12px!important;width:25px!important;height:25px!important;font-size:20px!important;}
+
+      .cards{padding:8px 10px calc(110px + env(safe-area-inset-bottom))!important;}
+      .card{padding:14px!important;border-radius:15px!important;}
+      .filters{gap:7px!important;}
+      .filters select{font-size:13px!important;padding:10px 8px!important;}
+
+      .product-tabbar{
+        min-height:82px!important;padding:8px 7px calc(8px + env(safe-area-inset-bottom))!important;
+        left:0!important;right:0!important;bottom:0!important;width:100%!important;
+        transform:none!important;border-radius:0!important;
+      }
+      .product-tabbar button{min-height:58px!important;padding:6px 2px!important;gap:4px!important;}
+      .product-tabbar button svg{width:22px!important;height:22px!important;}
+      .product-tabbar button span{font-size:8px!important;line-height:1!important;}
+    }
+
+    @media(min-width:700px){
+      .home-grid{grid-template-columns:repeat(3,1fr)!important;}
+      .home-card{min-height:190px!important;}
+      .home-card::before{height:105px!important;}
+    }
+
 </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -2749,7 +3011,7 @@
         <h1 id="appTitle">ATLAS</h1>
         <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
         <div class="v36-meta-row" aria-label="App version and system status">
-          <span>V39.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
+          <span>V40.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
           <span class="v36-system-status"><i class="v36-system-dot"></i> SYSTEMS ONLINE</span>
         </div>
       </div>
