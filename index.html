@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  ATLAS HOME MANAGEMENT — INDEX V38
+  ATLAS HOME MANAGEMENT — INDEX V39
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
+   V39 adds Google sign-in and authenticated API requests; household data is not loaded until authorized.
    V38 refines Home-screen system icons into cleaner monochrome circular badges and removes the diagonal orange icon tick.
    V37 adds a Keys directory linked to the Keys sheet, searchable key details, category filtering, and direct navigation to linked Equipment records.
    V36 removes the obstructive systems-status card, moves status inline, uses graphite mobile chrome, adds search clear buttons, and supports editing Action Items.
@@ -2713,10 +2714,31 @@
     }
     .home-card[data-home-view="keys"]{--photo:none!important;}
 
+
+    /* V39 — authentication gate */
+    .atlas-auth-gate{position:fixed;inset:0;z-index:10000;background:#eef2f4;display:flex;align-items:center;justify-content:center;padding:24px;}
+    .atlas-auth-gate.hidden{display:none;}
+    .atlas-auth-card{width:min(420px,100%);background:#fff;border:1px solid #d5dadd;border-radius:18px;padding:30px;box-shadow:0 18px 55px rgba(18,28,36,.16);text-align:center;}
+    .atlas-auth-mark{width:58px;height:58px;margin:0 auto 16px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#20262a;color:#fff;font-weight:900;letter-spacing:.08em;}
+    .atlas-auth-card h2{margin:0 0 8px;font-size:24px;color:#20262a;}
+    .atlas-auth-card p{margin:0 0 20px;color:#66737f;line-height:1.45;}
+    #atlasGoogleButton{display:flex;justify-content:center;min-height:44px;}
+    .atlas-auth-error{margin-top:14px;color:#b42318;font-size:13px;min-height:18px;}
 </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
+
+<div id="atlasAuthGate" class="atlas-auth-gate">
+  <div class="atlas-auth-card">
+    <div class="atlas-auth-mark">A</div>
+    <h2>Atlas is private</h2>
+    <p>Sign in with an authorized Google account to access this home.</p>
+    <div id="atlasGoogleButton"></div>
+    <div id="atlasAuthError" class="atlas-auth-error"></div>
+  </div>
+</div>
 
 <div class="app">
 
@@ -2727,7 +2749,7 @@
         <h1 id="appTitle">ATLAS</h1>
         <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
         <div class="v36-meta-row" aria-label="App version and system status">
-          <span>V38.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
+          <span>V39.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
           <span class="v36-system-status"><i class="v36-system-dot"></i> SYSTEMS ONLINE</span>
         </div>
       </div>
@@ -3566,6 +3588,77 @@
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyyQl3j0suJjNE0GoqPAyZwzqH7dUHO3xMXYRXwfEn2NUd6RIGPIW8CI2UV33nBbcg1Vg/exec";
 
+const GOOGLE_CLIENT_ID = "550259338200-79vdkru0vtkqrdeu8vdpkrl9atscd2e9.apps.googleusercontent.com";
+let atlasIdToken = "";
+
+function atlasTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return !payload.exp || (payload.exp * 1000) < (Date.now() + 60000);
+  } catch (e) { return true; }
+}
+
+function showAtlasAuth(message) {
+  const gate = document.getElementById("atlasAuthGate");
+  const err = document.getElementById("atlasAuthError");
+  if (gate) gate.classList.remove("hidden");
+  if (err) err.textContent = message || "";
+}
+
+function hideAtlasAuth() {
+  const gate = document.getElementById("atlasAuthGate");
+  if (gate) gate.classList.add("hidden");
+}
+
+function handleGoogleCredential(response) {
+  if (!response || !response.credential) { showAtlasAuth("Google sign-in did not complete."); return; }
+  atlasIdToken = response.credential;
+  sessionStorage.setItem("atlas_id_token", atlasIdToken);
+  hideAtlasAuth();
+  loadData();
+}
+
+function initializeAtlasAuth() {
+  const saved = sessionStorage.getItem("atlas_id_token") || "";
+  if (saved && !atlasTokenExpired(saved)) {
+    atlasIdToken = saved;
+    hideAtlasAuth();
+    loadData();
+    return;
+  }
+  sessionStorage.removeItem("atlas_id_token");
+  showAtlasAuth("");
+
+  const waitForGoogle = () => {
+    if (!(window.google && google.accounts && google.accounts.id)) { setTimeout(waitForGoogle, 100); return; }
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential, auto_select: true });
+    google.accounts.id.renderButton(document.getElementById("atlasGoogleButton"), { theme: "outline", size: "large", shape: "pill", text: "signin_with", width: 300 });
+    google.accounts.id.prompt();
+  };
+  waitForGoogle();
+}
+
+async function atlasFetch(url, options = {}) {
+  if (!atlasIdToken || atlasTokenExpired(atlasIdToken)) {
+    atlasIdToken = "";
+    sessionStorage.removeItem("atlas_id_token");
+    showAtlasAuth("Your secure session expired. Sign in again.");
+    throw new Error("Authentication required.");
+  }
+
+  const opts = { ...options };
+  if ((opts.method || "GET").toUpperCase() === "POST") {
+    let body = opts.body instanceof URLSearchParams ? opts.body : new URLSearchParams(opts.body || {});
+    body.set("id_token", atlasIdToken);
+    opts.body = body;
+  } else {
+    const u = new URL(url);
+    u.searchParams.set("id_token", atlasIdToken);
+    url = u.toString();
+  }
+  return fetch(url, opts);
+}
+
 
 let allEquipment = [];
 let allMaintenance = [];
@@ -3800,7 +3893,7 @@ async function loadData() {
 
   try {
 
-    const response = await fetch(API_URL);
+    const response = await atlasFetch(API_URL);
 
     if (!response.ok) {
       throw new Error("Could not load app data.");
@@ -5441,7 +5534,7 @@ async function submitTCCForm(event) {
 
   try {
 
-    const response = await fetch(
+    const response = await atlasFetch(
       API_URL,
       {
         method: "POST",
@@ -5934,7 +6027,7 @@ async function submitPMForm(event) {
   params.set("notes", pmFormNotes.value.trim());
 
   try {
-    const response = await fetch(API_URL, { method: "POST", body: params });
+    const response = await atlasFetch(API_URL, { method: "POST", body: params });
     if (!response.ok) throw new Error("Could not save PM task.");
     const data = await response.json();
     if (!data.success) throw new Error(data.error || "Could not save PM task.");
@@ -5994,7 +6087,7 @@ async function submitCompletePM(event) {
   params.set("notes", completePMNotes.value.trim());
 
   try {
-    const response = await fetch(API_URL, { method: "POST", body: params });
+    const response = await atlasFetch(API_URL, { method: "POST", body: params });
     if (!response.ok) throw new Error("Could not complete PM task.");
     const data = await response.json();
     if (!data.success) throw new Error(data.error || "Could not complete PM task.");
@@ -6350,7 +6443,7 @@ async function submitActionItemForm(event) {
   params.set("notes", actionItemNotes.value.trim());
 
   try {
-    const response = await fetch(API_URL, { method: "POST", body: params });
+    const response = await atlasFetch(API_URL, { method: "POST", body: params });
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || (editing ? "Could not update action item." : "Could not add action item."));
@@ -6391,7 +6484,7 @@ async function submitCompleteActionItem(event) {
   params.set("notes", completeActionItemNotes.value.trim());
 
   try {
-    const response = await fetch(API_URL, { method: "POST", body: params });
+    const response = await atlasFetch(API_URL, { method: "POST", body: params });
     const data = await response.json();
     if (!data.success) throw new Error(data.error || "Could not complete action item.");
     closeCompleteActionItem();
@@ -6828,7 +6921,7 @@ async function submitMaintenanceForm(event) {
 
   try {
 
-    const response = await fetch(API_URL, {
+    const response = await atlasFetch(API_URL, {
       method: "POST",
       body: params
     });
@@ -7266,7 +7359,7 @@ if (refreshButton) {
   });
 }
 
-loadData();
+initializeAtlasAuth();
 
 </script>
 
