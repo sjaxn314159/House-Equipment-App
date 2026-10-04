@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  ATLAS HOME MANAGEMENT — INDEX V40
+  ATLAS HOME MANAGEMENT — INDEX V41
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
+   V41 fixes mobile dashboard card geometry: consistent image/text split, icon placement, title baseline, text wrapping, and chevron alignment.
    V40 introduces the mobile-first commercial Atlas UI while preserving V39 Google authentication and all existing app behavior.
    V39 adds Google sign-in and authenticated API requests; household data is not loaded until authorized.
    V38 refines Home-screen system icons into cleaner monochrome circular badges and removes the diagonal orange icon tick.
@@ -2986,6 +2987,114 @@
       .home-card::before{height:105px!important;}
     }
 
+
+    /* V41 — CARD ALIGNMENT / MOBILE GEOMETRY FIX
+       Keeps V40 visual language; fixes the overlap visible on iPhone. */
+    @media(max-width:699px){
+      .home-grid{
+        align-items:stretch!important;
+      }
+
+      .home-card{
+        /* Fixed card geometry makes every row line up cleanly. */
+        height:190px!important;
+        min-height:190px!important;
+        padding:0!important;
+        display:block!important;
+        overflow:hidden!important;
+        border-radius:17px!important;
+      }
+
+      .home-card::before{
+        /* Image owns the top 86 px; text never intrudes into it. */
+        top:0!important;
+        left:0!important;
+        right:0!important;
+        bottom:auto!important;
+        height:86px!important;
+        border-radius:17px 17px 0 0!important;
+        background-size:cover!important;
+        background-position:center!important;
+      }
+
+      .home-card-icon{
+        /* Straddles the image/text seam consistently. */
+        left:13px!important;
+        top:65px!important;
+        width:40px!important;
+        height:40px!important;
+        margin:0!important;
+        z-index:4!important;
+        font-size:18px!important;
+      }
+
+      .home-card-title{
+        position:absolute!important;
+        left:14px!important;
+        right:42px!important;
+        top:101px!important;
+        margin:0!important;
+        padding:0!important;
+        z-index:3!important;
+        font-size:14px!important;
+        line-height:16px!important;
+        font-weight:800!important;
+        letter-spacing:-.01em!important;
+        /* Reserve exactly two lines so long names cannot collide with body copy. */
+        min-height:32px!important;
+        max-height:32px!important;
+        overflow:hidden!important;
+        display:-webkit-box!important;
+        -webkit-line-clamp:2!important;
+        -webkit-box-orient:vertical!important;
+      }
+
+      .home-card-description{
+        position:absolute!important;
+        left:14px!important;
+        right:12px!important;
+        top:136px!important;
+        bottom:9px!important;
+        margin:0!important;
+        padding:0 27px 0 0!important;
+        z-index:2!important;
+        font-size:10.5px!important;
+        line-height:13px!important;
+        color:var(--v40-muted)!important;
+        overflow:hidden!important;
+        display:-webkit-box!important;
+        -webkit-line-clamp:3!important;
+        -webkit-box-orient:vertical!important;
+      }
+
+      .home-card::after{
+        right:9px!important;
+        bottom:11px!important;
+        width:27px!important;
+        height:27px!important;
+        z-index:5!important;
+        font-size:20px!important;
+      }
+    }
+
+    @media(min-width:700px){
+      .home-card{
+        min-height:210px!important;
+        padding:0!important;
+        display:block!important;
+      }
+      .home-card::before{height:108px!important;}
+      .home-card-icon{left:16px!important;top:87px!important;}
+      .home-card-title{
+        position:absolute!important;left:16px!important;right:50px!important;
+        top:130px!important;margin:0!important;padding:0!important;
+      }
+      .home-card-description{
+        position:absolute!important;left:16px!important;right:18px!important;
+        top:157px!important;margin:0!important;padding-right:34px!important;
+      }
+    }
+
 </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -3011,7 +3120,7 @@
         <h1 id="appTitle">ATLAS</h1>
         <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
         <div class="v36-meta-row" aria-label="App version and system status">
-          <span>V40.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
+          <span>V41.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
           <span class="v36-system-status"><i class="v36-system-dot"></i> SYSTEMS ONLINE</span>
         </div>
       </div>
