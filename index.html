@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  HOUSE EQUIPMENT APP — INDEX V36
+  ATLAS HOME MANAGEMENT — INDEX V37
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
+   V37 adds a Keys directory linked to the Keys sheet, searchable key details, category filtering, and direct navigation to linked Equipment records.
    V36 removes the obstructive systems-status card, moves status inline, uses graphite mobile chrome, adds search clear buttons, and supports editing Action Items.
    V35 refines V34 with a neutral iOS status-bar surround and a compact right-side systems status module.
    V34 merges the hero/status area, enlarges mobile navigation, and adds space-program imagery.
@@ -44,9 +45,9 @@
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Equipment">
+  <meta name="apple-mobile-web-app-title" content="Atlas">
 
-  <title>House Equipment</title>
+  <title>Atlas</title>
 
   <style>
     :root {
@@ -2682,6 +2683,23 @@
       .v36-meta-row{margin-top:17px;}
     }
 
+
+    /* V37 — KEYS DIRECTORY */
+    .key-card .card-title{display:flex;align-items:center;gap:9px;}
+    .key-tag-badge{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:58px;padding:5px 8px;border-radius:8px;
+      background:#20262a;color:#fff;
+      font:800 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.08em;
+    }
+    .key-zero{background:#fde7e4!important;color:#912018!important;}
+    .key-detail-code{
+      font:800 18px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.06em;
+    }
+    .home-card[data-home-view="keys"]{--photo:none!important;}
+
 </style>
 </head>
 
@@ -2693,10 +2711,10 @@
     <div class="header-title-row">
       <div class="header-brand">
         <div class="header-eyebrow">HOME MANAGEMENT</div>
-        <h1 id="appTitle">House Equipment</h1>
+        <h1 id="appTitle">ATLAS</h1>
         <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
         <div class="v36-meta-row" aria-label="App version and system status">
-          <span>V36.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
+          <span>V37.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
           <span class="v36-system-status"><i class="v36-system-dot"></i> SYSTEMS ONLINE</span>
         </div>
       </div>
@@ -2869,6 +2887,28 @@
       </div>
     </div>
 
+    <div id="keysHeader" style="display:none;">
+      <div class="search-wrap">
+        <input
+          id="keysSearch"
+          class="search"
+          type="search"
+          placeholder="Search key tag, equipment, lock, manufacturer, or code..."
+        >
+        <button class="search-clear" type="button" data-clear-search="keysSearch" aria-label="Clear search" title="Clear search">×</button>
+      </div>
+      <div class="filters two">
+        <select id="keysCategoryFilter">
+          <option value="">All Categories</option>
+        </select>
+        <select id="keysStockFilter">
+          <option value="all">All Keys</option>
+          <option value="available">Spare Available</option>
+          <option value="zero">No Spare</option>
+        </select>
+      </div>
+    </div>
+
     <div id="troubleshootingHeader" style="display:none;">
       <select id="tccCategoryFilter" class="search">
         <option value="">All Categories</option>
@@ -2879,8 +2919,8 @@
   <!-- V6 HOME SCREEN -->
   <div id="homeView" class="view active home-view">
     <div class="home-intro">
-      <h2>House Equipment</h2>
-      <p>Everything you need to manage the equipment and systems in your home.</p>
+      <h2>ATLAS</h2>
+      <p>Home systems, maintenance, assets, spares, and reference information in one place.</p>
     </div>
 
     <div class="v31-section-label"><span>CONTROL CENTER</span><span>SELECT A SYSTEM</span></div>
@@ -2963,6 +3003,16 @@
         </div>
         <div class="home-card-description">
           Find switches and outlets by JIN, or see everything powered by each breaker.
+        </div>
+      </button>
+
+      <button class="home-card accent-slate" type="button" data-home-view="keys">
+        <div class="home-card-title">
+          <span class="home-card-icon">🔑</span>
+          <span>Keys</span>
+        </div>
+        <div class="home-card-description">
+          Critical spare-key directory, key codes, quantities, verification dates, and linked equipment.
         </div>
       </button>
 
@@ -3080,6 +3130,11 @@
 
     <div id="electricalSummary" class="summary"></div>
     <div id="electricalCards" class="cards"></div>
+  </div>
+
+  <div id="keysView" class="view">
+    <div id="keysSummary" class="summary"></div>
+    <div id="keysCards" class="cards"></div>
   </div>
 
   <!-- TCC / TROUBLESHOOTING VIEW -->
@@ -3502,6 +3557,7 @@ const API_URL =
 let allEquipment = [];
 let allMaintenance = [];
 let allActionItems = [];
+let allKeys = [];
 let allDocuments = [];
 let allPM = [];
 let allSpareParts = [];
@@ -3532,6 +3588,7 @@ const equipmentHeader = document.getElementById("equipmentHeader");
 const maintenanceHeader = document.getElementById("maintenanceHeader");
 const documentsHeader = document.getElementById("documentsHeader");
 const pmHeader = document.getElementById("pmHeader");
+const keysHeader = document.getElementById("keysHeader");
 const troubleshootingHeader = document.getElementById("troubleshootingHeader");
 
 const equipmentView = document.getElementById("equipmentView");
@@ -3539,6 +3596,7 @@ const maintenanceView = document.getElementById("maintenanceView");
 const actionItemsView = document.getElementById("actionItemsView");
 const documentsView = document.getElementById("documentsView");
 const pmView = document.getElementById("pmView");
+const keysView = document.getElementById("keysView");
 const troubleshootingView = document.getElementById("troubleshootingView");
 
 const cards = document.getElementById("cards");
@@ -3625,6 +3683,12 @@ const electricalSummary = document.getElementById("electricalSummary");
 const electricalCards = document.getElementById("electricalCards");
 const electricalBreakerMode = document.getElementById("electricalBreakerMode");
 const electricalDeviceMode = document.getElementById("electricalDeviceMode");
+
+const keysSearch = document.getElementById("keysSearch");
+const keysCategoryFilter = document.getElementById("keysCategoryFilter");
+const keysStockFilter = document.getElementById("keysStockFilter");
+const keysSummary = document.getElementById("keysSummary");
+const keysCards = document.getElementById("keysCards");
 
 const tccCategoryFilter = document.getElementById("tccCategoryFilter");
 const tccSummary = document.getElementById("tccSummary");
@@ -3738,6 +3802,7 @@ async function loadData() {
     allEquipment = data.equipment || [];
     allMaintenance = data.maintenance || [];
     allActionItems = data.actionItems || [];
+    allKeys = data.keys || [];
     allDocuments = data.documents || [];
     allPM = data.pm || [];
     allSpareParts = data.spareParts || [];
@@ -3756,6 +3821,7 @@ async function loadData() {
     buildPMLists();
     buildSparePartsLists();
     buildElectricalFilters();
+    buildKeyFilters();
     buildTroubleshootingCategories();
     buildTCCFormLists();
 
@@ -3766,6 +3832,7 @@ async function loadData() {
     renderPM();
     renderSpareParts();
     renderElectrical();
+    renderKeys();
     renderTroubleshooting();
     renderCalendar();
 
@@ -3811,6 +3878,7 @@ function switchView(viewName) {
   const pmActive = viewName === "pm";
   const sparePartsActive = viewName === "spareParts";
   const electricalActive = viewName === "electrical";
+  const keysActive = viewName === "keys";
   const troubleshootingActive = viewName === "troubleshooting";
 
   // Keep the original nav button state logic for compatibility even though
@@ -3826,6 +3894,7 @@ function switchView(viewName) {
   pmHeader.style.display = pmActive ? "block" : "none";
   sparePartsHeader.style.display = sparePartsActive ? "block" : "none";
   electricalHeader.style.display = electricalActive ? "block" : "none";
+  keysHeader.style.display = keysActive ? "block" : "none";
   troubleshootingHeader.style.display = troubleshootingActive ? "block" : "none";
 
   homeView.classList.toggle("active", homeActive);
@@ -3837,10 +3906,11 @@ function switchView(viewName) {
   pmView.classList.toggle("active", pmActive);
   sparePartsView.classList.toggle("active", sparePartsActive);
   electricalView.classList.toggle("active", electricalActive);
+  keysView.classList.toggle("active", keysActive);
   troubleshootingView.classList.toggle("active", troubleshootingActive);
 
   const titles = {
-    home: "House Equipment",
+    home: "ATLAS",
     calendar: "Calendar",
     equipment: "Equipment",
     maintenance: "Maintenance",
@@ -3849,10 +3919,11 @@ function switchView(viewName) {
     pm: "Preventive Maintenance",
     spareParts: "Spare Parts",
     electrical: "Electrical System",
+    keys: "Keys",
     troubleshooting: "Troubleshooting Guide"
   };
 
-  appTitle.textContent = titles[viewName] || "House Equipment";
+  appTitle.textContent = titles[viewName] || "ATLAS";
   homeButton.style.display = homeActive ? "none" : "inline-block";
 
   if (calendarActive) renderCalendar();
@@ -4159,6 +4230,22 @@ function buildPMLists() {
 }
 
 
+function buildKeyFilters() {
+  if (!keysCategoryFilter) return;
+  const current = keysCategoryFilter.value;
+  keysCategoryFilter.innerHTML = '<option value="">All Categories</option>';
+  uniqueValues(allKeys, "category").forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    keysCategoryFilter.appendChild(option);
+  });
+  if ([...keysCategoryFilter.options].some(o => o.value === current)) {
+    keysCategoryFilter.value = current;
+  }
+}
+
+
 function uniqueValues(data, field) {
 
   return [...new Set(
@@ -4312,6 +4399,78 @@ function renderEquipment() {
 
   });
 
+}
+
+
+function renderKeys() {
+  if (!keysCards || !keysSummary) return;
+
+  const searchText = (keysSearch ? keysSearch.value : "").trim().toLowerCase();
+  const category = keysCategoryFilter ? keysCategoryFilter.value : "";
+  const stock = keysStockFilter ? keysStockFilter.value : "all";
+
+  let filtered = allKeys.filter(item => {
+    if (category && item.category !== category) return false;
+
+    const qtyNumber = Number(String(item.qty || "").replace(/[^0-9.-]/g, ""));
+    if (stock === "available" && !(qtyNumber > 0)) return false;
+    if (stock === "zero" && qtyNumber !== 0) return false;
+
+    if (searchText) {
+      const text = [
+        item.keyTag,
+        item.equipmentRef,
+        item.jin,
+        item.category,
+        item.lockType,
+        item.manufacturer,
+        item.keyCode,
+        item.qty,
+        item.lastVerified,
+        item.notes
+      ].join(" ").toLowerCase();
+      if (!text.includes(searchText)) return false;
+    }
+
+    return true;
+  });
+
+  filtered.sort((a,b) => compareText(a.keyTag, b.keyTag));
+  keysSummary.textContent = `${filtered.length} of ${allKeys.length} keys`;
+  keysCards.innerHTML = "";
+
+  if (!filtered.length) {
+    keysCards.innerHTML = '<div class="empty">No keys match those filters.</div>';
+    return;
+  }
+
+  filtered.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card key-card";
+
+    const qtyNumber = Number(String(item.qty || "").replace(/[^0-9.-]/g, ""));
+    const noSpare = !isNaN(qtyNumber) && qtyNumber === 0;
+    const equipmentLabel = item.equipmentRef || "Unlinked key";
+
+    card.innerHTML = `
+      <div class="card-title">
+        <span class="key-tag-badge">${escapeHtml(item.keyTag || "KEY")}</span>
+        <span>${escapeHtml(equipmentLabel)}</span>
+      </div>
+      <div class="card-location">
+        ${escapeHtml([item.category, item.lockType].filter(Boolean).join(" • "))}
+      </div>
+      <div class="card-info">
+        ${item.manufacturer ? `<span class="tag">${escapeHtml(item.manufacturer)}</span>` : ""}
+        ${item.keyCode ? `<span class="tag">Code ${escapeHtml(item.keyCode)}</span>` : ""}
+        ${item.qty !== "" ? `<span class="tag ${noSpare ? "key-zero" : ""}">Qty ${escapeHtml(item.qty)}</span>` : ""}
+        ${noSpare ? '<span class="tag key-zero">NO SPARE</span>' : ""}
+      </div>
+    `;
+
+    card.addEventListener("click", () => openKeyDetail(item));
+    keysCards.appendChild(card);
+  });
 }
 
 
@@ -6231,6 +6390,63 @@ async function submitCompleteActionItem(event) {
 }
 
 
+function findEquipmentForKey(keyItem) {
+  if (!keyItem) return null;
+  const targetJin = String(keyItem.jin || "").trim();
+  if (!targetJin) return null;
+
+  return allEquipment.find(item => {
+    const candidates = [item.jin, item.id]
+      .map(value => String(value || "").trim())
+      .filter(Boolean);
+    return candidates.includes(targetJin);
+  }) || null;
+}
+
+
+function openKeyDetail(item) {
+  const equipment = findEquipmentForKey(item);
+  const title = [item.keyTag, item.equipmentRef].filter(Boolean).join(" — ") || "Key";
+  modalTitle.textContent = title;
+
+  detailBody.innerHTML = `
+    <div class="section">
+      <h3>Key Identification</h3>
+      <div class="detail-row"><div class="label">Key Tag</div><div class="value key-detail-code">${escapeHtml(item.keyTag || "")}</div></div>
+      <div class="detail-row"><div class="label">Linked Equipment</div><div class="value">${escapeHtml(item.equipmentRef || "")}</div></div>
+      <div class="detail-row"><div class="label">JIN</div><div class="value">${escapeHtml(item.jin || "")}</div></div>
+      <div class="detail-row"><div class="label">Category</div><div class="value">${escapeHtml(item.category || "")}</div></div>
+    </div>
+
+    ${section("Lock / Key", [
+      ["Lock Type", item.lockType],
+      ["Manufacturer", item.manufacturer],
+      ["Key Code", item.keyCode],
+      ["Quantity", item.qty]
+    ])}
+
+    ${section("Control", [
+      ["Last Verified", item.lastVerified],
+      ["Notes", item.notes]
+    ])}
+
+    <div class="buttons">
+      <button id="keyEquipmentButton" class="btn success-btn" type="button" ${equipment ? "" : "disabled"}>
+        🔧 ${equipment ? "View " + escapeHtml(equipment.equipment || equipment.displayTitle || "Equipment") : "No Linked Equipment"}
+      </button>
+    </div>
+  `;
+
+  const equipmentButton = document.getElementById("keyEquipmentButton");
+  if (equipmentButton && equipment) {
+    equipmentButton.addEventListener("click", () => openEquipmentDetail(equipment));
+  }
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
@@ -6903,6 +7119,10 @@ electricalSearch.addEventListener("input", renderElectrical);
 electricalFloorFilter.addEventListener("change", renderElectrical);
 electricalPanelFilter.addEventListener("change", renderElectrical);
 electricalAreaFilter.addEventListener("change", renderElectrical);
+
+keysSearch.addEventListener("input", renderKeys);
+keysCategoryFilter.addEventListener("change", renderKeys);
+keysStockFilter.addEventListener("change", renderKeys);
 
 electricalBreakerMode.addEventListener("click", () => {
   electricalMode = "breakers";
