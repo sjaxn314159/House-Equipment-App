@@ -1,0 +1,2658 @@
+// ============================================================================
+// ATLAS HOME MANAGEMENT — APPS SCRIPT V38
+// V33: Adds server-side UtilityAPI sandbox connection test. Reads UTILITYAPI_TOKEN from Script Properties.
+//      Run testUtilityApiConnection() manually from the Apps Script editor; no deployment required for the test.
+// V38: Exposes the synced Energy Bills + Energy Intervals sheets through the secured Atlas API.
+//      Frontend V42 reads energyBills and energyIntervals from the normal authenticated load.
+// V34: Adds UtilityAPI bill + interval-data discovery for the authorized National Grid sandbox meters.
+//      Run testUtilityApiEnergyData() manually; output is sanitized and does not expose the API token.
+// V33: Adds UtilityAPI connection test using UTILITYAPI_TOKEN in Script Properties.
+// V32: Adds Google Identity authentication. Every read/write request must present a valid
+//      Google ID token for an email on the Atlas allowlist. Run setupAtlasSecurity() ONCE.
+// V31: Adds Keys data from the "Keys" sheet for the Atlas Keys directory and equipment linking.
+// V30: Adds Action Item editing via updateActionItem while preserving IDs, status, created date, and completion history.
+// V29: Adds email notifications for new Action Items and scheduled PM reminders.
+//       PM reminders: 7 days before, due today, first day overdue, then weekly while overdue.
+//       Run installHomeNotificationTrigger() ONCE after deploying V29.
+// V28: No backend behavior change; frontend adds unified Calendar using existing PM, Action Items, and Maint Log data.
+// V25: No backend behavior change; frontend V26 adds mature product UI.
+// V23: Adds Action Items, equipment-linked creation, and completion to Maint Log.
+// V22: No backend behavior change; frontend adds equipment-specific View TCCs navigation.
+// V21: Adds Equipment List Column Q "Switch/Outlet" and Column AB "JIN and Device Name" for equipment titles.
+// V20: Adds Electrical Tracking Column L "Powers" to the electrical data model.
+// V19: Makes Electrical Tracking parsing robust with header + fixed-column fallback and returns diagnostics.
+// V18: No backend behavior change; frontend now lists electrical devices directly under each breaker.
+// V17: Adds Electrical System data from the "Electrical Tracking" tab.
+// V16: No backend behavior change; Equipment Folder continues to come from the Folder column / Column T fallback.
+// V15: No backend logic change required for the Equipment-detail Spare Parts button; existing spare-parts API is reused.
+// V14: Adds a dedicated spare-parts API action and Count Date to spare-parts data.
+// V13: No backend change required for Equipment-detail Add PM; existing addPM endpoint is reused.
+// V11 preserves Maint Log data validation by writing the exact Equipment ID/JIN value when a PM is completed.
+// ============================================================================
+
+
+
+
+// ============================================================================
+// V33 UTILITYAPI — SERVER-SIDE CONNECTION TEST
+// ============================================================================
+const UTILITYAPI_TOKEN_PROPERTY = "UTILITYAPI_TOKEN";
+const UTILITYAPI_BASE_URL = "https://utilityapi.com/api/v2";
+
+/**
+ * Run manually from the Apps Script editor.
+ * Tests the stored UtilityAPI token and returns a sanitized summary of the
+ * authorizations and meters available to Atlas. The token is never logged.
+ */
+function testUtilityApiConnection() {
+  const token = PropertiesService.getScriptProperties().getProperty(UTILITYAPI_TOKEN_PROPERTY);
+  if (!token) {
+    throw new Error('Missing Script Property "' + UTILITYAPI_TOKEN_PROPERTY + '".');
+  }
+
+  const result = utilityApiFetch_("/authorizations?include=meters");
+  const authorizations = Array.isArray(result.authorizations) ? result.authorizations : [];
+  const summary = {
+    success: true,
+    authorizationCount: authorizations.length,
+    authorizations: authorizations.map(function(auth) {
+      const meterList = auth && auth.meters && Array.isArray(auth.meters.meters)
+        ? auth.meters.meters
+        : [];
+      return {
+        uid: auth.uid || "",
+        utility: auth.utility || "",
+        isExpired: !!auth.is_expired,
+        meterCount: meterList.length,
+        meters: meterList.map(sanitizeUtilityMeter_)
+      };
+    })
+  };
+
+  console.log(JSON.stringify(summary, null, 2));
+  return summary;
+}
+
+/** Server-side UtilityAPI request helper. */
+function utilityApiFetch_(path) {
+  const token = PropertiesService.getScriptProperties().getProperty(UTILITYAPI_TOKEN_PROPERTY);
+  if (!token) throw new Error('Missing Script Property "' + UTILITYAPI_TOKEN_PROPERTY + '".');
+
+  const response = UrlFetchApp.fetch(UTILITYAPI_BASE_URL + path, {
+    method: "get",
+    headers: { Authorization: "Bearer " + token },
+    muteHttpExceptions: true
+  });
+
+  const code = response.getResponseCode();
+  const body = response.getContentText() || "";
+  if (code < 200 || code >= 300) {
+    throw new Error("UtilityAPI request failed (HTTP " + code + "): " + body.substring(0, 500));
+  }
+
+  return body ? JSON.parse(body) : {};
+}
+
+/** Keep the connection-test log useful without dumping customer/account details. */
+function sanitizeUtilityMeter_(meter) {
+  meter = meter || {};
+  const base = meter.base || {};
+  return {
+    uid: meter.uid || "",
+    serviceType: meter.service_type || base.service_type || "",
+    utility: meter.utility || "",
+    status: meter.status || "",
+    isActivated: !!meter.is_activated,
+    billCount: Number(meter.bill_count || 0),
+    intervalCount: Number(meter.interval_count || 0)
+  };
+}
+
+// ============================================================================
+// V32 SECURITY — GOOGLE IDENTITY + SERVER-SIDE ALLOWLIST
+// ============================================================================
+const ATLAS_GOOGLE_CLIENT_ID = "550259338200-79vdkru0vtkqrdeu8vdpkrl9atscd2e9.apps.googleusercontent.com";
+const ATLAS_AUTHORIZED_EMAILS_PROPERTY = "ATLAS_AUTHORIZED_EMAILS";
+
+/**
+ * Run this ONCE from the Apps Script editor while signed into the Google account
+ * that should initially own Atlas. It stores that email in Script Properties.
+ */
+function setupAtlasSecurity() {
+  const email = clean(Session.getActiveUser().getEmail()).toLowerCase();
+  if (!email) {
+    throw new Error("Google did not expose the active account email. Add it manually with addAtlasAuthorizedEmail('name@example.com').");
+  }
+  PropertiesService.getScriptProperties().setProperty(ATLAS_AUTHORIZED_EMAILS_PROPERTY, email);
+  console.log("Atlas security enabled for: " + email);
+  return email;
+}
+
+/** Add another Google account (for example, another household member). */
+function addAtlasAuthorizedEmail(email) {
+  email = clean(email).toLowerCase();
+  if (!email || email.indexOf("@") < 1) throw new Error("Enter a valid email address.");
+  const props = PropertiesService.getScriptProperties();
+  const current = (props.getProperty(ATLAS_AUTHORIZED_EMAILS_PROPERTY) || "")
+    .split(",").map(x => clean(x).toLowerCase()).filter(Boolean);
+  if (current.indexOf(email) < 0) current.push(email);
+  props.setProperty(ATLAS_AUTHORIZED_EMAILS_PROPERTY, current.join(","));
+  return current;
+}
+
+function getAtlasAuthorizedEmails_() {
+  return (PropertiesService.getScriptProperties().getProperty(ATLAS_AUTHORIZED_EMAILS_PROPERTY) || "")
+    .split(",").map(x => clean(x).toLowerCase()).filter(Boolean);
+}
+
+function requireAtlasAuth_(e) {
+  const token = clean(e && e.parameter && (e.parameter.id_token || e.parameter.idToken));
+  if (!token) throw new Error("UNAUTHORIZED");
+
+  const cache = CacheService.getScriptCache();
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, token);
+  const cacheKey = "atlas_auth_" + Utilities.base64EncodeWebSafe(digest).replace(/=+$/g, "");
+  const cachedEmail = cache.get(cacheKey);
+  if (cachedEmail) return cachedEmail;
+
+  const url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(token);
+  const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (response.getResponseCode() !== 200) throw new Error("UNAUTHORIZED");
+
+  const info = JSON.parse(response.getContentText() || "{}");
+  const email = clean(info.email).toLowerCase();
+  const audience = clean(info.aud);
+  const verified = String(info.email_verified).toLowerCase() === "true";
+  const expires = Number(info.exp || 0);
+  const now = Math.floor(Date.now() / 1000);
+
+  if (!email || !verified || audience !== ATLAS_GOOGLE_CLIENT_ID || expires <= now) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  const allowed = getAtlasAuthorizedEmails_();
+  if (!allowed.length) throw new Error("ATLAS_SECURITY_NOT_CONFIGURED");
+  if (allowed.indexOf(email) < 0) throw new Error("UNAUTHORIZED");
+
+  cache.put(cacheKey, email, Math.max(60, Math.min(3300, expires - now)));
+  return email;
+}
+
+function doGet(e) {
+  try {
+    requireAtlasAuth_(e);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const action = (e && e.parameter && e.parameter.action) || "all";
+
+    if (action === "equipment") {
+      return jsonResponse({ success: true, updated: new Date().toISOString(), equipment: getEquipment(ss) });
+    }
+
+    if (action === "maintenance") {
+      return jsonResponse({ success: true, updated: new Date().toISOString(), maintenance: getMaintenance(ss) });
+    }
+
+    if (action === "actionitems" || action === "actions") {
+      return jsonResponse({ success: true, updated: new Date().toISOString(), actionItems: getActionItems(ss) });
+    }
+
+    if (action === "keys" || action === "key") {
+      return jsonResponse({ success: true, updated: new Date().toISOString(), keys: getKeys(ss) });
+    }
+
+    if (action === "energy") {
+      return jsonResponse({
+        success: true,
+        updated: new Date().toISOString(),
+        energyBills: getEnergyBills(ss),
+        energyIntervals: getEnergyIntervals(ss)
+      });
+    }
+
+    if (action === "documents") {
+      return jsonResponse({ success: true, updated: new Date().toISOString(), documents: getDocuments(ss) });
+    }
+
+    if (action === "pm") {
+      return jsonResponse({ success: true, updated: new Date().toISOString(), pm: getPMs(ss), spareParts: getSpareParts(ss) });
+    }
+
+    if (action === "spareparts" || action === "spares") {
+      return jsonResponse({ success: true, updated: new Date().toISOString(), spareParts: getSpareParts(ss) });
+    }
+
+    if (action === "electrical" || action === "electricalsystem") {
+      const electrical = getElectricalTracking(ss);
+      return jsonResponse({
+        success: true,
+        updated: new Date().toISOString(),
+        electrical: electrical,
+        electricalDiagnostics: { sheetFound: !!ss.getSheetByName("Electrical Tracking"), recordCount: electrical.length }
+      });
+    }
+
+    // Troubleshooting / TCC data can also be requested by itself.
+    if (action === "troubleshooting" || action === "tcc") {
+      return jsonResponse({
+        success: true,
+        updated: new Date().toISOString(),
+        troubleshooting: getTroubleshooting(ss)
+      });
+    }
+
+    return jsonResponse({
+      success: true,
+      updated: new Date().toISOString(),
+      equipment: getEquipment(ss),
+      maintenance: getMaintenance(ss),
+      actionItems: getActionItems(ss),
+      keys: getKeys(ss),
+      energyBills: getEnergyBills(ss),
+      energyIntervals: getEnergyIntervals(ss),
+      documents: getDocuments(ss),
+      pm: getPMs(ss),
+      spareParts: getSpareParts(ss),
+      electrical: getElectricalTracking(ss),
+      electricalDiagnostics: {
+        sheetFound: !!ss.getSheetByName("Electrical Tracking"),
+        recordCount: getElectricalTracking(ss).length
+      },
+      troubleshooting: getTroubleshooting(ss)
+    });
+
+  } catch (error) {
+    return jsonResponse({ success: false, error: String(error).includes("UNAUTHORIZED") ? "Unauthorized." : error.toString() });
+  }
+}
+
+
+function doPost(e) {
+  try {
+    requireAtlasAuth_(e);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const action = (e && e.parameter && e.parameter.action) || "";
+
+    if (action === "addMaintenance") {
+      const result = addMaintenanceLog(ss, e.parameter);
+      return jsonResponse({ success: true, message: "Maintenance log added.", log: result });
+    }
+
+    if (action === "addPM") {
+      const result = addPM(ss, e.parameter);
+      return jsonResponse({ success: true, message: "PM added.", pm: result });
+    }
+
+    if (action === "addActionItem") {
+      const result = addActionItem(ss, e.parameter);
+      return jsonResponse({ success: true, message: "Action item added.", actionItem: result });
+    }
+
+    if (action === "updateActionItem") {
+      const result = updateActionItem(ss, e.parameter);
+      return jsonResponse({ success: true, message: "Action item updated.", actionItem: result });
+    }
+
+    if (action === "completeActionItem") {
+      const result = completeActionItem(ss, e.parameter);
+      return jsonResponse({
+        success: true,
+        message: "Action item completed and maintenance log created.",
+        actionItem: result.actionItem,
+        log: result.log
+      });
+    }
+
+    if (action === "completePM") {
+      const result = completePM(ss, e.parameter);
+      return jsonResponse({
+        success: true,
+        message: "PM completed and maintenance log created.",
+        pm: result.pm,
+        log: result.log
+      });
+    }
+
+    // V9: Allow the browser app to create a new TCC troubleshooting record.
+    if (action === "addTCC") {
+      const result = addTroubleshooting(ss, e.parameter);
+      return jsonResponse({
+        success: true,
+        message: "Troubleshooting item added.",
+        troubleshooting: result
+      });
+    }
+
+    return jsonResponse({ success: false, error: "Unknown action." });
+
+  } catch (error) {
+    return jsonResponse({ success: false, error: String(error).includes("UNAUTHORIZED") ? "Unauthorized." : error.toString() });
+  }
+}
+
+
+function getEquipment(ss) {
+  const sheet = ss.getSheetByName("Equipment List");
+  if (!sheet) throw new Error('Could not find sheet named "Equipment List".');
+
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getDisplayValues();
+  const richText = dataRange.getRichTextValues();
+
+  // Find the actual header row/columns instead of assuming fixed column letters.
+  // This matters for JIN: the PM system needs the full JIN such as 0.1.3.
+  let headerIndex = findHeaderRow(data, ["Equipment", "JIN"]);
+  if (headerIndex < 0) headerIndex = 3; // fallback to the original Row 4 layout
+
+  const map = headerMap(data[headerIndex] || []);
+  const equipment = [];
+
+  const val = (row, names, fallbackIndex) => {
+    const byHeader = valueByHeader(row, map, names);
+    if (byHeader !== "") return byHeader;
+    return fallbackIndex >= 0 ? clean(row[fallbackIndex]) : "";
+  };
+
+  const folderCol = columnByHeader(map, ["Folder", "Equipment Folder", "Link", "Folder Link"]);
+
+  for (let i = headerIndex + 1; i < data.length; i++) {
+    const row = data[i];
+    const equipmentName = val(row, ["Equipment", "Equipment Name"], 6);
+    if (equipmentName === "") continue;
+
+    let folderUrl = "";
+    const folderIndex = folderCol >= 0 ? folderCol : 20;
+    if (folderIndex < row.length) {
+      folderUrl = getCellLink(richText[i][folderIndex], row[folderIndex]);
+    }
+
+    equipment.push({
+      floor: val(row, ["Floor"], 0),
+      area: val(row, ["Area", "Location", "Room"], 1),
+      itemNumber: val(row, ["Item #", "Item Number", "#"], 2),
+
+      // IMPORTANT: JIN is read from the column actually labeled JIN.
+      jin: val(row, ["JIN"], 3),
+      id: val(row, ["ID", "Equipment ID"], 4),
+
+      equipment: equipmentName,
+      critical: val(row, ["Critical", "Criticality", "CRITICAL?"], 7),
+      labeled: val(row, ["Labeled", "Labelled"], 8),
+      unit: val(row, ["Unit"], 9),
+      make: val(row, ["Make", "Manufacturer"], 10),
+      model: val(row, ["Model"], 11),
+      serialNumber: val(row, ["Serial Number", "Serial #", "S/N"], 12),
+      panel: val(row, ["Panel"], 13),
+      breaker: val(row, ["Breaker"], 14),
+      powers: val(row, ["Powers", "Power"], 15),
+      switchOutlet: val(row, ["Switch/Outlet", "Switch / Outlet", "Switch Outlet", "Powered By Device"], 16),
+      details: val(row, ["Details", "Description"], 17),
+      batteries: val(row, ["Batteries", "Battery"], 18),
+      manual: val(row, ["Manual"], 19),
+      folder: folderUrl,
+      keyId: val(row, ["Key ID", "Key"], 21),
+      installDate: val(row, ["Install Date", "Installed"], 22),
+
+      displayTitle: val(
+        row,
+        [
+          "JIN and Device Name",
+          "JIN & Device Name",
+          "JIN + Device Name",
+          "JIN and Device",
+          "JIN & Device"
+        ],
+        27
+      ),
+
+      // Existing TCC display field retained for backward compatibility.
+      tccEquipmentDisplay: val(
+        row,
+        [
+          "JIN and Equipment",
+          "JIN & Equipment",
+          "JIN / Equipment",
+          "Equipment Display",
+          "JIN Equipment"
+        ],
+        26
+      )
+    });
+  }
+
+  return equipment;
+}
+
+
+// ============================================================================
+// V38 ENERGY API
+// Reads the permanent V37 Energy sheets and returns frontend-friendly objects.
+// These functions do NOT call UtilityAPI; they only expose the locally synced
+// Atlas spreadsheet data through the existing authenticated doGet() API.
+// ============================================================================
+
+function getEnergyBills(ss) {
+  const sheet = ss.getSheetByName("Energy Bills");
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const raw = range.getValues();
+  const map = headerMap(display[0] || []);
+  const rows = [];
+
+  for (let r = 1; r < display.length; r++) {
+    const row = display[r];
+    const recordKey = valueByHeader(row, map, ["Record Key"]);
+    const meterUid = valueByHeader(row, map, ["Meter UID"]);
+    if (!recordKey && !meterUid) continue;
+
+    const rawStart = raw[r][columnByHeader(map, ["Bill Start"])];
+    const rawEnd = raw[r][columnByHeader(map, ["Bill End"])];
+    const rawStatement = raw[r][columnByHeader(map, ["Statement Date"])];
+    const rawSynced = raw[r][columnByHeader(map, ["Last Synced"])];
+
+    rows.push({
+      recordKey: recordKey,
+      billUid: valueByHeader(row, map, ["UtilityAPI Bill UID"]),
+      meterUid: meterUid,
+      utility: valueByHeader(row, map, ["Utility"]),
+      service: valueByHeader(row, map, ["Service"]),
+      tariff: valueByHeader(row, map, ["Tariff"]),
+      startDate: valueByHeader(row, map, ["Bill Start"]),
+      startDateIso: energyIsoV38_(rawStart),
+      endDate: valueByHeader(row, map, ["Bill End"]),
+      endDateIso: energyIsoV38_(rawEnd),
+      statementDate: valueByHeader(row, map, ["Statement Date"]),
+      statementDateIso: energyIsoV38_(rawStatement),
+      usage: energyNumberV38_(raw[r], row, map, ["Usage"]),
+      unit: valueByHeader(row, map, ["Unit"]),
+      totalCost: energyNumberV38_(raw[r], row, map, ["Total Cost"]),
+      effectiveRate: energyNumberV38_(raw[r], row, map, ["Effective Rate"]),
+      lastSynced: valueByHeader(row, map, ["Last Synced"]),
+      lastSyncedIso: energyIsoV38_(rawSynced)
+    });
+  }
+
+  return rows;
+}
+
+function getEnergyIntervals(ss) {
+  const sheet = ss.getSheetByName("Energy Intervals");
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const raw = range.getValues();
+  const map = headerMap(display[0] || []);
+  const rows = [];
+
+  for (let r = 1; r < display.length; r++) {
+    const row = display[r];
+    const recordKey = valueByHeader(row, map, ["Record Key"]);
+    const meterUid = valueByHeader(row, map, ["Meter UID"]);
+    if (!recordKey && !meterUid) continue;
+
+    const rawStart = raw[r][columnByHeader(map, ["Start"])];
+    const rawEnd = raw[r][columnByHeader(map, ["End"])];
+    const rawSynced = raw[r][columnByHeader(map, ["Last Synced"])];
+
+    rows.push({
+      recordKey: recordKey,
+      meterUid: meterUid,
+      utility: valueByHeader(row, map, ["Utility"]),
+      service: valueByHeader(row, map, ["Service"]),
+      tariff: valueByHeader(row, map, ["Tariff"]),
+      start: valueByHeader(row, map, ["Start"]),
+      startIso: energyIsoV38_(rawStart),
+      end: valueByHeader(row, map, ["End"]),
+      endIso: energyIsoV38_(rawEnd),
+      usage: energyNumberV38_(raw[r], row, map, ["Usage"]),
+      unit: valueByHeader(row, map, ["Unit"]),
+      readingType: valueByHeader(row, map, ["Reading Type"]),
+      meterNumber: valueByHeader(row, map, ["Meter Number"]),
+      lastSynced: valueByHeader(row, map, ["Last Synced"]),
+      lastSyncedIso: energyIsoV38_(rawSynced)
+    });
+  }
+
+  return rows;
+}
+
+function energyNumberV38_(rawRow, displayRow, map, names) {
+  const col = columnByHeader(map, names);
+  if (col < 0) return null;
+
+  const rawValue = rawRow[col];
+  if (typeof rawValue === "number" && isFinite(rawValue)) return rawValue;
+
+  const text = clean(displayRow[col]).replace(/[$,%]/g, "").replace(/,/g, "");
+  if (text === "") return null;
+  const number = Number(text);
+  return isFinite(number) ? number : null;
+}
+
+function energyIsoV38_(value) {
+  return value instanceof Date && !isNaN(value.getTime())
+    ? value.toISOString()
+    : "";
+}
+
+
+function getDocuments(ss) {
+  const sheet = ss.getSheetByName("Work Instructions");
+  if (!sheet) throw new Error('Could not find sheet named "Work Instructions".');
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const richText = range.getRichTextValues();
+  const documents = [];
+
+  const blocks = [
+    { type: "Work Instruction", shortType: "WI", startCol: 1 },
+    { type: "Quick Guide", shortType: "QG", startCol: 7 },
+    { type: "One Point Lesson", shortType: "OPL", startCol: 13 }
+  ];
+
+  const firstDataIndex = 3;
+
+  blocks.forEach(block => {
+    for (let r = firstDataIndex; r < display.length; r++) {
+      const id = clean(display[r][block.startCol]);
+      const title = clean(display[r][block.startCol + 1]);
+      const revision = clean(display[r][block.startCol + 2]);
+      const releaseDate = clean(display[r][block.startCol + 3]);
+      const link = getCellLink(richText[r][block.startCol + 4], display[r][block.startCol + 4]);
+
+      if (!title && !revision && !releaseDate && !link) continue;
+
+      documents.push({
+        type: block.type,
+        shortType: block.shortType,
+        id: id,
+        title: title,
+        revision: revision,
+        releaseDate: releaseDate,
+        link: link,
+        rowNumber: r + 1
+      });
+    }
+  });
+
+  return documents;
+}
+
+
+function getMaintenance(ss) {
+  const sheet = ss.getSheetByName("Maint Log");
+  if (!sheet) throw new Error('Could not find sheet named "Maint Log".');
+
+  const dataRange = sheet.getDataRange();
+  const display = dataRange.getDisplayValues();
+  const raw = dataRange.getValues();
+  const richText = dataRange.getRichTextValues();
+  const headerRow = 4;
+  const logs = [];
+
+  for (let i = headerRow; i < display.length; i++) {
+    const row = display[i];
+    const id = clean(row[1]);
+    const equipment = clean(row[2]);
+    const description = clean(row[5]);
+
+    if (!id && !equipment && !description) continue;
+
+    let dateIso = "";
+    const rawDate = raw[i][3];
+    if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
+      dateIso = formatIsoDate(rawDate);
+    }
+
+    logs.push({
+      rowNumber: i + 1,
+      id: id,
+      equipment: equipment,
+      date: clean(row[3]),
+      dateIso: dateIso,
+      performedBy: clean(row[4]),
+      description: description,
+      link: getCellLink(richText[i][6], row[6]),
+      wi: clean(row[7]),
+      complete: clean(row[8]),
+      spareQty: clean(row[9]),
+      spareId: clean(row[10]),
+      spareDescription: clean(row[11]),
+      nextStep: clean(row[12])
+    });
+  }
+
+  return logs;
+}
+
+
+
+// ---------------------------------------------------------------------------
+// ACTION ITEMS — V23
+// The "Action Items" sheet may be completely blank. The app creates these
+// headers automatically on first use:
+// Action ID | Equipment | Action | Notes | Priority | Due Date | Status |
+// Created Date | Completed Date | Performed By | Maintenance Log ID
+// ---------------------------------------------------------------------------
+function ensureActionItemSheet(ss) {
+  let sheet = ss.getSheetByName("Action Items");
+  if (!sheet) sheet = ss.insertSheet("Action Items");
+
+  const headers = [
+    "Action ID", "Equipment", "Action", "Notes", "Priority", "Due Date",
+    "Status", "Created Date", "Completed Date", "Performed By",
+    "Maintenance Log ID"
+  ];
+
+  const current = sheet.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
+  const isBlank = current.every(v => clean(v) === "");
+
+  if (isBlank) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+    sheet.setFrozenRows(1);
+  }
+
+  return sheet;
+}
+
+function getActionItems(ss) {
+  const sheet = ensureActionItemSheet(ss);
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const raw = range.getValues();
+  if (display.length < 2) return [];
+
+  const map = headerMap(display[0]);
+  const items = [];
+
+  for (let r = 1; r < display.length; r++) {
+    const row = display[r];
+    const id = valueByHeader(row, map, ["Action ID", "ID"]);
+    const action = valueByHeader(row, map, ["Action", "Action Item", "Task"]);
+    if (!id && !action) continue;
+
+    const rawDue = raw[r][columnByHeader(map, ["Due Date"])];
+    const rawCreated = raw[r][columnByHeader(map, ["Created Date"])];
+    const rawCompleted = raw[r][columnByHeader(map, ["Completed Date"])];
+
+    items.push({
+      rowNumber: r + 1,
+      id: id,
+      equipment: valueByHeader(row, map, ["Equipment"]),
+      action: action,
+      notes: valueByHeader(row, map, ["Notes"]),
+      priority: valueByHeader(row, map, ["Priority"]),
+      dueDate: valueByHeader(row, map, ["Due Date"]),
+      dueDateIso: rawDue instanceof Date ? formatIsoDate(rawDue) : "",
+      status: valueByHeader(row, map, ["Status"]),
+      createdDate: valueByHeader(row, map, ["Created Date"]),
+      createdDateIso: rawCreated instanceof Date ? formatIsoDate(rawCreated) : "",
+      completedDate: valueByHeader(row, map, ["Completed Date"]),
+      completedDateIso: rawCompleted instanceof Date ? formatIsoDate(rawCompleted) : "",
+      performedBy: valueByHeader(row, map, ["Performed By"]),
+      maintenanceLogId: valueByHeader(row, map, ["Maintenance Log ID"])
+    });
+  }
+
+  return items;
+}
+
+function nextActionItemId(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return "AI-0001";
+
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues().flat();
+  let maxNumber = 0;
+
+  ids.forEach(value => {
+    const match = clean(value).match(/^AI-(\d+)$/i);
+    if (match) maxNumber = Math.max(maxNumber, Number(match[1]));
+  });
+
+  return "AI-" + String(maxNumber + 1).padStart(4, "0");
+}
+
+function addActionItem(ss, p) {
+  const sheet = ensureActionItemSheet(ss);
+  const equipment = clean(p.equipment);
+  const action = clean(p.actionItem || p.task || p.description);
+  const notes = clean(p.notes);
+  const priority = clean(p.priority) || "Medium";
+  const dueText = clean(p.dueDate);
+
+  // Requiring equipment keeps completion compatible with the existing
+  // Maint Log validation and preserves a useful equipment history.
+  if (!equipment) throw new Error("Equipment is required.");
+  if (!action) throw new Error("Action is required.");
+
+  const id = nextActionItemId(sheet);
+  const newRow = Math.max(sheet.getLastRow() + 1, 2);
+  const created = new Date();
+  const dueDate = dueText ? parseDateInput(dueText) : "";
+
+  sheet.getRange(newRow, 1, 1, 11).setValues([[
+    id, equipment, action, notes, priority, dueDate, "Open",
+    created, "", "", ""
+  ]]);
+
+  sheet.getRange(newRow, 6).setNumberFormat("M/d/yyyy");
+  sheet.getRange(newRow, 8, 1, 2).setNumberFormat("M/d/yyyy");
+
+  const createdItem = getActionItems(ss).find(x => x.id === id) || null;
+
+  // Email failure must never prevent the Action Item from being created.
+  if (createdItem) {
+    try {
+      sendNewActionItemEmail(createdItem);
+    } catch (emailError) {
+      console.error("Action Item email failed: " + emailError);
+    }
+  }
+
+  return createdItem;
+}
+
+function updateActionItem(ss, p) {
+  const id = clean(p.actionId);
+  if (!id) throw new Error("Action ID is required.");
+
+  const sheet = ensureActionItemSheet(ss);
+  const display = sheet.getDataRange().getDisplayValues();
+  if (display.length < 2) throw new Error("Could not find " + id + ".");
+
+  const map = headerMap(display[0]);
+  let rowIndex = -1;
+
+  for (let r = 1; r < display.length; r++) {
+    if (valueByHeader(display[r], map, ["Action ID", "ID"]) === id) {
+      rowIndex = r;
+      break;
+    }
+  }
+
+  if (rowIndex < 0) throw new Error("Could not find " + id + ".");
+
+  const existing = getActionItems(ss).find(x => x.id === id);
+  if (!existing) throw new Error("Could not read " + id + ".");
+  if (String(existing.status || "").toLowerCase() === "complete") {
+    throw new Error("Completed action items cannot be edited from the open Action Items screen.");
+  }
+
+  const equipment = clean(p.equipment);
+  const action = clean(p.actionItem || p.task || p.description);
+  const notes = clean(p.notes);
+  const priority = clean(p.priority) || "Medium";
+  const dueText = clean(p.dueDate);
+
+  if (!equipment) throw new Error("Equipment is required.");
+  if (!action) throw new Error("Action is required.");
+
+  const sheetRow = rowIndex + 1;
+  setByHeader(sheet, sheetRow, map, ["Equipment"], equipment);
+  setByHeader(sheet, sheetRow, map, ["Action", "Action Item", "Task"], action);
+  setByHeader(sheet, sheetRow, map, ["Notes"], notes);
+  setByHeader(sheet, sheetRow, map, ["Priority"], priority);
+  setByHeader(sheet, sheetRow, map, ["Due Date"], dueText ? parseDateInput(dueText) : "");
+
+  const dueCol = columnByHeader(map, ["Due Date"]);
+  if (dueCol >= 0) sheet.getRange(sheetRow, dueCol + 1).setNumberFormat("M/d/yyyy");
+
+  return getActionItems(ss).find(x => x.id === id) || null;
+}
+
+
+function completeActionItem(ss, p) {
+  const id = clean(p.actionId);
+  if (!id) throw new Error("Action ID is required.");
+
+  const sheet = ensureActionItemSheet(ss);
+  const display = sheet.getDataRange().getDisplayValues();
+  const map = headerMap(display[0]);
+  let rowIndex = -1;
+
+  for (let r = 1; r < display.length; r++) {
+    if (valueByHeader(display[r], map, ["Action ID", "ID"]) === id) {
+      rowIndex = r;
+      break;
+    }
+  }
+
+  if (rowIndex < 0) throw new Error("Could not find " + id + ".");
+
+  const item = getActionItems(ss).find(x => x.id === id);
+  if (!item) throw new Error("Could not read " + id + ".");
+  if (String(item.status).toLowerCase() === "complete" && item.maintenanceLogId) {
+    throw new Error(id + " is already complete.");
+  }
+
+  const completionText = clean(p.date) || formatIsoDate(new Date());
+  const performedBy = clean(p.performedBy);
+  const completionNotes = clean(p.notes);
+  const description =
+    "Completed " + id + " - " + item.action +
+    (item.notes ? " — " + item.notes : "") +
+    (completionNotes ? " — " + completionNotes : "");
+
+  const log = addMaintenanceLog(ss, {
+    equipment: item.equipment,
+    date: completionText,
+    performedBy: performedBy,
+    description: description,
+    complete: "Yes",
+    wi: "",
+    spareQty: "",
+    spareId: "",
+    spareDescription: "",
+    nextStep: "",
+    link: ""
+  });
+
+  setByHeader(sheet, rowIndex + 1, map, ["Status"], "Complete");
+  setByHeader(sheet, rowIndex + 1, map, ["Completed Date"], parseDateInput(completionText));
+  setByHeader(sheet, rowIndex + 1, map, ["Performed By"], performedBy);
+  setByHeader(sheet, rowIndex + 1, map, ["Maintenance Log ID"], log.id || "");
+  sheet.getRange(rowIndex + 1, columnByHeader(map, ["Completed Date"]) + 1).setNumberFormat("M/d/yyyy");
+
+  return {
+    actionItem: getActionItems(ss).find(x => x.id === id) || null,
+    log: log
+  };
+}
+
+
+
+// ---------------------------------------------------------------------------
+// KEYS — V31
+// Reads the "Keys" worksheet.
+// Expected headers:
+// Key Tag | JIN | Category | Lock Type | Manufacturer | Key Code | Qty |
+// Last Verified | Notes
+//
+// Rows that contain only a pre-filled Key Tag (for example K-20 with no key
+// assigned yet) are ignored. The JIN column may contain a friendly value such
+// as "4.1.8 - Generator"; the leading JIN is parsed separately for equipment
+// linking while the full text is retained for display.
+// ---------------------------------------------------------------------------
+function getKeys(ss) {
+  const sheet = ss.getSheetByName("Keys");
+  if (!sheet) return [];
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const raw = range.getValues();
+  if (!display || !display.length) return [];
+
+  let headerIndex = findHeaderRow(display, ["Key Tag", "JIN"]);
+  if (headerIndex < 0) headerIndex = 0;
+
+  const map = headerMap(display[headerIndex] || []);
+  const items = [];
+
+  for (let r = headerIndex + 1; r < display.length; r++) {
+    const row = display[r];
+    const keyTag = valueByHeader(row, map, ["Key Tag", "Key ID", "Key"]);
+    const equipmentRef = valueByHeader(row, map, ["JIN", "Equipment", "Equipment / JIN"]);
+    const category = valueByHeader(row, map, ["Category"]);
+    const lockType = valueByHeader(row, map, ["Lock Type", "Type"]);
+    const manufacturer = valueByHeader(row, map, ["Manufacturer", "Make"]);
+    const keyCode = valueByHeader(row, map, ["Key Code", "Code"]);
+    const qty = valueByHeader(row, map, ["Qty", "Quantity"]);
+    const lastVerified = valueByHeader(row, map, ["Last Verified", "Verified"]);
+    const notes = valueByHeader(row, map, ["Notes", "Note"]);
+
+    // Ignore unused pre-numbered slots such as K-20, K-21, etc.
+    if (!equipmentRef && !category && !lockType && !manufacturer && !keyCode && !qty && !lastVerified && !notes) {
+      continue;
+    }
+
+    const jinMatch = clean(equipmentRef).match(/^([0-9]+(?:\.[0-9]+)*)\b/);
+    const rawVerifiedCol = columnByHeader(map, ["Last Verified", "Verified"]);
+    const rawVerified = rawVerifiedCol >= 0 ? raw[r][rawVerifiedCol] : "";
+
+    items.push({
+      rowNumber: r + 1,
+      keyTag: keyTag,
+      equipmentRef: equipmentRef,
+      jin: jinMatch ? jinMatch[1] : "",
+      category: category,
+      lockType: lockType,
+      manufacturer: manufacturer,
+      keyCode: keyCode,
+      qty: qty,
+      lastVerified: lastVerified,
+      lastVerifiedIso: rawVerified instanceof Date ? formatIsoDate(rawVerified) : "",
+      notes: notes
+    });
+  }
+
+  return items;
+}
+
+
+function getSpareParts(ss) {
+  const sheet = ss.getSheetByName("Spare Parts");
+  if (!sheet) return [];
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const richText = range.getRichTextValues();
+  const headerIndex = findHeaderRow(display, ["Spare JIN", "Item"]);
+  if (headerIndex < 0) return [];
+
+  const map = headerMap(display[headerIndex]);
+  const parts = [];
+
+  for (let r = headerIndex + 1; r < display.length; r++) {
+    const row = display[r];
+    const spareJin = valueByHeader(row, map, ["Spare JIN", "Spare Jin"]);
+    const item = valueByHeader(row, map, ["Item", "Description"]);
+    if (!spareJin && !item) continue;
+
+    const linkIndex = columnByHeader(map, ["Links", "Link"]);
+    const link = linkIndex >= 0
+      ? getCellLink(richText[r][linkIndex], row[linkIndex])
+      : "";
+
+    parts.push({
+      rowNumber: r + 1,
+      equipment: valueByHeader(row, map, ["Equipment"]),
+      jin: valueByHeader(row, map, ["JIN", "Jin"]),
+      spareNumber: valueByHeader(row, map, ["Spare #", "Spare No", "Spare Number"]),
+      spareJin: spareJin,
+      item: item,
+      critical: valueByHeader(row, map, ["CRITICAL?", "Critical", "Critical?"]),
+      supplier: valueByHeader(row, map, ["Supplier"]),
+      manufacturer: valueByHeader(row, map, ["Manufacturer", "Make"]),
+      partNumber: valueByHeader(row, map, ["Part Number", "PN", "Part #"]),
+      priceEach: valueByHeader(row, map, ["Price Each", "Price"]),
+      units: valueByHeader(row, map, ["Units"]),
+      qtyPack: valueByHeader(row, map, ["Qty/Pack", "Qty Pack"]),
+      pricePack: valueByHeader(row, map, ["Price/Pack", "Price Pack"]),
+      link: link,
+      description: valueByHeader(row, map, ["Description"]),
+      storageLocation: valueByHeader(row, map, ["Storage Location", "Storage"]),
+      qtyOnEquip: valueByHeader(row, map, ["Qty on Equip", "Qty On Equip"]),
+      onHand: valueByHeader(row, map, ["On Hand"]),
+      countDate: valueByHeader(row, map, ["Count Date", "Inventory Count Date"]),
+      minStock: valueByHeader(row, map, ["Min Stock"]),
+      status: valueByHeader(row, map, ["Status"]),
+      orderQty: valueByHeader(row, map, ["Order Qty", "Order Quantity"])
+    });
+  }
+
+  return parts;
+}
+
+
+
+// ---------------------------------------------------------------------------
+// getElectricalTracking
+// Reads the "Electrical Tracking" worksheet.
+//
+// Expected columns:
+//   Item | JIN | Device | Type | Floor | Area/Room | Panel | Breaker |
+//   Controlled By | GFCI/AFCI | Notes | Powers
+//
+// Header names are used instead of fixed letters so the app survives modest
+// worksheet rearrangement.
+// ---------------------------------------------------------------------------
+function getElectricalTracking(ss) {
+  const sheet = ss.getSheetByName("Electrical Tracking");
+  if (!sheet) return [];
+
+  const display = sheet.getDataRange().getDisplayValues();
+  if (!display || !display.length) return [];
+
+  // Prefer the labeled header row, but do NOT require every header to be found.
+  // The user's Electrical Tracking tab currently uses this A:K layout:
+  // A Item, B JIN, C Device, D Type, E Floor, F Area/Room,
+  // G Panel, H Breaker, I Controlled By, J GFCI/AFCI, K Notes, L Powers.
+  // If header detection ever fails, row 1 + these fixed positions are used.
+  let headerIndex = findHeaderRow(display, ["JIN", "Device"]);
+  if (headerIndex < 0) headerIndex = 0;
+
+  const map = headerMap(display[headerIndex] || []);
+  const items = [];
+
+  // Read by header when possible; otherwise fall back to the exact column shown
+  // in the Electrical Tracking worksheet.
+  const val = (row, names, fallbackIndex) => {
+    const byHeader = valueByHeader(row, map, names);
+    if (byHeader !== "") return byHeader;
+    return fallbackIndex >= 0 && fallbackIndex < row.length
+      ? clean(row[fallbackIndex])
+      : "";
+  };
+
+  for (let r = headerIndex + 1; r < display.length; r++) {
+    const row = display[r];
+
+    const item = val(row, ["Item"], 0);               // A
+    const jin = val(row, ["JIN", "Jin"], 1);         // B
+    const device = val(row, ["Device", "Description"], 2); // C
+
+    // A real electrical record must have at least one identifying field.
+    if (!item && !jin && !device) continue;
+
+    items.push({
+      rowNumber: r + 1,
+      item: item,
+      jin: jin,
+      device: device,
+      type: val(row, ["Type"], 3),                    // D
+      floor: val(row, ["Floor"], 4),                  // E
+      area: val(row, ["Area/Room", "Area", "Room"], 5), // F
+      panel: val(row, ["Panel"], 6),                  // G
+      breaker: val(row, ["Breaker", "Circuit"], 7), // H
+      controlledBy: val(row, ["Controlled By", "ControlledBy"], 8), // I
+      protection: val(row, ["GFCI/AFCI", "GFCI / AFCI", "Protection"], 9), // J
+      notes: val(row, ["Notes", "Note"], 10),        // K
+      powers: val(row, ["Powers", "Power", "Powers / Controls"], 11) // L
+    });
+  }
+
+  return items;
+}
+
+
+// ---------------------------------------------------------------------------
+// getTroubleshooting
+// Reads the TCC (Trouble / Cause / Correction) worksheet.
+//
+// V9 worksheet layout:
+//   Column A = TCC number / ID (example: TCC-0001)
+//   Column B = Category
+//   Column C = Equipment display name
+//   Column D = Trouble
+//   Column E = Cause
+//   Column F = Correction
+//
+// Row 1 is treated as the header row. Blank rows are ignored.
+// ---------------------------------------------------------------------------
+function getTroubleshooting(ss) {
+  const sheet = ss.getSheetByName("TCC");
+  if (!sheet) return [];
+
+  const display = sheet.getDataRange().getDisplayValues();
+  const items = [];
+
+  // Start at index 1 because spreadsheet row 1 contains the headings.
+  for (let r = 1; r < display.length; r++) {
+    const row = display[r];
+
+    const tccId = clean(row[0]);      // Column A
+    const category = clean(row[1]);   // Column B
+    const equipment = clean(row[2]);  // Column C
+    const trouble = clean(row[3]);    // Column D
+    const cause = clean(row[4]);      // Column E
+    const correction = clean(row[5]); // Column F
+
+    // Skip completely blank TCC rows.
+    if (!tccId && !category && !equipment && !trouble && !cause && !correction) {
+      continue;
+    }
+
+    items.push({
+      rowNumber: r + 1,
+      id: tccId,
+      category: category,
+      equipment: equipment,
+      trouble: trouble,
+      cause: cause,
+      correction: correction
+    });
+  }
+
+  return items;
+}
+
+
+
+// ---------------------------------------------------------------------------
+// addTroubleshooting
+// Appends a new troubleshooting record to the TCC worksheet.
+//
+// The TCC number is generated automatically so users do not have to manage
+// sequential IDs manually from the browser app.
+// ---------------------------------------------------------------------------
+function addTroubleshooting(ss, p) {
+  const sheet = ss.getSheetByName("TCC");
+  if (!sheet) throw new Error('Could not find sheet named "TCC".');
+
+  const category = clean(p.category);
+  const equipment = clean(p.equipment);
+  const trouble = clean(p.trouble);
+  const cause = clean(p.cause);
+  const correction = clean(p.correction);
+
+  if (!category) throw new Error("Category is required.");
+  if (!trouble) throw new Error("Trouble is required.");
+
+  const id = nextTCCId(sheet);
+  const newRow = Math.max(sheet.getLastRow() + 1, 2);
+
+  // Preserve the spreadsheet's formatting and validation rules by copying
+  // them from the prior data row. Only formats/validation are copied;
+  // actual TCC values are written fresh below.
+  if (newRow > 2) {
+    const previousRow = newRow - 1;
+
+    sheet.getRange(previousRow, 1, 1, 6).copyTo(
+      sheet.getRange(newRow, 1, 1, 6),
+      SpreadsheetApp.CopyPasteType.PASTE_FORMAT,
+      false
+    );
+
+    const validations =
+      sheet.getRange(previousRow, 1, 1, 6).getDataValidations();
+
+    sheet.getRange(newRow, 1, 1, 6).setDataValidations(validations);
+  }
+
+  sheet.getRange(newRow, 1, 1, 6).setValues([[
+    id,
+    category,
+    equipment,
+    trouble,
+    cause,
+    correction
+  ]]);
+
+  return {
+    rowNumber: newRow,
+    id: id,
+    category: category,
+    equipment: equipment,
+    trouble: trouble,
+    cause: cause,
+    correction: correction
+  };
+}
+
+
+// ---------------------------------------------------------------------------
+// nextTCCId
+// Finds the highest existing TCC-XXXX value in Column A and returns the
+// next sequential ID. Example: TCC-0051 -> TCC-0052.
+// ---------------------------------------------------------------------------
+function nextTCCId(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return "TCC-0001";
+
+  const ids =
+    sheet.getRange(2, 1, lastRow - 1, 1)
+      .getDisplayValues()
+      .flat();
+
+  let maxNumber = 0;
+
+  ids.forEach(value => {
+    const match = clean(value).match(/^TCC-(\d+)$/i);
+
+    if (match) {
+      maxNumber = Math.max(maxNumber, Number(match[1]));
+    }
+  });
+
+  return "TCC-" + String(maxNumber + 1).padStart(4, "0");
+}
+
+
+function getPMs(ss) {
+  const sheet = ss.getSheetByName("PM Master");
+  if (!sheet) return [];
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const raw = range.getValues();
+  const headerIndex = findHeaderRow(display, ["PM ID", "PM Task"]);
+  if (headerIndex < 0) return [];
+
+  const map = headerMap(display[headerIndex]);
+  const items = [];
+
+  for (let r = headerIndex + 1; r < display.length; r++) {
+    const row = display[r];
+    const pmId = valueByHeader(row, map, ["PM ID", "PM #", "PM"]);
+    const task = valueByHeader(row, map, ["PM Task", "Task"]);
+    if (!pmId && !task) continue;
+
+    items.push(pmObjectFromRow(row, raw[r], map, r + 1));
+  }
+
+  return items;
+}
+
+
+function addPM(ss, p) {
+  const sheet = ss.getSheetByName("PM Master");
+  if (!sheet) throw new Error('Could not find sheet named "PM Master".');
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const headerIndex = findHeaderRow(display, ["PM ID", "PM Task"]);
+  if (headerIndex < 0) {
+    throw new Error('PM Master needs headers including "PM ID" and "PM Task".');
+  }
+
+  const map = headerMap(display[headerIndex]);
+  requirePMColumns(map);
+
+  const jin = clean(p.jin);
+  const task = clean(p.task);
+  const startDateText = clean(p.startDate);
+
+  if (!jin) throw new Error("JIN is required.");
+  if (!task) throw new Error("PM Task is required.");
+  if (!startDateText) throw new Error("Start Date is required.");
+
+  const startDate = parseDateInput(startDateText);
+  const frequency = clean(p.frequency);
+  const frequencyMonths = clean(p.frequencyMonths);
+  const pmId = nextPMId(sheet, headerIndex, map);
+  const newRow = Math.max(sheet.getLastRow() + 1, headerIndex + 2);
+
+  if (newRow > headerIndex + 2) {
+    const previousRow = newRow - 1;
+    sheet.getRange(previousRow, 1, 1, sheet.getLastColumn()).copyTo(
+      sheet.getRange(newRow, 1, 1, sheet.getLastColumn()),
+      SpreadsheetApp.CopyPasteType.PASTE_FORMAT,
+      false
+    );
+  }
+
+  setByHeader(sheet, newRow, map, ["PM ID", "PM #", "PM"], pmId);
+  setByHeader(sheet, newRow, map, ["JIN", "Jin"], jin);
+  setByHeader(sheet, newRow, map, ["PM Task", "Task"], task);
+  setByHeader(sheet, newRow, map, ["Status"], clean(p.status) || "Open");
+  setByHeader(sheet, newRow, map, ["Start Date"], startDate);
+  setByHeader(sheet, newRow, map, ["Frequency"], frequency);
+  setByHeader(sheet, newRow, map, ["Frequency Months", "Frequency (Months)"], frequencyMonths);
+  setByHeader(sheet, newRow, map, ["Last Completed"], "");
+  setByHeader(sheet, newRow, map, ["Next Due", "Due Date"], startDate);
+  setByHeader(sheet, newRow, map, ["Spare JIN(s)", "Spare JINs", "Spare JIN"], clean(p.spareJins));
+  setByHeader(sheet, newRow, map, ["Related WI", "WI"], clean(p.relatedWI));
+  setByHeader(sheet, newRow, map, ["Notes"], clean(p.notes));
+
+  formatPMDateColumns(sheet, newRow, map);
+
+  return getPMById(ss, pmId);
+}
+
+
+function completePM(ss, p) {
+  const pmId = clean(p.pmId);
+  const completionText = clean(p.date);
+  if (!pmId) throw new Error("PM ID is required.");
+  if (!completionText) throw new Error("Completion date is required.");
+
+  const sheet = ss.getSheetByName("PM Master");
+  if (!sheet) throw new Error('Could not find sheet named "PM Master".');
+
+  const range = sheet.getDataRange();
+  const display = range.getDisplayValues();
+  const raw = range.getValues();
+  const headerIndex = findHeaderRow(display, ["PM ID", "PM Task"]);
+  if (headerIndex < 0) throw new Error("Could not find PM Master headers.");
+
+  const map = headerMap(display[headerIndex]);
+  let rowIndex = -1;
+
+  for (let r = headerIndex + 1; r < display.length; r++) {
+    if (valueByHeader(display[r], map, ["PM ID", "PM #", "PM"]) === pmId) {
+      rowIndex = r;
+      break;
+    }
+  }
+
+  if (rowIndex < 0) throw new Error("Could not find " + pmId + ".");
+
+  const pm = pmObjectFromRow(display[rowIndex], raw[rowIndex], map, rowIndex + 1);
+  const completedDate = parseDateInput(completionText);
+  const nextDue = calculateNextDue(completedDate, pm.frequency, pm.frequencyMonths);
+
+  setByHeader(sheet, rowIndex + 1, map, ["Last Completed"], completedDate);
+
+  if (nextDue) {
+    setByHeader(sheet, rowIndex + 1, map, ["Next Due", "Due Date"], nextDue);
+    setByHeader(sheet, rowIndex + 1, map, ["Status"], "Open");
+  } else {
+    setByHeader(sheet, rowIndex + 1, map, ["Next Due", "Due Date"], "");
+    setByHeader(sheet, rowIndex + 1, map, ["Status"], "Complete");
+  }
+
+  formatPMDateColumns(sheet, rowIndex + 1, map);
+
+  const equipment = findEquipmentForPM(ss, pm.jin);
+  const parts = resolveSpareParts(ss, pm.spareJins);
+  const notes = clean(p.notes);
+
+  // Make maintenance history clearly show that this record came from a PM.
+  // Example:
+  //   Completed PM-003 - Replace Furnace Filter — installed new filter
+  const description =
+    "Completed " +
+    pm.id +
+    " - " +
+    pm.task +
+    (notes ? " — " + notes : "");
+
+  const log = addMaintenanceLog(ss, {
+
+    // Write the exact Equipment ID/JIN value expected by the Maint Log
+    // data-validation list. The app can display friendly labels separately,
+    // but the sheet itself must receive a permitted validation value.
+    equipment: equipment
+      ? (equipment.id || equipment.jin)
+      : pm.jin,
+
+    date: completionText,
+    performedBy: clean(p.performedBy),
+    description: description,
+    complete: "Yes",
+    wi: pm.relatedWI,
+
+    // Carry PM spare-parts information into the maintenance history.
+    spareQty: parts.length ? String(parts.length) : "",
+    spareId: parts.map(x => x.spareJin).filter(Boolean).join(", "),
+    spareDescription: parts
+      .map(x => x.item || x.description)
+      .filter(Boolean)
+      .join("; "),
+
+    // Show the next scheduled PM in the Maintenance Log's Next Step column.
+    nextStep: nextDue
+      ? "Next PM due " +
+        Utilities.formatDate(
+          nextDue,
+          Session.getScriptTimeZone(),
+          "M/d/yyyy"
+        )
+      : "",
+
+    link: ""
+  });
+
+  return { pm: getPMById(ss, pmId), log: log };
+}
+
+
+function getPMById(ss, pmId) {
+  const items = getPMs(ss);
+  return items.find(x => x.id === pmId) || null;
+}
+
+
+function pmObjectFromRow(displayRow, rawRow, map, rowNumber) {
+  return {
+    rowNumber: rowNumber,
+    id: valueByHeader(displayRow, map, ["PM ID", "PM #", "PM"]),
+    jin: valueByHeader(displayRow, map, ["JIN", "Jin"]),
+    task: valueByHeader(displayRow, map, ["PM Task", "Task"]),
+    status: valueByHeader(displayRow, map, ["Status"]),
+    startDate: valueByHeader(displayRow, map, ["Start Date"]),
+    startDateIso: isoByHeader(rawRow, map, ["Start Date"]),
+    frequency: valueByHeader(displayRow, map, ["Frequency"]),
+    frequencyMonths: valueByHeader(displayRow, map, ["Frequency Months", "Frequency (Months)"]),
+    lastCompleted: valueByHeader(displayRow, map, ["Last Completed"]),
+    lastCompletedIso: isoByHeader(rawRow, map, ["Last Completed"]),
+    nextDue: valueByHeader(displayRow, map, ["Next Due", "Due Date"]),
+    nextDueIso: isoByHeader(rawRow, map, ["Next Due", "Due Date"]),
+    spareJins: valueByHeader(displayRow, map, ["Spare JIN(s)", "Spare JINs", "Spare JIN"]),
+    relatedWI: valueByHeader(displayRow, map, ["Related WI", "WI"]),
+    notes: valueByHeader(displayRow, map, ["Notes"])
+  };
+}
+
+
+// ---------------------------------------------------------------------------
+// addMaintenanceLog
+// Writes one maintenance entry to the first available row in "Maint Log".
+//
+// Maint Log layout:
+//   B = ID
+//   C = Equipment
+//   D = Date
+//   E = Performed By
+//   F = Description
+//   G = Link
+//   H = WI
+//   I = Complete?
+//   J = Spare Quantity
+//   K = Spare ID / JIN
+//   L = Spare Description
+//   M = Next Step
+//
+// IMPORTANT:
+// Column B contains pre-numbered IDs in blank future rows. Therefore,
+// sheet.getLastRow() + 1 is NOT a valid way to find the next log row.
+// ---------------------------------------------------------------------------
+function addMaintenanceLog(ss, p) {
+  const sheet = ss.getSheetByName("Maint Log");
+  if (!sheet) throw new Error('Could not find sheet named "Maint Log".');
+
+  const equipment = clean(p.equipment);
+  const dateText = clean(p.date);
+  const performedBy = clean(p.performedBy);
+  const description = clean(p.description);
+
+  if (!equipment) throw new Error("Equipment is required.");
+  if (!dateText) throw new Error("Date is required.");
+  if (!description) throw new Error("Description is required.");
+
+  const logDate = parseDateInput(dateText);
+
+  // Find the first row whose actual maintenance fields (C:M) are blank.
+  // Column B is ignored because it may already contain a reserved ML ID.
+  const newRow = findNextMaintenanceRow(sheet);
+
+  // Preserve a pre-numbered maintenance ID when present.
+  // Only generate a new ID if Column B is blank.
+  const existingId =
+    clean(
+      sheet
+        .getRange(newRow, 2)
+        .getDisplayValue()
+    );
+
+  const id =
+    existingId ||
+    nextMaintenanceId(sheet, logDate);
+
+  /*
+    Copy formatting and validations only when the target row does not already
+    appear to be a prepared template row. This preserves your dropdowns and
+    sheet formatting without disturbing pre-numbered rows.
+  */
+  const targetRange =
+    sheet.getRange(newRow, 2, 1, 12);
+
+  const targetValidations =
+    targetRange.getDataValidations();
+
+  const hasPreparedValidation =
+    targetValidations
+      .flat()
+      .some(rule => rule !== null);
+
+  if (
+    !hasPreparedValidation &&
+    newRow > 5
+  ) {
+
+    const previousRow =
+      newRow - 1;
+
+    sheet
+      .getRange(previousRow, 2, 1, 12)
+      .copyTo(
+        targetRange,
+        SpreadsheetApp.CopyPasteType.PASTE_FORMAT,
+        false
+      );
+
+    const validations =
+      sheet
+        .getRange(previousRow, 2, 1, 12)
+        .getDataValidations();
+
+    targetRange
+      .setDataValidations(validations);
+  }
+
+  const rowValues = [[
+    id,
+    equipment,
+    logDate,
+    performedBy,
+    description,
+    clean(p.link) ? "LINK" : "",
+    clean(p.wi),
+    clean(p.complete) || "Yes",
+    clean(p.spareQty),
+    clean(p.spareId),
+    clean(p.spareDescription),
+    clean(p.nextStep)
+  ]];
+
+  targetRange.setValues(rowValues);
+
+  // Date is Column D.
+  sheet
+    .getRange(newRow, 4)
+    .setNumberFormat("M/d/yyyy");
+
+  const link =
+    clean(p.link);
+
+  if (isHttpUrl(link)) {
+
+    const richLink =
+      SpreadsheetApp
+        .newRichTextValue()
+        .setText("LINK")
+        .setLinkUrl(link)
+        .build();
+
+    // Link is Column G.
+    sheet
+      .getRange(newRow, 7)
+      .setRichTextValue(richLink);
+  }
+
+  return {
+    rowNumber: newRow,
+    id: id,
+    equipment: equipment,
+    date: Utilities.formatDate(
+      logDate,
+      Session.getScriptTimeZone(),
+      "M/d/yyyy"
+    ),
+    dateIso: formatIsoDate(logDate),
+    performedBy: performedBy,
+    description: description,
+    link: isHttpUrl(link) ? link : "",
+    wi: clean(p.wi),
+    complete: clean(p.complete) || "Yes",
+    spareQty: clean(p.spareQty),
+    spareId: clean(p.spareId),
+    spareDescription: clean(p.spareDescription),
+    nextStep: clean(p.nextStep)
+  };
+}
+
+
+// ---------------------------------------------------------------------------
+// findNextMaintenanceRow
+// Finds the first available maintenance-log row.
+//
+// A row is considered unused when Columns C:M contain no actual maintenance
+// data. Column B is deliberately excluded because those cells can contain
+// reserved/pre-numbered ML IDs.
+// ---------------------------------------------------------------------------
+function findNextMaintenanceRow(sheet) {
+
+  const firstDataRow = 5;
+
+  /*
+    getLastRow() is still useful for defining the prepared sheet area.
+    We simply do not use it as the destination row.
+  */
+  const lastPreparedRow =
+    Math.max(
+      sheet.getLastRow(),
+      firstDataRow
+    );
+
+  const values =
+    sheet
+      .getRange(
+        firstDataRow,
+        3, // Column C
+        lastPreparedRow - firstDataRow + 1,
+        11 // C:M
+      )
+      .getDisplayValues();
+
+  for (
+    let i = 0;
+    i < values.length;
+    i++
+  ) {
+
+    const rowHasMaintenanceData =
+      values[i].some(
+        value =>
+          clean(value) !== ""
+      );
+
+    if (!rowHasMaintenanceData) {
+      return firstDataRow + i;
+    }
+  }
+
+  // If every prepared row is occupied, append below the prepared area.
+  return lastPreparedRow + 1;
+}
+
+
+function nextMaintenanceId(sheet, logDate) {
+  const yy = Utilities.formatDate(logDate, Session.getScriptTimeZone(), "yy");
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 5) return "ML-" + yy + "-0001";
+
+  const ids = sheet.getRange(5, 2, lastRow - 4, 1).getDisplayValues().flat();
+  const prefix = "ML-" + yy + "-";
+  let maxNumber = 0;
+
+  ids.forEach(id => {
+    const value = clean(id);
+    if (value.startsWith(prefix)) {
+      const n = parseInt(value.substring(prefix.length), 10);
+      if (!isNaN(n) && n > maxNumber) maxNumber = n;
+    }
+  });
+
+  return prefix + String(maxNumber + 1).padStart(4, "0");
+}
+
+
+function nextPMId(sheet, headerIndex, map) {
+  const idCol = columnByHeader(map, ["PM ID", "PM #", "PM"]);
+  if (idCol < 0) throw new Error('Could not find the "PM ID" column.');
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= headerIndex + 1) return "PM-001";
+
+  const ids = sheet.getRange(headerIndex + 2, idCol + 1, lastRow - headerIndex - 1, 1)
+    .getDisplayValues().flat();
+
+  let maxNumber = 0;
+  ids.forEach(value => {
+    const match = clean(value).match(/^PM-(\d+)$/i);
+    if (match) maxNumber = Math.max(maxNumber, Number(match[1]));
+  });
+
+  return "PM-" + String(maxNumber + 1).padStart(3, "0");
+}
+
+
+function calculateNextDue(date, frequency, frequencyMonths) {
+  const months = Number(frequencyMonths);
+  if (!isNaN(months) && months > 0) return addMonthsSafe(date, months);
+
+  const f = clean(frequency).toLowerCase();
+  if (!f || ["none", "one time", "one-time", "once"].includes(f)) return null;
+
+  const numberMatch = f.match(/(\d+)\s*month/);
+  if (numberMatch) return addMonthsSafe(date, Number(numberMatch[1]));
+
+  if (f.includes("weekly") && !f.includes("bi")) return addDays(date, 7);
+  if (f.includes("biweekly") || f.includes("bi-weekly")) return addDays(date, 14);
+  if (f.includes("monthly")) return addMonthsSafe(date, 1);
+  if (f.includes("quarter")) return addMonthsSafe(date, 3);
+  if (f.includes("semi") || f.includes("6 month")) return addMonthsSafe(date, 6);
+  if (f.includes("annual") || f.includes("yearly") || f.includes("12 month")) return addMonthsSafe(date, 12);
+
+  return null;
+}
+
+
+function addMonthsSafe(date, months) {
+  const d = new Date(date.getFullYear(), date.getMonth(), 1);
+  const originalDay = date.getDate();
+  d.setMonth(d.getMonth() + months);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(originalDay, lastDay));
+  return d;
+}
+
+
+function addDays(date, days) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+
+function findEquipmentForPM(ss, jin) {
+  const target = clean(jin);
+  return getEquipment(ss).find(x => x.jin === target || x.id === target) || null;
+}
+
+
+function resolveSpareParts(ss, spareJins) {
+  const wanted = splitList(spareJins);
+  if (!wanted.length) return [];
+  const parts = getSpareParts(ss);
+  return wanted.map(id => parts.find(p => p.spareJin === id)).filter(Boolean);
+}
+
+
+function splitList(value) {
+  return clean(value).split(/[,;\n]+/).map(x => clean(x)).filter(Boolean);
+}
+
+
+function requirePMColumns(map) {
+  const required = [
+    ["PM ID"], ["JIN"], ["PM Task", "Task"], ["Status"],
+    ["Start Date"], ["Frequency"], ["Next Due", "Due Date"]
+  ];
+
+  required.forEach(names => {
+    if (columnByHeader(map, names) < 0) {
+      throw new Error('PM Master is missing required column: "' + names[0] + '".');
+    }
+  });
+}
+
+
+function formatPMDateColumns(sheet, row, map) {
+  ["Start Date", "Last Completed", "Next Due"].forEach(name => {
+    const col = columnByHeader(map, [name, name === "Next Due" ? "Due Date" : name]);
+    if (col >= 0) sheet.getRange(row, col + 1).setNumberFormat("m/d/yyyy");
+  });
+}
+
+
+
+// ============================================================================
+// EMAIL NOTIFICATIONS — V29
+// ============================================================================
+const HOME_NOTIFICATION_EMAIL = "sjaxn314159@gmail.com";
+const HOME_PM_REMINDER_HOUR = 8; // Runs sometime during the 8–9 AM window.
+
+function sendNewActionItemEmail(item) {
+  if (!item) return;
+  MailApp.sendEmail({
+    to: HOME_NOTIFICATION_EMAIL,
+    subject: "[ATLAS] New Action Item: " + (item.action || item.id || "Home Action"),
+    body: [
+      "A new home action item was created.", "",
+      "Action: " + (item.action || ""),
+      "Action ID: " + (item.id || ""),
+      "Equipment: " + (item.equipment || ""),
+      "Priority: " + (item.priority || ""),
+      "Due Date: " + (item.dueDate || "No due date"),
+      "Notes: " + (item.notes || "None"), "",
+      "Created: " + (item.createdDate || ""), "",
+      "— ATLAS Home Operations"
+    ].join("\n"),
+    name: "ATLAS Home Operations"
+  });
+}
+
+function checkPMNotifications() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const pms = getPMs(ss);
+  const props = PropertiesService.getScriptProperties();
+  const today = startOfLocalDay_(new Date());
+  const todayIso = formatIsoDate(today);
+
+  pms.forEach(pm => {
+    if (!pm || !pm.id || !pm.nextDueIso) return;
+    const status = clean(pm.status).toLowerCase();
+    if (["inactive","disabled","complete","completed","closed"].includes(status)) return;
+
+    const due = parseIsoLocalDate_(pm.nextDueIso);
+    if (!due) return;
+
+    const daysUntilDue = dayDifference_(today, due);
+    let eventType = "";
+    let eventLabel = "";
+
+    if (daysUntilDue === 7) {
+      eventType = "7DAY"; eventLabel = "Due in 7 days";
+    } else if (daysUntilDue === 0) {
+      eventType = "DUE"; eventLabel = "Due today";
+    } else if (daysUntilDue === -1) {
+      eventType = "OVERDUE"; eventLabel = "Overdue";
+    } else if (daysUntilDue < -1) {
+      const daysOverdue = Math.abs(daysUntilDue);
+      if ((daysOverdue - 1) % 7 === 0) {
+        eventType = "OVERDUE_WEEKLY";
+        eventLabel = daysOverdue + " days overdue";
+      }
+    }
+    if (!eventType) return;
+
+    const key = "PM_NOTIFY|" + pm.id + "|" + pm.nextDueIso + "|" + eventType + "|" + todayIso;
+    if (props.getProperty(key)) return;
+
+    try {
+      sendPMReminderEmail_(ss, pm, eventLabel);
+      props.setProperty(key, new Date().toISOString());
+      cleanupOldPMNotificationProperties_(props);
+    } catch (err) {
+      console.error("PM reminder failed for " + pm.id + ": " + err);
+    }
+  });
+}
+
+function sendPMReminderEmail_(ss, pm, eventLabel) {
+  const equipment = findEquipmentForPM(ss, pm.jin);
+  const equipmentName = equipment
+    ? (equipment.displayTitle || equipment.equipment || equipment.id || equipment.jin)
+    : pm.jin;
+
+  MailApp.sendEmail({
+    to: HOME_NOTIFICATION_EMAIL,
+    subject: "[ATLAS PM] " + eventLabel + ": " + (pm.task || pm.id),
+    body: [
+      "Preventive Maintenance Reminder", "", eventLabel, "",
+      "PM: " + (pm.id || ""),
+      "Task: " + (pm.task || ""),
+      "Equipment: " + (equipmentName || ""),
+      "JIN: " + (pm.jin || ""),
+      "Next Due: " + (pm.nextDue || pm.nextDueIso || ""),
+      "Frequency: " + (pm.frequency || ""),
+      "Related WI: " + (pm.relatedWI || "None"),
+      "Notes: " + (pm.notes || "None"), "",
+      "— ATLAS Home Operations"
+    ].join("\n"),
+    name: "ATLAS Home Operations"
+  });
+}
+
+function installHomeNotificationTrigger() {
+  ScriptApp.getProjectTriggers().forEach(t => {
+    if (t.getHandlerFunction() === "checkPMNotifications") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("checkPMNotifications")
+    .timeBased().everyDays(1).atHour(HOME_PM_REMINDER_HOUR).create();
+  return "ATLAS PM notification trigger installed.";
+}
+
+function removeHomeNotificationTrigger() {
+  let removed = 0;
+  ScriptApp.getProjectTriggers().forEach(t => {
+    if (t.getHandlerFunction() === "checkPMNotifications") {
+      ScriptApp.deleteTrigger(t); removed++;
+    }
+  });
+  return removed + " ATLAS PM notification trigger(s) removed.";
+}
+
+function testHomeNotificationEmail() {
+  MailApp.sendEmail({
+    to: HOME_NOTIFICATION_EMAIL,
+    subject: "[ATLAS] Notification Test",
+    body: "ATLAS email notifications are working.\n\n— ATLAS Home Operations",
+    name: "ATLAS Home Operations"
+  });
+  return "Test email sent to " + HOME_NOTIFICATION_EMAIL;
+}
+
+function startOfLocalDay_(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function parseIsoLocalDate_(iso) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function dayDifference_(fromDate, toDate) {
+  const a = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate(), 12);
+  const b = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate(), 12);
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+function cleanupOldPMNotificationProperties_(props) {
+  const all = props.getProperties();
+  const cutoff = Date.now() - 180 * 86400000;
+  Object.keys(all).forEach(key => {
+    if (!key.startsWith("PM_NOTIFY|")) return;
+    const sent = new Date(all[key]).getTime();
+    if (!isNaN(sent) && sent < cutoff) props.deleteProperty(key);
+  });
+}
+
+function findHeaderRow(display, requiredHeaders) {
+  const maxRows = Math.min(display.length, 12);
+  for (let r = 0; r < maxRows; r++) {
+    const normalized = display[r].map(normalizeHeader);
+    const allFound = requiredHeaders.every(name => normalized.includes(normalizeHeader(name)));
+    if (allFound) return r;
+  }
+  return -1;
+}
+
+
+function headerMap(headerRow) {
+  const map = {};
+  headerRow.forEach((value, index) => {
+    const key = normalizeHeader(value);
+    if (key) map[key] = index;
+  });
+  return map;
+}
+
+
+function normalizeHeader(value) {
+  return clean(value).toLowerCase().replace(/\s+/g, " ");
+}
+
+
+function columnByHeader(map, names) {
+  for (let i = 0; i < names.length; i++) {
+    const key = normalizeHeader(names[i]);
+    if (Object.prototype.hasOwnProperty.call(map, key)) return map[key];
+  }
+  return -1;
+}
+
+
+function valueByHeader(row, map, names) {
+  const col = columnByHeader(map, names);
+  return col >= 0 ? clean(row[col]) : "";
+}
+
+
+function isoByHeader(rawRow, map, names) {
+  const col = columnByHeader(map, names);
+  if (col < 0) return "";
+  const value = rawRow[col];
+  return value instanceof Date && !isNaN(value.getTime()) ? formatIsoDate(value) : "";
+}
+
+
+function setByHeader(sheet, rowNumber, map, names, value) {
+  const col = columnByHeader(map, names);
+  if (col >= 0) sheet.getRange(rowNumber, col + 1).setValue(value);
+}
+
+
+function parseDateInput(value) {
+  const parts = String(value).split("-");
+  if (parts.length !== 3) throw new Error("Invalid date.");
+
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  const date = new Date(year, month - 1, day);
+
+  if (isNaN(date.getTime())) throw new Error("Invalid date.");
+  return date;
+}
+
+
+function formatIsoDate(date) {
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
+}
+
+
+function getCellLink(richTextValue, displayValue) {
+  if (richTextValue) {
+    const url = richTextValue.getLinkUrl();
+    if (url) return url;
+
+    const runs = richTextValue.getRuns();
+    for (let i = 0; i < runs.length; i++) {
+      const runUrl = runs[i].getLinkUrl();
+      if (runUrl) return runUrl;
+    }
+  }
+
+  const text = clean(displayValue);
+  return isHttpUrl(text) ? text : "";
+}
+
+
+function isHttpUrl(value) {
+  const text = clean(value);
+  return text.startsWith("https://") || text.startsWith("http://");
+}
+
+
+function clean(value) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+}
+
+
+function jsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+// ============================================================================
+// V34 — UTILITYAPI BILL + INTERVAL DATA DISCOVERY
+// Run testUtilityApiEnergyData() manually from the Apps Script editor.
+// This is diagnostic only: it does NOT write to Sheets or expose data via doGet().
+// ============================================================================
+
+function utilityApiFetchV34_(path) {
+  const token = PropertiesService.getScriptProperties().getProperty("UTILITYAPI_TOKEN");
+  if (!token) throw new Error('Missing Script Property "UTILITYAPI_TOKEN".');
+
+  const url = "https://utilityapi.com/api/v2/" + String(path || "").replace(/^\/+/, "");
+  const response = UrlFetchApp.fetch(url, {
+    method: "get",
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/json"
+    },
+    muteHttpExceptions: true
+  });
+
+  const code = response.getResponseCode();
+  const body = response.getContentText() || "";
+
+  if (code < 200 || code >= 300) {
+    throw new Error("UtilityAPI HTTP " + code + " for " + path + ": " + body.substring(0, 500));
+  }
+
+  try {
+    return JSON.parse(body);
+  } catch (err) {
+    throw new Error("UtilityAPI returned non-JSON data for " + path + ".");
+  }
+}
+
+function utilityApiArrayV34_(payload, preferredKeys) {
+  if (Array.isArray(payload)) return payload;
+
+  const keys = preferredKeys || [];
+  for (let i = 0; i < keys.length; i++) {
+    if (payload && Array.isArray(payload[keys[i]])) return payload[keys[i]];
+  }
+
+  if (payload && payload.data && Array.isArray(payload.data)) return payload.data;
+  if (payload && payload.results && Array.isArray(payload.results)) return payload.results;
+
+  return [];
+}
+
+function utilityApiSafeSampleV34_(obj) {
+  if (!obj || typeof obj !== "object") return obj;
+
+  // Keep the discovery useful while stripping common customer/account identity fields.
+  const blocked = [
+    "authorization_uid", "customer_uid", "account_uid", "account_number",
+    "service_address", "address", "customer_name", "name", "email",
+    "phone", "access_token", "token"
+  ];
+
+  const cleanObject = {};
+  Object.keys(obj).forEach(function(key) {
+    const lower = String(key).toLowerCase();
+    const shouldBlock = blocked.some(function(term) {
+      return lower === term || lower.indexOf(term) >= 0;
+    });
+
+    if (!shouldBlock) cleanObject[key] = obj[key];
+  });
+
+  return cleanObject;
+}
+
+function utilityApiFindMetersV35_(node, found) {
+  found = found || [];
+  if (!node) return found;
+
+  if (Array.isArray(node)) {
+    node.forEach(function(item) { utilityApiFindMetersV35_(item, found); });
+    return found;
+  }
+
+  if (typeof node !== "object") return found;
+
+  // A meter object from the proven V33 response has a UID plus meter-ish fields.
+  const uid = node.uid || node.meter_uid || node.meterUid || node.id;
+  const looksLikeMeter =
+    uid &&
+    (
+      Object.prototype.hasOwnProperty.call(node, "bill_count") ||
+      Object.prototype.hasOwnProperty.call(node, "interval_count") ||
+      Object.prototype.hasOwnProperty.call(node, "billCount") ||
+      Object.prototype.hasOwnProperty.call(node, "intervalCount") ||
+      Object.prototype.hasOwnProperty.call(node, "service_type") ||
+      Object.prototype.hasOwnProperty.call(node, "serviceType") ||
+      Object.prototype.hasOwnProperty.call(node, "is_activated") ||
+      Object.prototype.hasOwnProperty.call(node, "isActivated")
+    );
+
+  if (looksLikeMeter) {
+    const id = String(uid);
+    if (!found.some(function(m) { return String(m.uid) === id; })) {
+      found.push({ uid: id, raw: node });
+    }
+  }
+
+  Object.keys(node).forEach(function(key) {
+    utilityApiFindMetersV35_(node[key], found);
+  });
+
+  return found;
+}
+
+function utilityApiCollectionV35_(payload, keys) {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+
+  for (let i = 0; i < keys.length; i++) {
+    if (Array.isArray(payload[keys[i]])) return payload[keys[i]];
+  }
+
+  // UtilityAPI responses can wrap results; recurse until we find the collection.
+  const objectKeys = Object.keys(payload);
+  for (let j = 0; j < objectKeys.length; j++) {
+    const child = payload[objectKeys[j]];
+    if (child && typeof child === "object") {
+      const hit = utilityApiCollectionV35_(child, keys);
+      if (hit.length) return hit;
+    }
+  }
+  return [];
+}
+
+function testUtilityApiEnergyData() {
+  const authPayload = utilityApiFetchV34_("authorizations?include=meters");
+  const meters = utilityApiFindMetersV35_(authPayload, []);
+
+  if (!meters.length) {
+    // Log only top-level shape for diagnosis; never token/customer credentials.
+    console.log(JSON.stringify({
+      success: false,
+      message: "No meters parsed.",
+      authorizationResponseType: Array.isArray(authPayload) ? "array" : typeof authPayload,
+      topLevelKeys: authPayload && typeof authPayload === "object" ? Object.keys(authPayload) : []
+    }, null, 2));
+    throw new Error("UtilityAPI returned no authorized meters.");
+  }
+
+  const result = {
+    success: true,
+    meterCount: meters.length,
+    meters: []
+  };
+
+  meters.forEach(function(meter) {
+    const meterUid = meter.uid;
+    const meterResult = {
+      meterUid: meterUid,
+      meterMetadata: utilityApiSafeSampleV34_(meter.raw),
+      bills: { count: 0, sample: null, error: "" },
+      intervals: { count: 0, sample: null, error: "" }
+    };
+
+    // Try the documented collection filter first. If UtilityAPI rejects that
+    // syntax, preserve the error in the log instead of stopping the whole test.
+    try {
+      const billPayload = utilityApiFetchV34_("bills?meters=" + encodeURIComponent(meterUid));
+      const bills = utilityApiCollectionV35_(billPayload, ["bills"]);
+      meterResult.bills.count = bills.length;
+      meterResult.bills.sample = bills.length ? utilityApiSafeSampleV34_(bills[0]) : null;
+    } catch (err) {
+      meterResult.bills.error = String(err);
+    }
+
+    try {
+      const intervalPayload = utilityApiFetchV34_("intervals?meters=" + encodeURIComponent(meterUid));
+      const intervals = utilityApiCollectionV35_(intervalPayload, ["intervals"]);
+      meterResult.intervals.count = intervals.length;
+      meterResult.intervals.sample = intervals.length ? utilityApiSafeSampleV34_(intervals[0]) : null;
+    } catch (err) {
+      meterResult.intervals.error = String(err);
+    }
+
+    result.meters.push(meterResult);
+  });
+
+  console.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+
+
+// ============================================================================
+// V36 — COMPACT UTILITYAPI ENERGY SUMMARY
+// Run testUtilityApiEnergySummary() manually.
+// Produces a small log for both meters instead of dumping the full API response.
+// ============================================================================
+
+function testUtilityApiEnergySummary() {
+  const authPayload = utilityApiFetchV34_("authorizations?include=meters");
+  const meters = utilityApiFindMetersV35_(authPayload, []);
+
+  if (!meters.length) throw new Error("UtilityAPI returned no authorized meters.");
+
+  const summary = {
+    success: true,
+    meterCount: meters.length,
+    meters: []
+  };
+
+  meters.forEach(function(meter) {
+    const meterUid = String(meter.uid);
+    const raw = meter.raw || {};
+    const base = raw.base || {};
+
+    const row = {
+      meterUid: meterUid,
+      serviceClass: base.service_class || raw.service_class || "",
+      tariff: base.service_tariff || raw.service_tariff || "",
+      billCountReported: raw.bill_count != null ? raw.bill_count : null,
+      intervalCountReported: raw.interval_count != null ? raw.interval_count : null,
+      latestBill: null,
+      intervalSummary: null
+    };
+
+    try {
+      const billPayload = utilityApiFetchV34_("bills?meters=" + encodeURIComponent(meterUid));
+      const bills = utilityApiCollectionV35_(billPayload, ["bills"]);
+
+      if (bills.length) {
+        bills.sort(function(a, b) {
+          const ad = a && a.base ? (a.base.bill_end_date || a.base.bill_statement_date || "") : "";
+          const bd = b && b.base ? (b.base.bill_end_date || b.base.bill_statement_date || "") : "";
+          return String(bd).localeCompare(String(ad));
+        });
+
+        const bill = bills[0] || {};
+        const bb = bill.base || {};
+
+        row.latestBill = {
+          startDate: bb.bill_start_date || "",
+          endDate: bb.bill_end_date || "",
+          statementDate: bb.bill_statement_date || "",
+          totalCost: bb.bill_total_cost != null ? bb.bill_total_cost : null,
+          totalKwh: bb.bill_total_kwh != null ? bb.bill_total_kwh : null,
+          totalVolume: bb.bill_total_volume != null ? bb.bill_total_volume : null,
+          totalUnit: bb.bill_total_unit || "",
+          serviceClass: bb.service_class || row.serviceClass || ""
+        };
+      }
+    } catch (err) {
+      row.latestBill = { error: String(err) };
+    }
+
+    try {
+      const intervalPayload = utilityApiFetchV34_("intervals?meters=" + encodeURIComponent(meterUid));
+      const intervals = utilityApiCollectionV35_(intervalPayload, ["intervals"]);
+
+      let readingCount = 0;
+      let sampleReading = null;
+
+      intervals.forEach(function(block) {
+        const readings = block && Array.isArray(block.readings) ? block.readings : [];
+        readingCount += readings.length;
+        if (!sampleReading && readings.length) sampleReading = readings[0];
+      });
+
+      row.intervalSummary = {
+        returnedBlocks: intervals.length,
+        readingCount: readingCount,
+        sampleReading: sampleReading ? utilityApiSafeSampleV34_(sampleReading) : null
+      };
+    } catch (err) {
+      row.intervalSummary = { error: String(err) };
+    }
+
+    summary.meters.push(row);
+  });
+
+  console.log(JSON.stringify(summary, null, 2));
+  return summary;
+}
+
+
+// ============================================================================
+// V37 — PERMANENT ENERGY DATABASE SYNC
+//
+// Creates/updates:
+//   Energy Bills
+//   Energy Intervals
+//
+// Manual first run:
+//   syncUtilityData()
+//
+// The sync is idempotent: records are keyed by UtilityAPI UID when available,
+// with deterministic fallbacks, so repeated runs update instead of duplicating.
+// ============================================================================
+
+const ENERGY_BILLS_SHEET_V37 = "Energy Bills";
+const ENERGY_INTERVALS_SHEET_V37 = "Energy Intervals";
+
+const ENERGY_BILL_HEADERS_V37 = [
+  "Record Key",
+  "UtilityAPI Bill UID",
+  "Meter UID",
+  "Utility",
+  "Service",
+  "Tariff",
+  "Bill Start",
+  "Bill End",
+  "Statement Date",
+  "Usage",
+  "Unit",
+  "Total Cost",
+  "Effective Rate",
+  "Last Synced"
+];
+
+const ENERGY_INTERVAL_HEADERS_V37 = [
+  "Record Key",
+  "Meter UID",
+  "Utility",
+  "Service",
+  "Tariff",
+  "Start",
+  "End",
+  "Usage",
+  "Unit",
+  "Reading Type",
+  "Meter Number",
+  "Last Synced"
+];
+
+function energySpreadsheetV37_() {
+  // V32 already uses the bound Atlas spreadsheet. Keep the same architecture.
+  return SpreadsheetApp.getActiveSpreadsheet();
+}
+
+function energyEnsureSheetV37_(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) sheet = ss.insertSheet(name);
+
+  const currentHeaders = sheet.getLastColumn() > 0
+    ? sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), headers.length)).getValues()[0]
+    : [];
+
+  let needsHeaders = sheet.getLastRow() === 0;
+  if (!needsHeaders) {
+    for (let i = 0; i < headers.length; i++) {
+      if (String(currentHeaders[i] || "") !== headers[i]) {
+        needsHeaders = true;
+        break;
+      }
+    }
+  }
+
+  if (needsHeaders) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+  return sheet;
+}
+
+function energyExistingRowMapV37_(sheet) {
+  const map = {};
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return map;
+
+  const keys = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  keys.forEach(function(row, index) {
+    const key = String(row[0] || "");
+    if (key) map[key] = index + 2;
+  });
+  return map;
+}
+
+function energyUpsertRowsV37_(sheet, rows) {
+  if (!rows.length) return { inserted: 0, updated: 0 };
+
+  const existing = energyExistingRowMapV37_(sheet);
+  let inserted = 0;
+  let updated = 0;
+  const newRows = [];
+
+  rows.forEach(function(row) {
+    const key = String(row[0] || "");
+    if (!key) return;
+
+    if (existing[key]) {
+      sheet.getRange(existing[key], 1, 1, row.length).setValues([row]);
+      updated++;
+    } else {
+      newRows.push(row);
+      inserted++;
+    }
+  });
+
+  if (newRows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
+  }
+
+  return { inserted: inserted, updated: updated };
+}
+
+function energyDateV37_(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? value : d;
+}
+
+function energyServiceV37_(meterRaw, recordBase) {
+  const base = recordBase || {};
+  const meterBase = (meterRaw && meterRaw.base) || {};
+  return String(
+    base.service_class ||
+    meterBase.service_class ||
+    (meterRaw && meterRaw.service_class) ||
+    ""
+  ).toLowerCase();
+}
+
+function energyTariffV37_(meterRaw, recordBase) {
+  const base = recordBase || {};
+  const meterBase = (meterRaw && meterRaw.base) || {};
+  return base.service_tariff || meterBase.service_tariff || "";
+}
+
+function energyUnitAndUsageV37_(service, base) {
+  base = base || {};
+
+  if (service === "electric") {
+    const kwh = base.bill_total_kwh != null ? Number(base.bill_total_kwh) : null;
+    if (kwh != null && !isNaN(kwh)) return { usage: kwh, unit: "kWh" };
+  }
+
+  const volume = base.bill_total_volume != null ? Number(base.bill_total_volume) : null;
+  const unit = base.bill_total_unit || (service === "gas" ? "CCF" : "");
+
+  return {
+    usage: volume != null && !isNaN(volume) ? volume : "",
+    unit: unit
+  };
+}
+
+function energyIntervalReadingV37_(service, reading) {
+  reading = reading || {};
+  const datapoints = Array.isArray(reading.datapoints) ? reading.datapoints : [];
+
+  // Prefer a datapoint matching the service. UtilityAPI's gas samples can also
+  // contain a zero-kWh datapoint, so blindly using reading.kwh would be wrong.
+  let dp = null;
+  if (service === "gas") {
+    dp = datapoints.find(function(x) {
+      const u = String((x && x.unit) || "").toLowerCase();
+      return u === "ccf" || u === "therm" || u === "therms";
+    });
+  } else if (service === "electric") {
+    dp = datapoints.find(function(x) {
+      return String((x && x.unit) || "").toLowerCase() === "kwh";
+    });
+  }
+
+  if (!dp && datapoints.length) dp = datapoints[0];
+
+  if (dp) {
+    return {
+      usage: dp.value != null ? Number(dp.value) : "",
+      unit: dp.unit || "",
+      type: dp.type || "",
+      meterNumber: dp.meter_number || ""
+    };
+  }
+
+  return {
+    usage: reading.kwh != null ? Number(reading.kwh) : "",
+    unit: reading.kwh != null ? "kWh" : "",
+    type: "",
+    meterNumber: ""
+  };
+}
+
+function syncUtilityData() {
+  const started = new Date();
+  const ss = energySpreadsheetV37_();
+  if (!ss) throw new Error("Atlas spreadsheet could not be opened.");
+
+  const billsSheet = energyEnsureSheetV37_(ss, ENERGY_BILLS_SHEET_V37, ENERGY_BILL_HEADERS_V37);
+  const intervalsSheet = energyEnsureSheetV37_(ss, ENERGY_INTERVALS_SHEET_V37, ENERGY_INTERVAL_HEADERS_V37);
+
+  const authPayload = utilityApiFetchV34_("authorizations?include=meters");
+  const meters = utilityApiFindMetersV35_(authPayload, []);
+  if (!meters.length) throw new Error("UtilityAPI returned no authorized meters.");
+
+  const billRows = [];
+  const intervalRows = [];
+  const meterSummary = [];
+
+  meters.forEach(function(meter) {
+    const meterUid = String(meter.uid);
+    const meterRaw = meter.raw || {};
+    const service = energyServiceV37_(meterRaw, null);
+    const tariff = energyTariffV37_(meterRaw, null);
+    const utility = meterRaw.utility || "NATIONALGRID";
+
+    let billsRead = 0;
+    let intervalReadings = 0;
+
+    // ----------------------------- Bills ------------------------------------
+    const billPayload = utilityApiFetchV34_("bills?meters=" + encodeURIComponent(meterUid));
+    const bills = utilityApiCollectionV35_(billPayload, ["bills"]);
+
+    bills.forEach(function(bill) {
+      const base = (bill && bill.base) || {};
+      const billService = energyServiceV37_(meterRaw, base) || service;
+      const billTariff = energyTariffV37_(meterRaw, base) || tariff;
+      const usageInfo = energyUnitAndUsageV37_(billService, base);
+      const totalCost = base.bill_total_cost != null ? Number(base.bill_total_cost) : "";
+      const usage = usageInfo.usage;
+      const effectiveRate =
+        typeof totalCost === "number" &&
+        typeof usage === "number" &&
+        usage !== 0
+          ? totalCost / usage
+          : "";
+
+      const billUid = bill.uid != null ? String(bill.uid) : "";
+      const fallbackKey = [
+        "bill",
+        meterUid,
+        base.bill_start_date || "",
+        base.bill_end_date || ""
+      ].join("|");
+      const recordKey = billUid ? "bill|" + billUid : fallbackKey;
+
+      billRows.push([
+        recordKey,
+        billUid,
+        meterUid,
+        bill.utility || utility,
+        billService,
+        billTariff,
+        energyDateV37_(base.bill_start_date),
+        energyDateV37_(base.bill_end_date),
+        energyDateV37_(base.bill_statement_date),
+        usage,
+        usageInfo.unit,
+        totalCost,
+        effectiveRate,
+        started
+      ]);
+
+      billsRead++;
+    });
+
+    // --------------------------- Intervals ----------------------------------
+    const intervalPayload = utilityApiFetchV34_("intervals?meters=" + encodeURIComponent(meterUid));
+    const blocks = utilityApiCollectionV35_(intervalPayload, ["intervals"]);
+
+    blocks.forEach(function(block) {
+      const readings = block && Array.isArray(block.readings) ? block.readings : [];
+
+      readings.forEach(function(reading) {
+        const parsed = energyIntervalReadingV37_(service, reading);
+        const start = reading.start || "";
+        const end = reading.end || "";
+        const recordKey = ["interval", meterUid, start, end, parsed.unit, parsed.type].join("|");
+
+        intervalRows.push([
+          recordKey,
+          meterUid,
+          block.utility || utility,
+          service,
+          tariff,
+          energyDateV37_(start),
+          energyDateV37_(end),
+          parsed.usage,
+          parsed.unit,
+          parsed.type,
+          parsed.meterNumber,
+          started
+        ]);
+
+        intervalReadings++;
+      });
+    });
+
+    meterSummary.push({
+      meterUid: meterUid,
+      service: service,
+      billsRead: billsRead,
+      intervalReadings: intervalReadings
+    });
+  });
+
+  const billResult = energyUpsertRowsV37_(billsSheet, billRows);
+  const intervalResult = energyUpsertRowsV37_(intervalsSheet, intervalRows);
+
+  // Friendly formats; harmless if the sheets are still tiny.
+  if (billsSheet.getLastRow() >= 2) {
+    billsSheet.getRange(2, 7, billsSheet.getLastRow() - 1, 3).setNumberFormat("m/d/yyyy");
+    billsSheet.getRange(2, 12, billsSheet.getLastRow() - 1, 1).setNumberFormat("$0.00");
+    billsSheet.getRange(2, 13, billsSheet.getLastRow() - 1, 1).setNumberFormat("$0.0000");
+    billsSheet.getRange(2, 14, billsSheet.getLastRow() - 1, 1).setNumberFormat("m/d/yyyy h:mm");
+  }
+
+  if (intervalsSheet.getLastRow() >= 2) {
+    intervalsSheet.getRange(2, 6, intervalsSheet.getLastRow() - 1, 2).setNumberFormat("m/d/yyyy h:mm");
+    intervalsSheet.getRange(2, 12, intervalsSheet.getLastRow() - 1, 1).setNumberFormat("m/d/yyyy h:mm");
+  }
+
+  const result = {
+    success: true,
+    meters: meterSummary,
+    bills: {
+      sourceRecords: billRows.length,
+      inserted: billResult.inserted,
+      updated: billResult.updated
+    },
+    intervals: {
+      sourceRecords: intervalRows.length,
+      inserted: intervalResult.inserted,
+      updated: intervalResult.updated
+    },
+    sheets: [ENERGY_BILLS_SHEET_V37, ENERGY_INTERVALS_SHEET_V37]
+  };
+
+  console.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+
+// Optional convenience function. Run this ONLY after syncUtilityData() works.
+// It creates one daily Apps Script trigger for the energy sync.
+function installDailyEnergySyncTrigger() {
+  const functionName = "syncUtilityData";
+
+  // Prevent duplicate triggers if this is run twice.
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if (trigger.getHandlerFunction() === functionName) {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger(functionName)
+    .timeBased()
+    .everyDays(1)
+    .atHour(4)
+    .create();
+
+  console.log("Daily Atlas energy sync trigger installed for approximately 4 AM script time.");
+}
