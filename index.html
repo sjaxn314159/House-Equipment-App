@@ -1,6 +1,7 @@
 <!doctype html>
 <!--
-  ATLAS HOME MANAGEMENT — INDEX V43
+  ATLAS HOME MANAGEMENT — INDEX V44
+  V44 adds equipment lifecycle planning: replacement cost, service life, estimated replacement timing/notes, and Create Replacement Project.
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
    V42 adds the Energy dashboard using UtilityAPI-synced bill/interval data and repairs the Maintenance home-card image.
    V41 fixes mobile dashboard card geometry: consistent image/text split, icon placement, title baseline, text wrapping, and chevron alignment.
@@ -7074,6 +7075,137 @@ function openKeyDetail(item) {
 }
 
 
+function parseEquipmentInstallDate(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  // Year-only entries are common for older equipment (for example "1999").
+  let match = text.match(/^(\d{4})$/);
+  if (match) {
+    return { date: new Date(Number(match[1]), 0, 1), precision: "year" };
+  }
+
+  // Month + year entries (for example "May 2023").
+  match = text.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (match) {
+    const parsed = new Date(`${match[1]} 1, ${match[2]}`);
+    if (!Number.isNaN(parsed.getTime())) return { date: parsed, precision: "month" };
+  }
+
+  // Fall back to normal date parsing for full dates stored/displayed by Sheets.
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) return { date: parsed, precision: "date" };
+
+  return null;
+}
+
+
+function equipmentLifecycle(item) {
+  const install = parseEquipmentInstallDate(item.installDate);
+  const life = Number(String(item.lifeExpectancyYears || "").replace(/[^0-9.\-]/g, ""));
+  const cost = Number(String(item.estimatedReplacementCost || "").replace(/[$,]/g, "").replace(/[^0-9.\-]/g, ""));
+
+  if (!install || !Number.isFinite(life) || life <= 0) {
+    return {
+      available: false,
+      replacementCostDisplay: item.estimatedReplacementCost || "",
+      lifeDisplay: item.lifeExpectancyYears || "",
+      expectedDisplay: "",
+      expectedIso: "",
+      note: "Add a valid install date and life expectancy to calculate the replacement window."
+    };
+  }
+
+  const expected = new Date(install.date.getTime());
+  expected.setFullYear(expected.getFullYear() + Math.round(life));
+
+  const now = new Date();
+  const yearsDelta = (expected.getTime() - now.getTime()) / (365.2425 * 24 * 60 * 60 * 1000);
+  const absYears = Math.abs(yearsDelta);
+
+  let expectedDisplay;
+  if (install.precision === "year") {
+    expectedDisplay = String(expected.getFullYear());
+  } else if (install.precision === "month") {
+    expectedDisplay = expected.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  } else {
+    expectedDisplay = expected.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  let note;
+  if (yearsDelta < -0.08) {
+    const yearsPast = Math.max(0, Math.round(absYears * 10) / 10);
+    note = `Past estimated service life by about ${yearsPast} year${yearsPast === 1 ? "" : "s"}. Condition and reliability should drive the actual replacement decision.`;
+  } else if (yearsDelta <= 1) {
+    note = "Estimated replacement window is within about 1 year. Consider budgeting/planning now.";
+  } else if (yearsDelta <= 3) {
+    note = `Estimated replacement window is approaching — about ${Math.round(yearsDelta * 10) / 10} years remaining.`;
+  } else {
+    note = `Estimated replacement is about ${Math.round(yearsDelta * 10) / 10} years away.`;
+  }
+
+  const iso = [
+    expected.getFullYear(),
+    String(expected.getMonth() + 1).padStart(2, "0"),
+    String(expected.getDate()).padStart(2, "0")
+  ].join("-");
+
+  const today = todayLocal();
+  const suggestedStartDate = iso < today ? today : iso;
+
+  return {
+    available: true,
+    replacementCostDisplay: Number.isFinite(cost) ? cost.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }) : (item.estimatedReplacementCost || ""),
+    lifeDisplay: item.lifeExpectancyYears ? `${item.lifeExpectancyYears} years` : "",
+    expectedDisplay,
+    expectedIso: iso,
+    suggestedStartDate,
+    note
+  };
+}
+
+
+async function createReplacementProject(item, lifecycle, button) {
+  if (!lifecycle || !lifecycle.available) return;
+
+  const originalText = button ? button.textContent : "";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Creating...";
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.set("action", "createReplacementProject");
+    params.set("equipmentName", item.equipment || "");
+    params.set("displayTitle", item.displayTitle || "");
+    params.set("equipmentId", item.id || "");
+    params.set("jin", item.jin || "");
+    params.set("installDate", item.installDate || "");
+    params.set("lifeExpectancyYears", item.lifeExpectancyYears || "");
+    params.set("replacementCost", item.estimatedReplacementCost || "");
+    params.set("expectedReplacement", lifecycle.expectedDisplay || "");
+    params.set("expectedReplacementIso", lifecycle.expectedIso || "");
+    params.set("startDate", lifecycle.suggestedStartDate || lifecycle.expectedIso || "");
+
+    const response = await atlasFetch(API_URL, { method: "POST", body: params });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || "Could not create replacement project.");
+
+    const project = result.project || {};
+    const idText = project.hpn || project.number || "new project";
+    alert(`Replacement project ${idText} created successfully.`);
+  } catch (error) {
+    alert(error && error.message ? error.message : "Could not create replacement project.");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
+}
+
+
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
@@ -7082,6 +7214,7 @@ function openEquipmentDetail(item) {
   // Maintenance logs historically use Equipment ID.
   // Fall back to JIN only if the Equipment ID is blank.
   const equipmentKey = item.id || item.jin || "";
+  const lifecycle = equipmentLifecycle(item);
 
   detailBody.innerHTML = `
 
@@ -7102,6 +7235,13 @@ function openEquipmentDetail(item) {
       ["Serial Number", item.serialNumber],
       ["Install Date", item.installDate]
     ])}
+
+    ${(item.estimatedReplacementCost || item.lifeExpectancyYears || item.installDate) ? section("Replacement Planning", [
+      ["Est Replacement Cost", lifecycle.replacementCostDisplay],
+      ["Life Expectancy", lifecycle.lifeDisplay],
+      ["Est Replacement", lifecycle.expectedDisplay],
+      ["Planning Note", lifecycle.note]
+    ]) : ""}
 
     ${section("Electrical", [
       ["Panel", item.panel],
@@ -7201,6 +7341,16 @@ function openEquipmentDetail(item) {
           ＋ Action Item
         </button>
 
+        <button
+          id="equipmentCreateReplacementProjectButton"
+          class="btn success-btn"
+          type="button"
+          ${lifecycle.available ? "" : "disabled"}
+          title="${lifecycle.available ? "Create a Home Projects entry from this lifecycle estimate" : "Install date and life expectancy are required"}"
+        >
+          ＋ Replacement Project
+        </button>
+
       </div>
 
     </div>
@@ -7240,6 +7390,9 @@ function openEquipmentDetail(item) {
 
   const addActionItemButton =
     document.getElementById("equipmentAddActionItemButton");
+
+  const createReplacementProjectButton =
+    document.getElementById("equipmentCreateReplacementProjectButton");
 
   historyButton.addEventListener("click", () => {
     showMaintenanceForEquipment(equipmentKey);
@@ -7282,6 +7435,12 @@ function openEquipmentDetail(item) {
     modal.classList.remove("show");
     openNewActionItem(equipmentKey);
   });
+
+  if (createReplacementProjectButton && lifecycle.available) {
+    createReplacementProjectButton.addEventListener("click", () => {
+      createReplacementProject(item, lifecycle, createReplacementProjectButton);
+    });
+  }
 
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
