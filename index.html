@@ -1,7 +1,6 @@
 <!doctype html>
 <!--
-  ATLAS HOME MANAGEMENT — INDEX V44
-  V44 adds equipment lifecycle planning: replacement cost, service life, estimated replacement timing/notes, and Create Replacement Project.
+  ATLAS MAINTAIN — INDEX V44
   V34 merges the Home Equipment / House Control hero, enlarges mobile navigation, and adds more representative space-inspired system imagery.
    V42 adds the Energy dashboard using UtilityAPI-synced bill/interval data and repairs the Maintenance home-card image.
    V41 fixes mobile dashboard card geometry: consistent image/text split, icon placement, title baseline, text wrapping, and chevron alignment.
@@ -53,7 +52,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Atlas">
 
-  <title>Atlas</title>
+  <title>Atlas Maintain</title>
 
   <style>
     :root {
@@ -3100,6 +3099,32 @@
 
 
     /* V42 — ENERGY DASHBOARD */
+
+    /* V44 Atlas Energy year-over-year analysis */
+    .energy-analysis-info,.energy-analysis-foot{font-size:12px;line-height:1.55;color:#647782;margin:7px 0 12px}
+    .energy-analysis-foot{margin:12px 3px}
+    .energy-controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+    .energy-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#50626c;flex:1 1 130px}
+    .energy-controls select{min-height:40px;padding:8px;border:1px solid #c9d8e1;border-radius:9px;background:#fff;color:#162b38;font-size:13px}
+    .energy-graph-panel{background:#fff;border:1px solid #dfe5ea;border-radius:16px;padding:15px;margin-top:9px}
+    .energy-analysis-summary{font-size:12px;color:#526c79;line-height:1.5;margin-bottom:11px}
+    .energy-analysis-summary strong{color:#162b38;font-size:15px}
+    .energy-analysis-chart{display:grid;gap:9px}
+    .energy-bar-row{display:grid;grid-template-columns:76px 1fr minmax(80px,auto);gap:9px;align-items:center;font-size:11px;color:#415563}
+    .energy-bar-label{font-weight:800;white-space:nowrap}
+    .energy-bar-track{height:17px;background:#e9eff2;border-radius:5px;overflow:hidden}
+    .energy-bar-fill{height:100%;background:linear-gradient(90deg,#217b94,#52b5bd);border-radius:5px;min-width:0}
+    .energy-bar-fill.estimated{background:repeating-linear-gradient(45deg,#b4a36c,#b4a36c 6px,#d2c391 6px,#d2c391 12px)}
+    .energy-bar-value{font-weight:780;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .energy-analysis-table{overflow-x:auto;margin-top:11px;border-radius:13px;border:1px solid #dfe5ea;background:#fff}
+    .energy-analysis-table table{border-collapse:collapse;width:100%;min-width:470px;font-size:12px}
+    .energy-analysis-table th,.energy-analysis-table td{padding:10px 9px;text-align:right;border-bottom:1px solid #e8eef0;white-space:nowrap}
+    .energy-analysis-table th{background:#ecf3f5;color:#41535e;font-size:11px}
+    .energy-analysis-table td:first-child,.energy-analysis-table th:first-child{text-align:left;font-weight:750}
+    .energy-analysis-table tbody tr:last-child td{border-bottom:0}
+    .energy-analysis-table .est{color:#856d30;font-weight:800}
+    .energy-analysis-table .missing{color:#8b9399}
+    .energy-analysis-table .up{color:#b04d3e}.energy-analysis-table .down{color:#24826b}
     .energy-shell{padding:16px 14px calc(94px + env(safe-area-inset-bottom));}
     .energy-hero{background:linear-gradient(135deg,#132d3d,#245b73);color:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 8px 24px rgba(15,23,42,.12);}
     .energy-hero-kicker{font:800 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:6px;}
@@ -3141,11 +3166,11 @@
   <div class="header">
     <div class="header-title-row">
       <div class="header-brand">
-        <div class="header-eyebrow">HOME MANAGEMENT</div>
-        <h1 id="appTitle">ATLAS</h1>
+        <div class="header-eyebrow">ATLAS HOME · MAINTENANCE & SYSTEMS</div>
+        <h1 id="appTitle">ATLAS MAINTAIN</h1>
         <div class="header-subtitle">Track, maintain, and manage everything in your home.</div>
         <div class="v36-meta-row" aria-label="App version and system status">
-          <span>V43.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
+          <span>V44.0</span><span>•</span><span>LOCAL DATA</span><span>•</span>
           <span class="v36-system-status"><i class="v36-system-dot"></i> SYSTEMS ONLINE</span>
         </div>
       </div>
@@ -3382,7 +3407,7 @@
           <span>Energy</span>
         </div>
         <div class="home-card-description">
-          Track electric and gas usage, bills, and recent UtilityAPI data.
+          Analyze electricity, gas, utility spending, and year-over-year trends.
         </div>
       </button>
 
@@ -3520,12 +3545,25 @@
     <div class="energy-shell">
       <div class="energy-hero">
         <div class="energy-hero-kicker">ATLAS · UTILITY MONITOR</div>
-        <div class="energy-hero-title">Home Energy</div>
+        <div class="energy-hero-title">Atlas Energy</div>
         <div class="energy-hero-sub">Electric and gas usage synchronized from UtilityAPI.</div>
       </div>
 
       <div id="energySummary" class="energy-grid">
         <div class="energy-empty">Loading energy data…</div>
+      </div>
+
+      <div class="energy-section energy-analysis">
+        <h3>Historical Energy Analysis</h3>
+        <p class="energy-analysis-info">Compare the same calendar month across years, and see monthly and annual trends. Usage comes from interval records; months without intervals can use prorated bills and are marked estimates.</p>
+        <div class="energy-controls">
+          <label>Utility <select id="energyAnalysisService"><option value="electric">Electricity</option><option value="gas">Natural gas</option></select></label>
+          <label>Measure <select id="energyAnalysisMetric"><option value="usage">Usage</option><option value="cost">Estimated cost</option></select></label>
+          <label>Month <select id="energyAnalysisMonth"><option value="all">All months</option><option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option></select></label>
+        </div>
+        <div class="energy-graph-panel"><div id="energyAnalysisSummary" class="energy-analysis-summary"></div><div id="energyAnalysisChart" class="energy-analysis-chart"></div></div>
+        <div id="energyAnalysisTable" class="energy-analysis-table"></div>
+        <div class="energy-analysis-foot">Bill amounts are apportioned by bill date range for calendar-month comparisons. Costs are estimates; taxes and tiered rates are not necessarily proportional to days. Incomplete months are identified. Gas units are never converted without a known conversion factor.</div>
       </div>
 
       <div class="energy-section">
@@ -4335,12 +4373,148 @@ function energyFmtDate(v) {
   const d = new Date(v);
   return isNaN(d) ? String(v) : d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
 }
+
+// V44: Calendar-month/YOY analytics. Read-only and does not modify stored utility rows.
+const energyAnalysisState={service:'electric',metric:'usage',month:'all'};
+const ENERGY_MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function energyAnalysisType(r){
+  const svc=energyService(r),unit=String(r.unit||'').toLowerCase();
+  return svc.includes('gas')||['ccf','therm','therms','mcf'].includes(unit)?'gas':
+    svc.includes('electric')||unit==='kwh'?'electric':null;
+}
+function energyAnalysisDay(s){
+  if(!s)return NaN;
+  const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m)return Date.UTC(+m[1],+m[2]-1,+m[3]);
+  const d=new Date(s);return isNaN(d)?NaN:Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
+}
+function energyAnalysisDate(r,field){
+  const raw=r[field+'Iso']||r[field]||'';
+  if(!raw)return NaN;
+  // ISO timestamps from the authenticated API preserve actual hourly/15-min intervals.
+  const d=Date.parse(raw);
+  return Number.isFinite(d)?d:energyAnalysisDay(raw);
+}
+function energyAnalysisMonthKey(ms){const d=new Date(ms);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');}
+function energyAnalysisUnit(r,service){
+  const u=String(r.unit||'').trim().toLowerCase();
+  if(service==='electric')return u==='kwh'?'kWh':null;
+  if(u==='ccf')return 'CCF';
+  if(u==='therm'||u==='therms')return 'therms';
+  if(u==='mcf')return 'MCF';
+  return null;
+}
+function energyAnalysisSlots(start,end,callback){
+  // End is exclusive, as with most utility interval feeds. A few same-day bills
+  // use an inclusive end date and are handled separately when identified.
+  if(!isFinite(start)||!isFinite(end)||end<=start)return;
+  let t=start,guard=0;
+  while(t<end&&guard++<240){
+    const d=new Date(t),edge=Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1);
+    const next=Math.min(end,edge),days=(next-t)/86400000;
+    callback(energyAnalysisMonthKey(t),days,(end-start)/86400000,t,next);
+    t=next;
+  }
+}
+function energyAnalysisRows(service){
+  const months=new Map();let unit=null;
+  const get=(k)=>{if(!months.has(k))months.set(k,{key:k,interval:0,intervalDays:0,billUsage:0,billDays:0,cost:0,costDays:0,units:new Set()});return months.get(k)};
+  // Interval records are the primary usage source, never added on top of bills.
+  const seenIntervals=new Set();
+  (allEnergyIntervals||[]).filter(r=>energyAnalysisType(r)===service).forEach(r=>{
+    const u=energyAnalysisUnit(r,service),v=energyNum(r,['usage','value']);
+    if(!u||v===null||v<0)return;
+    if(unit&&unit!==u)return; if(!unit)unit=u;
+    const start=energyAnalysisDate(r,'start'),end=energyAnalysisDate(r,'end');
+    const id=[r.meterUid||'',start,end,u].join('|');if(seenIntervals.has(id))return;seenIntervals.add(id);
+    energyAnalysisSlots(start,end,(k,days,total)=>{const x=get(k);x.interval+=v*days/total;x.intervalDays+=days;x.units.add(u)});
+  });
+  const seenBills=new Set();
+  (allEnergyBills||[]).filter(r=>energyAnalysisType(r)===service).forEach(r=>{
+    const start=energyAnalysisDate(r,'startDate'),end=energyAnalysisDate(r,'endDate');
+    const id=r.billUid||r.recordKey||[r.meterUid,start,end].join('|');
+    if(seenBills.has(id))return;seenBills.add(id);
+    const u=energyAnalysisUnit(r,service),usage=energyNum(r,['usage','value']);
+    const cost=energyNum(r,['totalCost','billTotalCost','cost']);
+    energyAnalysisSlots(start,end,(k,days,total)=>{
+      const x=get(k);
+      if(cost!==null){x.cost+=cost*days/total;x.costDays+=days}
+      if(u&&usage!==null&&usage>=0&&(!unit||unit===u)){
+        if(!unit)unit=u;
+        x.billUsage+=usage*days/total;x.billDays+=days;x.units.add(u);
+      }
+    });
+  });
+  const result=[...months.values()].sort((a,b)=>a.key.localeCompare(b.key));
+  result.forEach(x=>{
+    const [yr,mo]=x.key.split('-').map(Number),daysInMonth=new Date(Date.UTC(yr,mo,0)).getUTCDate();
+    x.year=yr;x.month=mo-1;x.daysInMonth=daysInMonth;
+    x.usage=x.intervalDays>0?x.interval:(x.billDays>0?x.billUsage:null);
+    x.usageSource=x.intervalDays>0?'interval':x.billDays>0?'bill-estimate':'none';
+    x.value=energyAnalysisState.metric==='cost'?(x.costDays>0?x.cost:null):x.usage;
+    x.source=energyAnalysisState.metric==='cost'?'bill-estimate':x.usageSource;
+    const coverage=energyAnalysisState.metric==='cost'?x.costDays:(x.intervalDays>0?x.intervalDays:x.billDays);
+    x.coverage=Math.min(100,100*coverage/daysInMonth);
+    // Interval duplicates/overlapping ranges can overestimate coverage; display cap only.
+    x.partial=x.coverage<95||x.year===new Date().getFullYear()&&x.month>=new Date().getMonth();
+  });
+  return {rows:result,unit:unit||(service==='electric'?'kWh':'gas units')};
+}
+function energyAnalysisValue(v,metric,unit){
+  return v==null?'—':(metric==='cost'?'$':'')+Number(v).toLocaleString(undefined,{maximumFractionDigits:metric==='cost'?2:1,minimumFractionDigits:metric==='cost'?2:0})+(metric==='cost'?'':' '+unit);
+}
+function energyAnalysisRender(){
+  const summary=document.getElementById('energyAnalysisSummary'),chart=document.getElementById('energyAnalysisChart'),table=document.getElementById('energyAnalysisTable');
+  if(!summary||!chart||!table)return;
+  const {service,metric,month}=energyAnalysisState;
+  const result=energyAnalysisRows(service),unit=result.unit;
+  let rows=result.rows.filter(r=>r.value!==null);
+  if(month!=='all')rows=rows.filter(r=>r.month===Number(month));
+  const title=month==='all'?'Monthly trend':ENERGY_MONTH_NAMES[+month]+' by year';
+  if(!rows.length){summary.innerHTML='<strong>'+title+'</strong> · No matching historical records';chart.innerHTML='<div class="energy-empty">No comparable '+(metric==='cost'?'bill costs':'usage')+' available.</div>';table.innerHTML='';return}
+  const last=rows[rows.length-1],prior=rows.length>1?rows[rows.length-2]:null;
+  const cap=rows.reduce((m,r)=>Math.max(m,r.value),0)||1;
+  const reliable=rows.filter(r=>!r.partial),latestComplete=reliable[reliable.length-1];
+  summary.innerHTML='<strong>'+title+'</strong> · '+rows.length+' recorded month'+(rows.length===1?'':'s')+' · '+(metric==='cost'?'Calendar-month bill allocation':'Measured intervals preferred')+'<br>Most recent complete month: '+(latestComplete?ENERGY_MONTH_NAMES[latestComplete.month]+' '+latestComplete.year+' ('+energyAnalysisValue(latestComplete.value,metric,unit)+')':'Not yet available');
+  const graphRows=rows.slice(-36);
+  chart.innerHTML=graphRows.map(r=>{
+    const label=ENERGY_MONTH_NAMES[r.month]+' '+String(r.year).slice(-2);
+    return '<div class="energy-bar-row"><span class="energy-bar-label">'+label+'</span><div class="energy-bar-track" title="'+r.coverage.toFixed(0)+'% approximate coverage"><div class="energy-bar-fill '+(r.source==='bill-estimate'?'estimated':'')+'" style="width:'+Math.max(0,100*r.value/cap)+'%"></div></div><span class="energy-bar-value">'+energyAnalysisValue(r.value,metric,unit)+(r.partial?' *':'')+'</span></div>';
+  }).join('');
+  const compare=rows.map((r,i)=>{
+    let prev=null;
+    if(month==='all')prev=result.rows.find(p=>p.year===r.year-1&&p.month===r.month&&p.value!==null);
+    else prev=result.rows.find(p=>p.year===r.year-1&&p.month===r.month&&p.value!==null);
+    const pct=prev&&!r.partial&&!prev.partial&&prev.value!==0?100*(r.value-prev.value)/Math.abs(prev.value):null;
+    return '<tr><td>'+ENERGY_MONTH_NAMES[r.month]+' '+r.year+'</td><td>'+energyAnalysisValue(r.value,metric,unit)+'</td><td>'+r.coverage.toFixed(0)+'%'+(r.partial?' *':'')+'</td><td>'+(r.source==='bill-estimate'?'<span class="est">Bill estimate</span>':'Intervals')+'</td><td class="'+(pct>0?'up':pct<0?'down':'')+'">'+(pct===null?'—':(pct>0?'+':'')+pct.toFixed(1)+'%')+'</td></tr>';
+  }).join('');
+  table.innerHTML='<table><thead><tr><th>Month</th><th>'+(metric==='cost'?'Est. cost':'Usage')+'</th><th>Coverage</th><th>Source</th><th>vs. prior year</th></tr></thead><tbody>'+compare+'</tbody></table>';
+  // Complete-year rollup, only years with all 12 complete months.
+  if(month==='all'){
+    const years=[...new Set(result.rows.map(r=>r.year))].sort((a,b)=>a-b);
+    const roll=years.map(y=>{
+      const ys=result.rows.filter(r=>r.year===y&&r.value!==null&&!r.partial);
+      return {year:y,n:ys.length,sum:ys.reduce((v,r)=>v+r.value,0)};
+    });
+    table.innerHTML+='<div style="padding:12px 10px;font-size:12px;color:#526c79"><b>Annual totals (only complete months)</b><div style="margin-top:7px">'+roll.map(y=>y.year+': '+(y.n===12?energyAnalysisValue(y.sum,metric,unit):y.n+'/12 complete months — annual total not comparable')).join(' · ')+'</div></div>';
+  }
+}
+function energyAnalysisInit(){
+  [['energyAnalysisService','service'],['energyAnalysisMetric','metric'],['energyAnalysisMonth','month']].forEach(([id,key])=>{
+    const el=document.getElementById(id);if(!el||el.dataset.atlasBound)return;
+    el.dataset.atlasBound='1';el.value=energyAnalysisState[key];
+    el.addEventListener('change',()=>{energyAnalysisState[key]=el.value;energyAnalysisRender()});
+  });
+}
+
 function renderEnergy() {
   const summary = document.getElementById("energySummary");
   const billsBox = document.getElementById("energyBillsList");
   const intervalsBox = document.getElementById("energyIntervalsList");
   if (!summary || !billsBox || !intervalsBox) return;
 
+  energyAnalysisInit();
+  energyAnalysisRender();
   const bills = Array.isArray(allEnergyBills) ? [...allEnergyBills] : [];
   const intervals = Array.isArray(allEnergyIntervals) ? [...allEnergyIntervals] : [];
 
@@ -4537,11 +4711,11 @@ function switchView(viewName) {
   troubleshootingView.classList.toggle("active", troubleshootingActive);
 
   const titles = {
-    home: "ATLAS",
+    home: "ATLAS MAINTAIN",
     calendar: "Calendar",
     equipment: "Equipment",
     maintenance: "Maintenance",
-    energy: "Energy",
+    energy: "Atlas Energy",
     actionItems: "Action Items",
     documents: "Documents",
     pm: "Preventive Maintenance",
@@ -4551,7 +4725,7 @@ function switchView(viewName) {
     troubleshooting: "Troubleshooting Guide"
   };
 
-  appTitle.textContent = titles[viewName] || "ATLAS";
+  appTitle.textContent = titles[viewName] || "ATLAS MAINTAIN";
   homeButton.style.display = homeActive ? "none" : "inline-block";
 
   if (calendarActive) renderCalendar();
@@ -7075,137 +7249,6 @@ function openKeyDetail(item) {
 }
 
 
-function parseEquipmentInstallDate(value) {
-  const text = String(value || "").trim();
-  if (!text) return null;
-
-  // Year-only entries are common for older equipment (for example "1999").
-  let match = text.match(/^(\d{4})$/);
-  if (match) {
-    return { date: new Date(Number(match[1]), 0, 1), precision: "year" };
-  }
-
-  // Month + year entries (for example "May 2023").
-  match = text.match(/^([A-Za-z]+)\s+(\d{4})$/);
-  if (match) {
-    const parsed = new Date(`${match[1]} 1, ${match[2]}`);
-    if (!Number.isNaN(parsed.getTime())) return { date: parsed, precision: "month" };
-  }
-
-  // Fall back to normal date parsing for full dates stored/displayed by Sheets.
-  const parsed = new Date(text);
-  if (!Number.isNaN(parsed.getTime())) return { date: parsed, precision: "date" };
-
-  return null;
-}
-
-
-function equipmentLifecycle(item) {
-  const install = parseEquipmentInstallDate(item.installDate);
-  const life = Number(String(item.lifeExpectancyYears || "").replace(/[^0-9.\-]/g, ""));
-  const cost = Number(String(item.estimatedReplacementCost || "").replace(/[$,]/g, "").replace(/[^0-9.\-]/g, ""));
-
-  if (!install || !Number.isFinite(life) || life <= 0) {
-    return {
-      available: false,
-      replacementCostDisplay: item.estimatedReplacementCost || "",
-      lifeDisplay: item.lifeExpectancyYears || "",
-      expectedDisplay: "",
-      expectedIso: "",
-      note: "Add a valid install date and life expectancy to calculate the replacement window."
-    };
-  }
-
-  const expected = new Date(install.date.getTime());
-  expected.setFullYear(expected.getFullYear() + Math.round(life));
-
-  const now = new Date();
-  const yearsDelta = (expected.getTime() - now.getTime()) / (365.2425 * 24 * 60 * 60 * 1000);
-  const absYears = Math.abs(yearsDelta);
-
-  let expectedDisplay;
-  if (install.precision === "year") {
-    expectedDisplay = String(expected.getFullYear());
-  } else if (install.precision === "month") {
-    expectedDisplay = expected.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-  } else {
-    expectedDisplay = expected.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  }
-
-  let note;
-  if (yearsDelta < -0.08) {
-    const yearsPast = Math.max(0, Math.round(absYears * 10) / 10);
-    note = `Past estimated service life by about ${yearsPast} year${yearsPast === 1 ? "" : "s"}. Condition and reliability should drive the actual replacement decision.`;
-  } else if (yearsDelta <= 1) {
-    note = "Estimated replacement window is within about 1 year. Consider budgeting/planning now.";
-  } else if (yearsDelta <= 3) {
-    note = `Estimated replacement window is approaching — about ${Math.round(yearsDelta * 10) / 10} years remaining.`;
-  } else {
-    note = `Estimated replacement is about ${Math.round(yearsDelta * 10) / 10} years away.`;
-  }
-
-  const iso = [
-    expected.getFullYear(),
-    String(expected.getMonth() + 1).padStart(2, "0"),
-    String(expected.getDate()).padStart(2, "0")
-  ].join("-");
-
-  const today = todayLocal();
-  const suggestedStartDate = iso < today ? today : iso;
-
-  return {
-    available: true,
-    replacementCostDisplay: Number.isFinite(cost) ? cost.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }) : (item.estimatedReplacementCost || ""),
-    lifeDisplay: item.lifeExpectancyYears ? `${item.lifeExpectancyYears} years` : "",
-    expectedDisplay,
-    expectedIso: iso,
-    suggestedStartDate,
-    note
-  };
-}
-
-
-async function createReplacementProject(item, lifecycle, button) {
-  if (!lifecycle || !lifecycle.available) return;
-
-  const originalText = button ? button.textContent : "";
-  if (button) {
-    button.disabled = true;
-    button.textContent = "Creating...";
-  }
-
-  try {
-    const params = new URLSearchParams();
-    params.set("action", "createReplacementProject");
-    params.set("equipmentName", item.equipment || "");
-    params.set("displayTitle", item.displayTitle || "");
-    params.set("equipmentId", item.id || "");
-    params.set("jin", item.jin || "");
-    params.set("installDate", item.installDate || "");
-    params.set("lifeExpectancyYears", item.lifeExpectancyYears || "");
-    params.set("replacementCost", item.estimatedReplacementCost || "");
-    params.set("expectedReplacement", lifecycle.expectedDisplay || "");
-    params.set("expectedReplacementIso", lifecycle.expectedIso || "");
-    params.set("startDate", lifecycle.suggestedStartDate || lifecycle.expectedIso || "");
-
-    const response = await atlasFetch(API_URL, { method: "POST", body: params });
-    const result = await response.json();
-    if (!result.success) throw new Error(result.error || "Could not create replacement project.");
-
-    const project = result.project || {};
-    const idText = project.hpn || project.number || "new project";
-    alert(`Replacement project ${idText} created successfully.`);
-  } catch (error) {
-    alert(error && error.message ? error.message : "Could not create replacement project.");
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = originalText;
-    }
-  }
-}
-
-
 function openEquipmentDetail(item) {
 
   modalTitle.textContent =
@@ -7214,7 +7257,6 @@ function openEquipmentDetail(item) {
   // Maintenance logs historically use Equipment ID.
   // Fall back to JIN only if the Equipment ID is blank.
   const equipmentKey = item.id || item.jin || "";
-  const lifecycle = equipmentLifecycle(item);
 
   detailBody.innerHTML = `
 
@@ -7235,13 +7277,6 @@ function openEquipmentDetail(item) {
       ["Serial Number", item.serialNumber],
       ["Install Date", item.installDate]
     ])}
-
-    ${(item.estimatedReplacementCost || item.lifeExpectancyYears || item.installDate) ? section("Replacement Planning", [
-      ["Est Replacement Cost", lifecycle.replacementCostDisplay],
-      ["Life Expectancy", lifecycle.lifeDisplay],
-      ["Est Replacement", lifecycle.expectedDisplay],
-      ["Planning Note", lifecycle.note]
-    ]) : ""}
 
     ${section("Electrical", [
       ["Panel", item.panel],
@@ -7341,16 +7376,6 @@ function openEquipmentDetail(item) {
           ＋ Action Item
         </button>
 
-        <button
-          id="equipmentCreateReplacementProjectButton"
-          class="btn success-btn"
-          type="button"
-          ${lifecycle.available ? "" : "disabled"}
-          title="${lifecycle.available ? "Create a Home Projects entry from this lifecycle estimate" : "Install date and life expectancy are required"}"
-        >
-          ＋ Replacement Project
-        </button>
-
       </div>
 
     </div>
@@ -7390,9 +7415,6 @@ function openEquipmentDetail(item) {
 
   const addActionItemButton =
     document.getElementById("equipmentAddActionItemButton");
-
-  const createReplacementProjectButton =
-    document.getElementById("equipmentCreateReplacementProjectButton");
 
   historyButton.addEventListener("click", () => {
     showMaintenanceForEquipment(equipmentKey);
@@ -7435,12 +7457,6 @@ function openEquipmentDetail(item) {
     modal.classList.remove("show");
     openNewActionItem(equipmentKey);
   });
-
-  if (createReplacementProjectButton && lifecycle.available) {
-    createReplacementProjectButton.addEventListener("click", () => {
-      createReplacementProject(item, lifecycle, createReplacementProjectButton);
-    });
-  }
 
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
